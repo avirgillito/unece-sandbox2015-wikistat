@@ -9,7 +9,6 @@ from datetime import timedelta
 
 # a convoluted way to import a sister file while execfiling this one (necessitated by using virtualized python)
 sys.path.append(os.path.dirname(inspect.getframeinfo(inspect.currentframe()).filename))
-from create_create_sql import create_create_sql
 import sqltools
 import date_convertor
 
@@ -28,8 +27,10 @@ def create_article_table(cur):
 def init_db(cur, start_date, end_date):
     drop_data_table(cur)
     drop_article_table(cur)
+    drop_project_table(cur)
     create_data_table(cur, start_date, end_date)
     create_article_table(cur)
+    create_project_table(cur)
     
     
 def drop_data_table(cur):
@@ -42,15 +43,16 @@ def drop_project_table(cur):
     drop_table(cur, "project")
    
 def drop_table(cur, table):
-    sql = "drop table %s" % table    
+    sql = "drop table if exists %s" % table    
     sqltools.execute_modifier(cur, sql)
 
 def insert_article(cur, article_name, article_id, proj_id):
-    sql = "insert into article (id, proj, name) values ( %s, %s, %s)" % (article_id, proj_id, article_name)  
+    sql = "insert into article (id, proj, name) values ( %s, %s, '%s')" % (article_id, proj_id, article_name)  
     sqltools.execute_modifier(cur, sql)
     
-def insert_project(cur, project_name, proj_id):
-    sql = "insert into project (id, proj, name) values ( %s, %s, %s)" % (article_id, proj_id, article_name)  
+def insert_project(cur, proj_name, proj_id):
+    sql = "insert into project (id, name) values ( %s, '%s')" % (proj_id, proj_name)
+    print sql
     sqltools.execute_modifier(cur, sql)
     
 
