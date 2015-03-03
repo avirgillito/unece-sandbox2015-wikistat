@@ -12,8 +12,10 @@ def close(conn, cur):
     cur.close()
     conn.close()
         
-def execute_modifier(cur, sql):
-    cur.execute(sql)
+def execute_modifier(cur, sql, param_tuple):
+    #print sql
+    #print param_tuple
+    cur.execute(sql, param_tuple)
     
 
     

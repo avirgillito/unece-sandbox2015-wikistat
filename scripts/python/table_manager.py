@@ -14,15 +14,15 @@ import date_convertor
 
 def create_data_table(cur, start_date, end_date):
     sql = create_create_sql(start_date, end_date)
-    sqltools.execute_modifier(cur, sql)
+    sqltools.execute_modifier(cur, sql, ())
 
 def create_project_table(cur):
     sql = "create table project (id int primary key, name text)"
-    sqltools.execute_modifier(cur, sql)
+    sqltools.execute_modifier(cur, sql, ())
     
 def create_article_table(cur):
     sql = "create table article (id int primary key, proj int, name text)"
-    sqltools.execute_modifier(cur, sql)
+    sqltools.execute_modifier(cur, sql, ())
     
 def init_db(cur, start_date, end_date):
     drop_data_table(cur)
@@ -43,17 +43,22 @@ def drop_project_table(cur):
     drop_table(cur, "project")
    
 def drop_table(cur, table):
-    sql = "drop table if exists %s" % table    
-    sqltools.execute_modifier(cur, sql)
+    # here the table is an SQL object and cannot be substituted by a placeholder in the execute statement - hence we construct it in advance
+    sql = "drop table if exists %s" % (table,)       
+    sqltools.execute_modifier(cur, sql, ())
 
 def insert_article(cur, article_name, article_id, proj_id):
-    sql = "insert into article (id, proj, name) values ( %s, %s, '%s')" % (article_id, proj_id, article_name)  
-    sqltools.execute_modifier(cur, sql)
+    #sql = "insert into article (id, proj, name) values ( %s, %s, '%s')"
+    sql = "insert into article (id, proj, name) values ( ?, ?, ?)"
+    param_tuple = (article_id, proj_id, article_name)      
+    sqltools.execute_modifier(cur, sql, param_tuple)
     
 def insert_project(cur, proj_name, proj_id):
-    sql = "insert into project (id, name) values ( %s, '%s')" % (proj_id, proj_name)
+    #sql = "insert into project (id, name) values ( %s, '%s')"
+    sql = "insert into project (id, name) values ( ?, ?)"
+    param_tuple = (proj_id, proj_name)
     print sql
-    sqltools.execute_modifier(cur, sql)
+    sqltools.execute_modifier(cur, sql, param_tuple)
     
 
 def insert_new_article(cur, line_number, visits):    
@@ -66,7 +71,7 @@ def insert_new_article(cur, line_number, visits):
     sql += ''.join([ "%s, " % (n, ) for d, n in visits])
     sql = sql[:-2]
     sql += ")"
-    sqltools.execute_modifier(cur, sql)
+    sqltools.execute_modifier(cur, sql, ())
     
 
 def create_create_sql(d1, d2):    

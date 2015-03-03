@@ -25,14 +25,21 @@ def populate_initial(dbpath, infile, start_date, end_date, current_date):
     table_manager.init_db(cur, start_date, end_date)
     
     #bin = bz2.BZ2File(infile , 'r')
-    bin = file(infile , 'r')
+    bin = file(infile , 'r')    
     
     projects = {}
     proj_id_reached = 0 
     line_number = 0
     while True:
-        line = bin.readline()
         line_number += 1
+        try:
+            line = bin.readline()
+            # all lines should be ascii url encoded - some malformed stuff is there however and needs to be filtered out
+            # some lines are recoverable since they are (wrongly) in utf-8 but trying to catch them while distinguishing from really broken entries is too painfull
+            line.decode('ascii')
+        except UnicodeDecodeError:
+            continue                      
+        # somewhat arbitrary
         if line == "":
             break
         if line[0] == "#":
