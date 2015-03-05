@@ -16,7 +16,7 @@ import date_convertor
 #    sqltools.execute_modifier(cur, sql, ())
 
 def create_hit_table(cur):
-    sql = "create table hit (art int, hour int, count int)"
+    sql = "create table hit (art int, hour int, hits int)"
     sqltools.execute_modifier(cur, sql, ())
     
 def create_project_table(cur):
@@ -66,7 +66,7 @@ def insert_project(cur, proj_name, proj_id):
 def insert_new_hits(cur, article_id, visits):    
     # a keys entry and a values entry - in even and odd positions respectively        
     for v in visits:
-        sqltools.execute_modifier(cur, "insert into hit (art, hour, count) values (?, ?, ?)", (article_id, v[0], v[1]))
+        sqltools.execute_modifier(cur, "insert into hit (art, hour, hits) values (?, ?, ?)", (article_id, v[0], v[1]))
     
     #sql = "insert into all_data (id, "
     #sql += ''.join([ "%s, " % (date_convertor.date2col(d), ) for d, n in visits])
