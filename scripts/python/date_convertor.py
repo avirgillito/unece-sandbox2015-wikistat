@@ -5,24 +5,36 @@ import re
   token is date and time visit string
   d is the beginning start date to offset against
 '''
-def convert_to_day_count(token, d):
-    offset = ord(token[0]) - ord('A')
-    z = re.findall('\d+', token)
-    zint = [ int(x) for x in z]
-    return (d + datetime.timedelta(offset), sum(zint))
-    
-
+def convert_to_hourly_count(token, offset):
+    # add the hours corresponding to the day count to the offset    
+    offset = offset + char2offset(token[0]) * 24    
+    res = []
+    # If data are missing for a whole day an asterisk + question is showing for that day,
+    if token[1] == '*':
+        for i in range(0,23):
+            return [(offset + i, -1)]
+            
+    noquest = re.sub("\?", "-1", token[1:])
+    all = re.findall("\w\-*\d+", noquest)    
+    return [(offset + char2offset(a[0]), int(a[1:])) for a in all]
 '''
   gets a line with the codes for all the days in the month
-  returns a list with tuples (day, count)
+  returns a list with tuples (day, count).
+  offset is the offset in days since epoch
 '''    
-def convert_all(all_dates, d):
+def convert_all(all_dates, offset):    
     toks = all_dates.split(",")
     # the last token is just empty
-    return [convert_to_day_count(t, d) for t in toks[:-1]]
+    res = []
+    for t in toks[:-1]:
+        res += convert_to_hourly_count(t, offset)
+    return res
     
 '''
-    converts a date to a column name for the big data database    
+    Assuming UTC. Don't use time.mktime as it assumes its input is in the localtime!
 '''
-def date2col(d):
-    return "d" + d.strftime('%Y_%m_%d')
+def date2timestamp(d):
+    return (mktime(d) - epoch)/3600    
+
+def char2offset(c):
+    return (ord(c) - ord('A'))

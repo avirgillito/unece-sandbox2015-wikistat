@@ -11,7 +11,7 @@ def commit_changes(conn):
 def close(conn, cur):
     cur.close()
     conn.close()
-        
+    
 def execute_modifier(cur, sql, param_tuple):
     #print sql
     #print param_tuple
