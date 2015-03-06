@@ -23,20 +23,22 @@ epoch = datetime.datetime(1970,1,1)
     project ids are generated on the fly - expected to be few
     an article id is the line number on which the entry appears
 '''
-def populate_initial(dbpath_art, dbpath_hits, infile, current_date):
+def populate_initial(dbpath, infile, current_date):
     # We work with the naive datetime implementation which, like utc has no daylight saving time.
     # It still has leap years.
     
     offset_at_first_day = (current_date - epoch).days * 24
+    (conn, cur) = sqltools.connect(dbpath)
+    #(conn_art, cur_art) = sqltools.connect(dbpath_art)
+    #(conn_hits, cur_hits) = sqltools.connect(dbpath_hits)
     
-    (conn_art, cur_art) = sqltools.connect(dbpath_art)
-    (conn_hits, cur_hits) = sqltools.connect(dbpath_hits)
-    table_manager.init_db(cur_art)
-    table_manager.init_db(cur_hits)
+    #table_manager.init_db(cur_art)
+    #table_manager.init_db(cur_hits)
+    table_manager.init_db(cur)
     
     #reader = codecs.getreader("utf-8")
-    #bin = bz2.BZ2File(infile , 'r')
-    bin = file(infile , 'r')    
+    bin = bz2.BZ2File(infile , 'r')
+    #bin = file(infile , 'r')    
     
     #bin = reader(bz2.BZ2File(infile,'r'))
     #bin = reader(open(infile,'r'))
@@ -73,13 +75,18 @@ def populate_initial(dbpath_art, dbpath_hits, infile, current_date):
         hits = date_convertor.convert_all(detailed, offset_at_first_day)
         
         if newproject:
-            table_manager.insert_project(cur_art, proj, proj_id)            
-        table_manager.insert_article(cur_art, name, line_number, proj_id)
-        table_manager.insert_new_hits(cur_hits, line_number, hits)
-    sqltools.commit_changes(conn_art)
-    sqltools.commit_changes(conn_hits)
-    sqltools.close(conn_art, cur_art)
-    sqltools.close(conn_hits, cur_hits)
+            #table_manager.insert_project(cur_art, proj, proj_id)            
+            table_manager.insert_project(cur, proj, proj_id)            
+        #table_manager.insert_article(cur_art, name, line_number, proj_id)
+        table_manager.insert_article(cur, name, line_number, proj_id)
+        #table_manager.insert_new_hits(cur_hits, line_number, hits)
+        table_manager.insert_new_hits(cur, line_number, hits)
+    #sqltools.commit_changes(conn_art)
+    #sqltools.commit_changes(conn_hits)
+    sqltools.commit_changes(conn)
+    #sqltools.close(conn_art, cur_art)
+    #sqltools.close(conn_hits, cur_hits)
+    sqltools.close(conn, cur)
         
         
         
