@@ -1,0 +1,3 @@
+# modify the line below and paste it in the python console
+
+execfile("C:\\Users\\kovacbo\\wikipedia\\wiki_counts_test\\scripts\\python\\runall.py")
