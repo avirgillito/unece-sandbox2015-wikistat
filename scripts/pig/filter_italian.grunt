@@ -1,0 +1,4 @@
+alldata = LOAD '$input_file' USING PigStorage(' ') AS (proj, art, total, hourly);
+italian = FILTER alldata BY(proj == 'it.[ ]*);
+italian_with_dates = FOREACH italian GENERATE $yearmonth AS yearmonth, *;  
+STORE italian_with_dates INTO '$output_dir';
