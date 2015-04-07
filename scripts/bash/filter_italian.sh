@@ -78,7 +78,7 @@ for i in "${infiles[@]}"
 do
   yearmonth=${i##*pagecounts-}
   yearmonth=${yearmonth:0:7}
-  pig -f $pigdir/filter_italian.grunt -param input_file=${indir}/$i -param output_dir=$tempdir/$yearmonth -param yearmonth=$yearmonth
+  pig -f $pigdir/filter_italian.grunt -param input_file=$i -param output_dir=$tempdir/$yearmonth -param yearmonth=$yearmonth
 done
 
 # move results into output directory
@@ -87,10 +87,15 @@ for d in "${tempdirs[@]}"
 do
   if [ ${d:0:1} != "." ] 
   then
-    outfiles=($(hadoop fs -ls ${tempdir}/$d | sed -n '1!p' | awk '{ print $NF }'))
+    outfiles=($(hadoop fs -ls $d | sed -n '1!p' | awk '{ print $NF }'))
     for o in "${outfiles[@]}"
     do
-      hadoop fs -mv $tempdir/$d/$o $outdir/"$d"-"$o"
+      fname=$(basename $o)
+      mnth=$(basename $(dirname $o))
+      newname="$outdir"/"$mnth"-"$fname"
+      echo $o
+      echo $newname
+      hadoop fs -mv "$o" "$newname"
     done 
   fi
 done 
@@ -99,4 +104,4 @@ done
 
 # delete temporary directory
 
-hadoop fs -rm $tempdir
+hadoop fs -rm -R $tempdir
