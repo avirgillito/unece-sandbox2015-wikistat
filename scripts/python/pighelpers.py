@@ -21,10 +21,10 @@ def combineBags(allbags):
 
 @outputSchema("totalhits:int")
 def getTotalHits(monthly_hits):
-  return sum([int(x[0]) for x in monthly_hits])
-
-
-
+  try:
+    return sum([int(x[0]) for x in monthly_hits])
+  except TypeError, e:
+    return 0
 
 '''
   token is date and time visit string
