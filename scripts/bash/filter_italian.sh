@@ -81,6 +81,8 @@ do
   pig -f $pigdir/filter_italian.grunt -param input_file=$i -param output_dir=$tempdir/$yearmonth -param yearmonth=$yearmonth
 done
 
+echo "Finished processing, now moving ..."
+
 # move results into output directory
 tempdirs=($(hadoop fs -ls ${tempdir} | sed -n '1!p' | awk '{ print $NF }'))
 for d in "${tempdirs[@]}"
