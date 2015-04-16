@@ -1,0 +1,9 @@
+Register '$python_helper' using jython as hourize;
+alldata = LOAD '$input_dir' USING PigStorage() AS (proj:chararray, art:chararray, total:int, B:{T:(hour:int, cnt:int)});
+with_ids = FOREACH alldata GENERATE hourize.getId(), proj, art, total, B;
+store with_ids into '$output_dir'; 
+D = LOAD '$output_dir' using PigStorage() as (id:chararray, rest: chararray);
+G = GROUP D BY id;
+F = FOREACH G GENERATE group, COUNT(D) as cnt;
+H = FILTER F by cnt > 1;
+store H into '$collision_dir';

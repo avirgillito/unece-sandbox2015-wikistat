@@ -1,6 +1,6 @@
 Register '$python_helper' using jython as hourize;
-grpd = LOAD '$input_dir' USING PigStorage() as (T: (projout:chararray, artout:chararray), B:{T2:(yearmonth:chararray, projin:chararray, artin:chararray, monthcount:int, B2:{T3:(hour:int, count:int)})});
+grpd = LOAD '$input_dir' USING PigStorage() as (T: (projout:chararray, AOUT:(artout:chararray)), B:{T2:(yearmonth:chararray, projin:chararray, AIN:(artin:chararray), monthcount:int, B2:{T3:(hour:int, count:int)})});
 
-Y = FOREACH grpd GENERATE T.projout, T.artout, hourize.getTotalHits(B.monthcount), hourize.combineBags(B.B2);
+Y = FOREACH grpd GENERATE T.projout, T.AOUT.artout, hourize.getTotalHits(B.monthcount), hourize.combineBags(B.B2);
 
 STORE Y INTO '$output_dir';

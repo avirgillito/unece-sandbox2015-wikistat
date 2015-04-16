@@ -1,12 +1,32 @@
 import datetime
 import re
 import sys
-
+import socket
+#import hashlib
+import random
 
 epoch = datetime.datetime(1970,1,1)
 
+count = 0
+
+@outputSchema("id:int")
+def getId():
+  #return int(hashlib.md5(str(proj) + str(art)).hexdigest(), 16)
+  return random.randint(1,100000000000000)
+  #return random.randint(1,2)
+
+@outputSchema("id:int")
+def _getid(servers, server, localid):
+ return servers[0]
+
+@outputSchema("t:tuple(server:chararray, id:int)")
+def _getid_per_server():
+  global count
+  host = socket.gethostname()
+  count += 1
+  return (host, count) 
+
 @outputSchema("y:bag{t:tuple(hour:int, hits:int)}")
-#@outputSchema("y:bag{t:tuple(tok:chararray)}")
 def parseHours(yearmonth, hrs):
   [year, month] = [int(t) for t in (re.split("-",yearmonth))]
   current_date = datetime.datetime(year, month, 1)
@@ -17,7 +37,7 @@ def parseHours(yearmonth, hrs):
 
 @outputSchema("y:bag{t:tuple(hour:int, hits:int)}")
 def combineBags(allbags):
-  return [t for bag in allbags for x in bag for t in x]
+  return sorted([t for bag in allbags for x in bag for t in x], key = lambda x: x[0])
 
 @outputSchema("totalhits:int")
 def getTotalHits(monthly_hits):

@@ -1,5 +1,5 @@
 Register '$python_helper' using jython as hourize;
 unprocessed = LOAD '$input_dir' USING PigStorage() AS (ym:chararray, proj, art, total:int, hrs:chararray);
-hourized = FOREACH unprocessed GENERATE ym, proj, art, total, hourize.parseHours(ym,hrs) as hourcounts;
+hourized = FOREACH unprocessed GENERATE ym, proj, CONCAT('(', CONCAT(art, ')')) as art, total, hourize.parseHours(ym,hrs) as hourcounts;
 grouped = GROUP hourized by (proj, art);
 STORE grouped INTO '$output_dir';
