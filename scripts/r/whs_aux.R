@@ -2,10 +2,11 @@
 # Constants
 DATA_FOLDER <- "./data/"
 RAW_DATA_FOLDER <- paste(DATA_FOLDER, "raw/", sep="")
-DATA_LOG_FILE <- "data_log.log"
+DATA_LOG_FILE <- "data.log"
 
-URL_UNESCO_WHS <- "http://whc.unesco.org/en/list/xls/"
-FILE_NAME_UNESCO_WHS <- "whc-sites.xls"
+WHS_UNESCO_URL <- "http://whc.unesco.org/en/list/xml/"
+WHS_RAW_FILE <- "whc-sites.xml"
+WHS_FILE <- "whc.RData"
 
 API_URL_WP <- "http://en.wikipedia.org/w/api.php"
 API_URL_WPM <- "http://wikipedia-miner.cms.waikato.ac.nz/services/"
@@ -18,29 +19,41 @@ CONTINENTS <- c("Africa", "the_Americas", "Northern_and_Central_Asia",
 library(jsonlite)
 library(curl)
 library(logging)
+library(XML)
 
 # Set up data logger
-addHandler(writeToFile, logger="data.log", file=paste(DATA_FOLDER, DATA_LOG_FILE, sep=""))
+addHandler(writeToFile, logger="data.log", file=paste0(DATA_FOLDER, DATA_LOG_FILE))
 
-# This function downloads the Excel file with the official list of worl heritage 
+# This function downloads the raw file with the official list of worl heritage 
 # sites published by UNESCO and produces a clean data file.
 downloadWHS <- function(overwrite = FALSE) {
-        whsFileName <- paste(RAW_DATA_FOLDER, FILE_NAME_UNESCO_WHS, sep="")
+        whsRawFileName <- paste0(RAW_DATA_FOLDER, WHS_RAW_FILE)
+        whsFileName <- paste0(DATA_FOLDER, WHS_FILE)
         
-        # Download file
-        if (!file.exists(whsFileName)) {
-                download.file(URL_UNESCO_WHS, whsFileName)
-                loginfo("WHS Excel file downloaded.", logger="data.log")
-        } else if (overwrite) {
-                download.file(URL_UNESCO_WHS, whsFileName)
-                loginfo("WHS Excel file downloaded.", logger="data.log")
-                logwarn("WHS Excel file overwritten.", logger="data.log")
+        # If raw file does not exist or is to be overwritten then download and convert it
+        rawFileExists <- file.exists(whsRawFileName)
+        if (!rawFileExists || overwrite) {
+                
+                # Download file
+                download.file(WHS_UNESCO_URL, whsRawFileName, mode = "wb")
+                loginfo(paste("WHS raw file downloaded from", WHS_UNESCO_URL), logger="data.log")   
+                if (rawFileExists) logwarn("WHS raw file overwritten.", logger="data.log")
+                
+                # Convert it to data frame
+                whs <- xmlToDataFrame(whsRawFileName)
+                loginfo("WHS raw file converted to data frame", logger="data.log")
+                
+                # Save data frame to disk
+                fileExists <- file.exists(whsFileName)
+                save(whs, file=whsFileName)
+                loginfo("WHS data frame saved to disk")
+                if (fileExists) logwarn("WHS raw file overwritten.", logger="data.log")
+                
         }
         
         
-        
-        # Get the list only from Excel file and save it to disk
-        
+        # Return data frame
+        whs
 }
 
 # This function gets the available translations of the article passed as 
