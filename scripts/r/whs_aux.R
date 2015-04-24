@@ -24,36 +24,60 @@ library(XML)
 # Set up data logger
 addHandler(writeToFile, logger="data.log", file=paste0(DATA_FOLDER, DATA_LOG_FILE))
 
+# This function checks if the data folders do not exist, in which case it 
+# creates them.
+createDataFolders <- function() {
+        if (!file.exists(DATA_FOLDER)) {
+                dir.create(DATA_FOLDER)
+                loginfo(paste0("Data folder '", DATA_FOLDER, "' created."), 
+                               logger="data.log")
+        }
+        if (!file.exists(RAW_DATA_FOLDER)) {
+                dir.create(RAW_DATA_FOLDER)
+                loginfo(paste0("Raw data folder '", RAW_DATA_FOLDER, "' created."), 
+                               logger="data.log")
+        }
+}
+
 # This function downloads the raw file with the official list of worl heritage 
 # sites published by UNESCO and produces a clean data file.
 downloadWHS <- function(overwrite = FALSE) {
         whsRawFileName <- paste0(RAW_DATA_FOLDER, WHS_RAW_FILE)
         whsFileName <- paste0(DATA_FOLDER, WHS_FILE)
         
-        # If raw file does not exist or is to be overwritten then download and convert it
+        # If folders does not exist then create them
+        createDataFolders()
+        
+        # If raw file does not exist or is to be overwritten then download it
         rawFileExists <- file.exists(whsRawFileName)
         if (!rawFileExists || overwrite) {
-                
-                # Download file
                 download.file(WHS_UNESCO_URL, whsRawFileName, mode = "wb")
-                loginfo(paste("WHS raw file downloaded from", WHS_UNESCO_URL), logger="data.log")   
-                if (rawFileExists) logwarn("WHS raw file overwritten.", logger="data.log")
-                
-                # Convert it to data frame
-                whs <- xmlToDataFrame(whsRawFileName)
-                loginfo("WHS raw file converted to data frame", logger="data.log")
-                
-                # Save data frame to disk
-                fileExists <- file.exists(whsFileName)
-                save(whs, file=whsFileName)
-                loginfo("WHS data frame saved to disk")
-                if (fileExists) logwarn("WHS raw file overwritten.", logger="data.log")
-                
+                newFile <- TRUE
+                message <- paste0("WHS raw file '", whsRawFileName, 
+                                  "' downloaded from '", WHS_UNESCO_URL, "'.")
+                loginfo(message, logger="data.log")   
+                if (rawFileExists) logwarn("WHS raw file overwritten.", 
+                                           logger="data.log")
         }
         
-        
-        # Return data frame
-        whs
+        # If new raw file downloaded or converted file non-existent then do it
+        fileExists <- file.exists(whsFileName)
+        if (!fileExists || newFile) {
+                
+                # Convert raw file to data frame
+                whs <- xmlToDataFrame(whsRawFileName)
+                message <- paste0("WHS raw file '", whsRawFileName, 
+                                  "' converted to data frame.")
+                loginfo(message, logger="data.log")
+                
+                # Save data frame to disk
+                save(whs, file=whsFileName)
+                message <- paste0("WHS data frame '", whsFileName, 
+                                  "' saved to disk.")
+                loginfo(message, logger="data.log")
+                if (fileExists) logwarn("WHS data frame file overwritten.", 
+                                        logger="data.log")
+        }
 }
 
 # This function gets the available translations of the article passed as 
