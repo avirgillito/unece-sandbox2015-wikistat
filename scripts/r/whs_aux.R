@@ -7,6 +7,7 @@ DATA_LOG_FILE <- "data.log"
 WHS_UNESCO_URL <- "http://whc.unesco.org/en/list/xml/"
 WHS_RAW_FILE <- "whc-sites.xml"
 WHS_FILE <- "whc.RData"
+WHS_ARTICLES_FILE <- "whsArticles.RData"
 
 API_URL_WP <- "http://en.wikipedia.org/w/api.php"
 API_URL_WPM <- "http://wikipedia-miner.cms.waikato.ac.nz/services/"
@@ -102,6 +103,9 @@ getWHS <- function(continent){
                       article,
                       "&prop=revisions&rvprop=content")
         data <- fromJSON(url)
+        message <- paste0("Downloaded list of WHS articles for '", 
+                          continent, "'.")
+        loginfo(message, logger="data.log")
         
         # Get wiki markup of article
         wikiMarkup <- data$query$pages[[1]]$revisions[1, 3]
@@ -118,7 +122,7 @@ getWHS <- function(continent){
         lines <- gsub('\\{\\{sort\\|[^\\|]+\\|', "", lines)
         lines <- gsub('\\}\\}', "", lines)
         
-        # gsub does not escape properly the square brakets, so we have to replace them
+        # gsub does not escape properly the square brakets, so replace them
         lines <- gsub("\\[", "<", lines)
         lines <- gsub("\\]", ">", lines)
         
@@ -140,6 +144,24 @@ getWHS <- function(continent){
         
         # Return list of sites with articles associated
         articles
+}
+
+#  This function gets the lists of articles in the language passed as parameter 
+# for the world heritage sites in all continents in the world.
+getWhsAllArticles <- function(lang="en") {
+        # Get English articles for all continents
+        articles <- lapply(CONTINENTS, FUN=function(x) getWhsArticles(x))
+        whsArticles <- do.call("c", articles)
+        
+        # Convert articles to desired language
+        tmp <- lapply(whsArticles, FUN=function(x) )
+        
+        # Save list of articles to disk
+        whsArticlesFileName <- paste0(DATA_FOLDER, WHS_ARTICLES_FILE)
+        save(whsArticles, file=whsArticlesFileName)
+        message <- paste0("WHS articles list '", whsArticlesFileName, 
+                          "' saved to disk.")
+        loginfo(message, logger="data.log")
 }
 
 
