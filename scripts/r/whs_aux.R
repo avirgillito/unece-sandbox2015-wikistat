@@ -85,6 +85,25 @@ downloadWHS <- function(overwrite = FALSE) {
 # parameter
 getWikipediaTranslations <- function(article) {
 
+# This function returns the markup text of a wikipedia article.
+getWikiMarkup <- function(article) {
+        # Replace spaces for underscores
+        articleName <- gsub(" ", "_", article)
+        
+        # Download article
+        url <- paste0(API_URL_WP,
+                      "?format=json&action=query&titles=",
+                      articleName,
+                      "&prop=revisions&rvprop=content")
+        data <- fromJSON(url)
+        
+        # Get wiki markup of article
+        wikiMarkup <- data$query$pages[[1]]$revisions[1, 3]
+        
+        # Return wiki markup of article
+        wikiMarkup
+}
+
 # This function returns TRUE if the wikiMarkup redirects to another wiki page.
 isRedirect <- function(wikiMarkup) {
         # Check if redirect text is present
@@ -124,22 +143,17 @@ getRedirect <- function(wikiMarkup) {
         lang
 }
 
-# This function gets the list of world heritage sites for the continent passed 
-# as parameter
-getWHS <- function(continent){
-        # Download wikipedia article with list of sites for continent
+# This function gets the list of the English wikipedia articles for each world 
+# heritage site for the continent passed as parameter
+getWhsArticles <- function(continent){
+        # Get markup text of wikipedia article with list of sites for continent
         article <- paste0("List_of_World_Heritage_Sites_in_", continent)
-        url <- paste0(API_URL_WP,
-                      "?format=json&action=query&titles=",
-                      article,
-                      "&prop=revisions&rvprop=content")
-        data <- fromJSON(url)
+        wikiMarkup <- getWikiMarkup(article)
+        
+        # Enter info in log
         message <- paste0("Downloaded list of WHS articles for '", 
                           continent, "'.")
         loginfo(message, logger="data.log")
-        
-        # Get wiki markup of article
-        wikiMarkup <- data$query$pages[[1]]$revisions[1, 3]
         
         # Convert lines of markup into a vector
         lines <- strsplit(wikiMarkup, split="\n")[[1]]
