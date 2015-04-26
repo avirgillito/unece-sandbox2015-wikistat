@@ -81,10 +81,6 @@ downloadWHS <- function(overwrite = FALSE) {
         }
 }
 
-# This function gets the available translations of the article passed as 
-# parameter
-getWikipediaTranslations <- function(article) {
-
 # This function returns the markup text of a wikipedia article.
 getWikiMarkup <- function(article) {
         # Replace spaces for underscores
@@ -134,13 +130,49 @@ getRedirect <- function(wikiMarkup) {
         # Return article name
         article
 }
+
+# This function gets the available translations of the English version article 
+# passed as parameter. If lang parameter is empty string then the list of all 
+# translations is returned.
+getArticleTranslation <- function(article, lang="") {
+        # Get wiki markup text of article to check if it is redirect
+        articleWikiMarkup <- getWikiMarkup(article)
+        
+        # If wiki page is redirected then get reference
+        if (isRedirect(articleWikiMarkup)) {
+                articleName <- getRedirect(articleWikiMarkup)
+        } else {
+                articleName <- article
+        }
+        
+        # Replace spaces for %20
+        articleName <- gsub(" ", "%20", articleName)
+        
+        # Query Wikipedia Miner for translations
         url <- paste0(API_URL_WPM,
                       "exploreArticle?title=", 
-                      article, "&translations=true&responseFormat=json")
+                      articleName, "&translations=true&responseFormat=json")
         data <- fromJSON(url)
-        lang <- data$translations$text
-        names(lang) <- data$translations$lang
-        lang
+        trans <- data$translations$text
+        names(trans) <- data$translations$lang
+        
+        # Return translation requested or all of them
+        if (lang == "" || lang == "en") {
+                trans
+        } else {
+                trans[lang]
+        }
+}
+
+# This function gets a vector of articles and returns the vector of articles in 
+# the language passed as parameter.
+# This function is vectorised.
+translateArticlesList <- function(articles, lang="en") {
+        trans <- articles
+        for (i in 1:length(articles)) {
+                trans[i] <- getArticleTranslation(articles[i], lang)
+        }
+        trans
 }
 
 # This function gets the list of the English wikipedia articles for each world 
