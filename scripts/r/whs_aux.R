@@ -84,6 +84,37 @@ downloadWHS <- function(overwrite = FALSE) {
 # This function gets the available translations of the article passed as 
 # parameter
 getWikipediaTranslations <- function(article) {
+
+# This function returns TRUE if the wikiMarkup redirects to another wiki page.
+isRedirect <- function(wikiMarkup) {
+        # Check if redirect text is present
+        redirectLine <- grep('#REDIRECT', wikiMarkup)
+        
+        # Return result
+        if (length(redirectLine) == 0) {
+                return(FALSE)
+        } else {
+                return(TRUE)
+        }
+}
+
+# This function returns the name of the article to which the wikiMarkup directs.
+getRedirect <- function(wikiMarkup) {
+        # Get line with redirect text
+        redirectLine <- grep('#REDIRECT', wikiMarkup, value=TRUE)
+        
+        # gsub does not escape properly the square brakets, so replace them
+        redirectLine <- gsub("\\[", "<", redirectLine)
+        redirectLine <- gsub("\\]", ">", redirectLine)
+        
+        # Get article to which it redirects
+        m <- gregexpr("<<[^>]+>>", redirectLine)
+        article <- regmatches(redirectLine, m)
+        article <- gsub("<<([^>]+)>>", "\\1", article)
+        
+        # Return article name
+        article
+}
         url <- paste0(API_URL_WPM,
                       "exploreArticle?title=", 
                       article, "&translations=true&responseFormat=json")
