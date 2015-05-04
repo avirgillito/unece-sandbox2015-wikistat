@@ -252,5 +252,34 @@ getWhsAllArticles <- function(lang="en") {
         loginfo(message, logger="data.log")
 }
 
+downloadWhsArticles <- function(overwrite = FALSE) {
+        whsArticlesFileName <- paste(DATA_FOLDER, WHS_ARTICLES_FILE, sep="/")
+        
+        # If folders does not exist then create them
+        createDataFolders()
+        
+        # If raw file does not exist or is to be overwritten then download it
+        fileExists <- file.exists(whsArticlesFileName)
+        if (!fileExists || overwrite) {
+                
+                # Get English articles for all continents
+                articles <- lapply(CONTINENTS, FUN=function(x) getWhsArticles(x))
+                whsArticles <- do.call("c", articles)
+                
+                # Save list of articles to disk
+                save(whsArticles, file=whsArticlesFileName)
+                message <- paste0("WHS articles list '", whsArticlesFileName, 
+                                  "' saved to disk.")
+                loginfo(message, logger="data.log")   
+                if (fileExists) logwarn("WHS articles list overwritten.", 
+                                        logger="data.log")
+        }
+}
 
-
+loadWhsArticles <- function() {
+        whsArticlesFileName <- paste(DATA_FOLDER, WHS_ARTICLES_FILE, sep="/")
+        load(whsArticlesFileName)
+        
+        # Return articles list
+        whsArticles
+}
