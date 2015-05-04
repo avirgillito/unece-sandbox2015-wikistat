@@ -1,3 +1,4 @@
 source("./scripts/r/whs_aux.R")
 
-whsData <- downloadWHS()
+downloadWHS(overwrite=FALSE)
+whsData <- loadWHS()

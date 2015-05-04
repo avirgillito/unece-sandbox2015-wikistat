@@ -1,7 +1,7 @@
 
 # Constants
-DATA_FOLDER <- "./data/"
-RAW_DATA_FOLDER <- paste(DATA_FOLDER, "raw/", sep="")
+DATA_FOLDER <- "./data"
+RAW_DATA_FOLDER <- paste(DATA_FOLDER, "raw", sep="/")
 DATA_LOG_FILE <- "data.log"
 
 WHS_UNESCO_URL <- "http://whc.unesco.org/en/list/xml/"
@@ -23,7 +23,8 @@ library(logging)
 library(XML)
 
 # Set up data logger
-addHandler(writeToFile, logger="data.log", file=paste0(DATA_FOLDER, DATA_LOG_FILE))
+addHandler(writeToFile, logger="data.log", 
+           file=paste(DATA_FOLDER, DATA_LOG_FILE, sep="/"))
 
 # This function checks if the data folders do not exist, in which case it 
 # creates them.
@@ -43,8 +44,8 @@ createDataFolders <- function() {
 # This function downloads the raw file with the official list of worl heritage 
 # sites published by UNESCO and produces a clean data file.
 downloadWHS <- function(overwrite = FALSE) {
-        whsRawFileName <- paste0(RAW_DATA_FOLDER, WHS_RAW_FILE)
-        whsFileName <- paste0(DATA_FOLDER, WHS_FILE)
+        whsRawFileName <- paste(RAW_DATA_FOLDER, WHS_RAW_FILE, sep="/")
+        whsFileName <- paste(DATA_FOLDER, WHS_FILE, sep="/")
         
         # If folders does not exist then create them
         createDataFolders()
@@ -59,6 +60,8 @@ downloadWHS <- function(overwrite = FALSE) {
                 loginfo(message, logger="data.log")   
                 if (rawFileExists) logwarn("WHS raw file overwritten.", 
                                            logger="data.log")
+        } else {
+                newFile <- FALSE
         }
         
         # If new raw file downloaded or converted file non-existent then do it
@@ -79,6 +82,14 @@ downloadWHS <- function(overwrite = FALSE) {
                 if (fileExists) logwarn("WHS data frame file overwritten.", 
                                         logger="data.log")
         }
+}
+
+loadWHS <- function() {
+        whsFileName <- paste(DATA_FOLDER, WHS_FILE, sep="/")
+        load(whsFileName)
+        
+        # Return data frame
+        whs
 }
 
 # This function returns the markup text of a wikipedia article.
@@ -234,7 +245,7 @@ getWhsAllArticles <- function(lang="en") {
         tmp <- lapply(whsArticles, FUN=function(x) )
         
         # Save list of articles to disk
-        whsArticlesFileName <- paste0(DATA_FOLDER, WHS_ARTICLES_FILE)
+        whsArticlesFileName <- paste(DATA_FOLDER, WHS_ARTICLES_FILE, sep="/")
         save(whsArticles, file=whsArticlesFileName)
         message <- paste0("WHS articles list '", whsArticlesFileName, 
                           "' saved to disk.")
