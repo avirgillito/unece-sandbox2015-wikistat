@@ -23,8 +23,9 @@ total_hours = offset_at_last_hour - offset_at_first_hour + 1
 total_days = total_hours/24
 all_dates = [first_day + datetime.timedelta(t) for t in range(total_days)]
 all_months = sorted(list(set([datetime.datetime(d.year, d.month, 1) for d in all_dates]))) 
+all_hours = [first_hour + datetime.timedelta(hours=t) for t in range(total_hours)]
 
-
+formatted_hours = [d.strftime("%Y-%m-%d:%H") for d in all_hours]
 formatted_dates = [d.strftime("%Y-%m-%d") for d in all_dates]
 formatted_months = [d.strftime("%Y-%m") for d in all_months]
 printed_header = False
@@ -53,7 +54,7 @@ for line in sys.stdin:
   total = toks[3]
   counts = toks[4]
 
-  full_counts_hours = [-1 for t in range(total_hours)]
+  full_counts_hours = [0 for t in range(total_hours)]
   
   cmd = "normalized=["+counts[1:-1] + "]"
   exec(cmd) 
@@ -65,6 +66,9 @@ for line in sys.stdin:
  
 
   if aggr == "hour":
+    if not printed_header:
+      print '%s\t%s\t%s\t%s' % ("hour","hour", "hour", str(formatted_hours))
+      printed_header = True
     print '%s\t%s\t%s\t%s' % (id,proj, art, str(full_counts_hours))
     continue
   
