@@ -302,3 +302,11 @@ loadWhsArticles <- function() {
         # Return articles list
         whsArticles
 }
+
+# This function returns from a vector 'alternatives' of strings passed as 
+# parameter, the one closest to 'text'.
+getClosest <- function(text, alternatives) {
+        d <- adist(text, alternatives)
+        alternatives[d == min(d)][1]
+}
+
