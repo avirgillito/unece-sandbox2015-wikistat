@@ -92,6 +92,25 @@ loadWHS <- function() {
         whs
 }
 
+# This function downloads json file and then passes it to the corresponding 
+# function in jsonlite instead of passing the url. It seems that 
+# jsonlite::fromJSON has problems downloading file when there is a proxy.
+fromJSON <- function(url) {
+        tempFile <- paste0(DATA_FOLDER, "/temp_file.json")
+        
+        # Download json to temporary file
+        download.file(url, tempFile, quiet=TRUE)
+        
+        # Read json file
+        json <- jsonlite::fromJSON(tempFile)
+        
+        # Delete temporary json file
+        file.remove(tempFile)
+        
+        # Return json data
+        json
+}
+
 # This function returns the markup text of a wikipedia article.
 getWikiMarkup <- function(article) {
         # Replace spaces for underscores
