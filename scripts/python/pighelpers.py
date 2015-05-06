@@ -15,6 +15,18 @@ def getId():
   return random.randint(1,100000000000000)
   #return random.randint(1,2)
 
+@outputSchema("y:bag{t:tuple(id:chararray, hour:int, hits:int)}")
+def convert_to_norm(id, hours):
+  if not hours:
+    return []
+
+  return [(id, h[0], h[1]) for h in hours]
+  #res = []
+  #for h in hours:
+  #  res += [(id, hours[0], hours[1])]
+  #return res
+
+
 @outputSchema("id:int")
 def _getid(servers, server, localid):
  return servers[0]
