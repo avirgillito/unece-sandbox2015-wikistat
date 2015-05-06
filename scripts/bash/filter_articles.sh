@@ -78,7 +78,7 @@ mapper=$(dirname $(cd "$( dirname "$0" )" && pwd))/python/filter_mapper.py
 # pyhton filter reducer
 reducer=$(dirname $(cd "$( dirname "$0" )" && pwd))/python/filter_reducer.py
 
-echo ${aggregation}
-
 # real work
-hadoop jar /usr/lib/hadoop-mapreduce/hadoop-*streaming*.jar -file ${mapper} -file ${artfile} -mapper ${mapper} -file ${reducer} -reducer ${reducer} -input ${indir} -output ${outdir} -cmdenv WIKI_PROJ=${proj} -cmdenv WIKI_AGGR=${aggregation}
+cmd="hadoop jar /usr/lib/hadoop-mapreduce/hadoop-*streaming*.jar -file ${mapper} -file ${artfile} -mapper ${mapper} -file ${reducer} -reducer ${reducer} -input ${indir} -output ${outdir} -cmdenv WIKI_PROJ=${proj} -cmdenv WIKI_AGGR=${aggregation} -cmdenv ART_FILE=$(basename ${artfile})"
+#echo $cmd
+$cmd
