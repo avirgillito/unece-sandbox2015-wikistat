@@ -2,10 +2,19 @@
 import sys
 import os
 
-lines = open('tst.txt','r').readlines()
+wiki=str(os.environ["WIKI_PROJ"]).strip()
+articles=str(os.environ["ART_FILE"]).strip()
+
+#lines = open('tst.txt','r').readlines()
+lines = open(articles,'r').readlines()
+
 articles_list = [x.strip() for x in lines]
 
 articles = dict(zip(articles_list, [1 for t in articles_list]))
+get_everything=False
+
+if len(articles_list) == 0:
+  get_everything = True
 
 #print'%s\t%s' % (str(articles), 1)
 
@@ -20,7 +29,6 @@ articles = dict(zip(articles_list, [1 for t in articles_list]))
 #  print'%s\t%s' % (f, 1)
 
 
-wiki=str(os.environ["WIKI_PROJ"]).strip()
 
 #print'%s\t%s' % (wiki, 1)
 
@@ -35,6 +43,9 @@ for line in sys.stdin:
   #print line
   #continue
 
+  if get_everything:
+    print line
+    continue
 
   toks = line.split()
   try:

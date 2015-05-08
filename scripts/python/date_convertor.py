@@ -1,6 +1,11 @@
 import datetime
 import re
 
+
+epoch = datetime.datetime(1970,1,1)
+
+
+
 '''
   token is date and time visit string
   d is the beginning start date to offset against
