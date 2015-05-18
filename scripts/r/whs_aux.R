@@ -145,6 +145,9 @@ isRedirect <- function(wikiMarkup) {
 
 # This function returns the name of the article to which the wikiMarkup directs.
 getRedirect <- function(wikiMarkup) {
+        # Split text in lines
+        wikiMarkup <- strsplit(wikiMarkup, "\\n")[[1]]
+        
         # Get line with redirect text
         redirectLine <- grep('#REDIRECT', wikiMarkup, value=TRUE)
         
@@ -156,6 +159,9 @@ getRedirect <- function(wikiMarkup) {
         m <- gregexpr("<<[^>]+>>", redirectLine)
         article <- regmatches(redirectLine, m)
         article <- gsub("<<([^>]+)>>", "\\1", article)
+        
+        # If redirect includes reference to section then remove it
+        if (grepl("#", article)) article <- gsub("(.+)#.*", "\\1", article)
         
         # Return article name
         article
