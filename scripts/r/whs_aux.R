@@ -271,6 +271,61 @@ getWhsAllArticles <- function(lang="en") {
         loginfo(message, logger="data.log")
 }
 
+# Alternative function to get WHS wikipedia articles using CatScan
+getWhsArticles <- function() {
+        # Get all articles in category 'World Heritage Sites by continent'
+        data <- catScan(c("World Heritage Sites by continent",
+                          "World Heritage Sites in the United Kingdom",
+                          "World Heritage Sites in the Republic of Ireland",
+                          "World Heritage Sites in Catalonia"), 
+                        combination="union",
+                        depth=2)
+        
+        # Filter list of articles
+        #data <- data[!grepl("List_of_", data$title), ]
+        #data <- data[!grepl("Lists_of_", data$title), ]
+        #data <- data[!grepl("Principles_", data$title), ]
+        #data <- data[!grepl("Tourism_", data$title), ]
+        
+        # Get WHS id_number for each article
+        data$id_number <- as.numeric(NA)
+        for (i in 1:length(data$title)) {
+                if (is.na(data$id_number)) {
+                        wmd <- getWikiMarkup(data$title[i])
+                        if (isRedirect(wmd)) wmd <- getWikiMarkup(getRedirect(wmd))
+                        if (is.null(wmd)) {
+                                stop(paste("Could not get wiki markup for article index", i))
+                        }
+                        if (grepl("Infobox World Heritage Site", wmd)) {
+                                m <- regexec("[' '|\t]*\\|[' '|\t]*ID[' '|\t]*=[' '|\t]*([0-9]+)[a-z]*", wmd)
+                                data$id_number[i] <- as.numeric(regmatches(wmd, m)[[1]][2])
+                        }
+                        else if (grepl("designation1[' '|\t]*=[' '|\t]*WHS", wmd) 
+                                 || grepl("designation1[' '|\t]*=[' '|\t]*World Heritage Site", wmd)) {
+                                m <- regexec("designation1_number[' '|\t]*=[' '|\t]*[^' ']*[' ']*([0-9]+)[a-z]*\\]", wmd)
+                                data$id_number[i] <- as.numeric(regmatches(wmd, m)[[1]][2])
+                        }
+                        else if (grepl("designation2[' '|\t]*=[' '|\t]*WHS", wmd) 
+                                 || grepl("designation2[' '|\t]*=[' '|\t]*World Heritage Site", wmd)) {
+                                m <- regexec("designation2_number[' '|\t]*=[' '|\t]*[^' ']*[' ']*([0-9]+)[a-z]*\\]", wmd)
+                                data$id_number[i] <- as.numeric(regmatches(wmd, m)[[1]][2])
+                        }
+                        else if (grepl("whs_number[' '|\t]*=[' '|\t]*[0-9]+", wmd)) {
+                                m <- regexec("whs_number[' '|\t]*=[' '|\t]*([0-9]+)", wmd)
+                                data$id_number[i] <- as.numeric(regmatches(wmd, m)[[1]][2])
+                        }
+                }
+        }
+        
+        whs$article_id <- NA
+        for (i in 1:nrow(data)) {
+                whs$article_id[whs$id_number == data$id_number[i]] <- data$id[i]
+        }
+
+        missing <- whs[is.na(whs$article_id), c("id_number", "date_inscribed", "criteria_txt", "category","site", "states", "region", "location")]
+        
+}
+
 downloadWhsArticles <- function(overwrite = FALSE) {
         whsArticlesFileName <- paste(DATA_FOLDER, WHS_ARTICLES_FILE, sep="/")
         

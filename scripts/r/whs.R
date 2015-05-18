@@ -1,4 +1,5 @@
 source("./scripts/r/whs_aux.R")
+source("./scripts/r/catscan.R")
 
 # Get list of WHS
 downloadWHS(overwrite=FALSE)
