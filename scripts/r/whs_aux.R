@@ -289,16 +289,6 @@ getWhsArticlesFromCategories <- function() {
                         combination="union",
                         depth=2)
         
-        # Get WHS id number for each article
-        data$id_number <- as.numeric(NA)
-        for (i in 1:length(data$title)) {
-                if (is.na(data$id_number)) {
-                        wmd <- getWikiMarkup(data$title[i])
-                        if (isRedirect(wmd)) wikiMarkup <- getWikiMarkup(getRedirect(wmd))
-                        data$id_number[i] <- getWhsIdNumber(wmd)
-                }
-        }
-        
         # Return data frame with list of articles
         data
 }

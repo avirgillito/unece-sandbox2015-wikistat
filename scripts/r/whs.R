@@ -1,13 +1,43 @@
 source("./scripts/r/whs_aux.R")
-source("./scripts/r/catscan.R")
+
 
 # Get list of WHS
 downloadWHS(overwrite=FALSE)
 whsData <- loadWHS()
 
 # Get list of English wikipedia articles associated to WHS
+## Extraction of articles based on categorisation as WHS
+whsArticles <- getWhsArticlesFromCategories()
+
+## Extraction of articles based on articles with list of WHS
 downloadWhsArticles(overwrite=FALSE)
 whsArticles <- loadWhsArticles()
+
+# Get WHS id number for each article
+wmd <- getWikiMarkup(whsArticles$title)
+
+data$id_number <- as.numeric(NA)
+for (i in 1:length(data$title)) {
+        if (is.na(data$id_number)) {
+                wmd <- getWikiMarkup(data$title[i])
+                if (isRedirect(wmd)) wikiMarkup <- getWikiMarkup(getRedirect(wmd))
+                data$id_number[i] <- getWhsIdNumber(wmd)
+        }
+}
+
+
+
+
+# Atribution of at least one article to each WHS
+whsData$article_id <- NA
+for (i in 1:nrow(whsArticles)) {
+        whs$article_id[whs$id_number == whsArticles$id_number[i]] <- whsArticles$id[i]
+}
+
+# Identify WHS without any article associated
+missing <- whs[is.na(whs$article_id), c("id_number", "date_inscribed", "criteria_txt", "category","site", "states", "region", "location")]
+
+
 
 # Save list of articles in text file for extraction of page views time-series
 artFile <- file("data/articles.txt", open="w", encoding="UTF-8")
