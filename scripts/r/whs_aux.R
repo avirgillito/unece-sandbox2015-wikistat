@@ -4,6 +4,7 @@ source("./scripts/r/catscan.R")
 # Constants
 DATA_FOLDER <- "./data"
 RAW_DATA_FOLDER <- paste(DATA_FOLDER, "raw", sep="/")
+WIKI_MARKUP_FOLDER <- paste(DATA_FOLDER, "wikimarkup", sep="/")
 DATA_LOG_FILE <- "data.log"
 
 WHS_UNESCO_URL <- "http://whc.unesco.org/en/list/xml/"
@@ -40,6 +41,11 @@ createDataFolders <- function() {
                 dir.create(RAW_DATA_FOLDER)
                 loginfo(paste0("Raw data folder '", RAW_DATA_FOLDER, "' created."), 
                                logger="data.log")
+        }
+        if (!file.exists(WIKI_MARKUP_FOLDER)) {
+                dir.create(WIKI_MARKUP_FOLDER)
+                loginfo(paste0("Wiki markup data folder '", WIKI_MARKUP_FOLDER, "' created."), 
+                        logger="data.log")
         }
 }
 
@@ -94,27 +100,8 @@ loadWHS <- function() {
         whs
 }
 
-# This function downloads json file and then passes it to the corresponding 
-# function in jsonlite instead of passing the url. It seems that 
-# jsonlite::fromJSON has problems downloading file when there is a proxy.
-fromJSON <- function(url) {
-        tempFile <- paste0(DATA_FOLDER, "/temp_file.json")
-        
-        # Download json to temporary file
-        download.file(url, tempFile, quiet=TRUE)
-        
-        # Read json file
-        json <- jsonlite::fromJSON(tempFile)
-        
-        # Delete temporary json file
-        file.remove(tempFile)
-        
-        # Return json data
-        json
-}
-
 # This function returns the markup text of a wikipedia article.
-getWikiMarkup <- function(article) {
+getWikiMarkup <- function(article, refresh=FALSE) {
         # Vectorised function
         if (length(article) > 1) {
                 wikiMarkup <- sapply(article, FUN=getWikiMarkup)
@@ -123,15 +110,21 @@ getWikiMarkup <- function(article) {
                 # Replace spaces for underscores
                 articleName <- gsub(" ", "_", article)
                 
-                # Download article
-                url <- paste0(API_URL_WP,
-                              "?format=json&action=query&titles=",
-                              articleName,
-                              "&prop=revisions&rvprop=content")
-                data <- fromJSON(url)
+                # If wiki markup was never downloaded then do it
+                fileName <- paste0(WIKI_MARKUP_FOLDER, "/", article, ".json")
+                if (!file.exists(fileName) || refresh) {
+                        url <- paste0(API_URL_WP,
+                                      "?format=json&action=query&titles=",
+                                      articleName,
+                                      "&prop=revisions&rvprop=content")
+                        download.file(url, fileName, quiet=TRUE)
+                }
+                
+                # Read json file
+                json <- jsonlite::fromJSON(fileName)
                 
                 # Get wiki markup of article
-                wikiMarkup <- data$query$pages[[1]]$revisions[1, 3]
+                wikiMarkup <- json$query$pages[[1]]$revisions[1, 3]
         }
         
         # Return wiki markup of article
