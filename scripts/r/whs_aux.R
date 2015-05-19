@@ -115,21 +115,27 @@ fromJSON <- function(url) {
 
 # This function returns the markup text of a wikipedia article.
 getWikiMarkup <- function(article) {
-        # Replace spaces for underscores
-        articleName <- gsub(" ", "_", article)
-        
-        # Download article
-        url <- paste0(API_URL_WP,
-                      "?format=json&action=query&titles=",
-                      articleName,
-                      "&prop=revisions&rvprop=content")
-        data <- fromJSON(url)
-        
-        # Get wiki markup of article
-        wikiMarkup <- data$query$pages[[1]]$revisions[1, 3]
+        # Vectorised function
+        if (length(article) > 1) {
+                wikiMarkup <- sapply(article, FUN=getWikiMarkup)
+                names(wikiMarkup) <- NULL
+        } else {
+                # Replace spaces for underscores
+                articleName <- gsub(" ", "_", article)
+                
+                # Download article
+                url <- paste0(API_URL_WP,
+                              "?format=json&action=query&titles=",
+                              articleName,
+                              "&prop=revisions&rvprop=content")
+                data <- fromJSON(url)
+                
+                # Get wiki markup of article
+                wikiMarkup <- data$query$pages[[1]]$revisions[1, 3]
+        }
         
         # Return wiki markup of article
-        wikiMarkup
+        return(wikiMarkup)
 }
 
 # This function returns TRUE if the wikiMarkup redirects to another wiki page.
