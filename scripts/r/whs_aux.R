@@ -315,7 +315,7 @@ getWhsArticlesFromCategories <- function() {
 getWhsIdNumber <- function(wikiMarkup) {
         # Vectorised function
         if (length(wikiMarkup) > 1) {
-                result <- sapply(wikiMarkup, FUN=function(x) getWhsIdNumber(x))
+                result <- sapply(wikiMarkup, FUN=getWhsIdNumber)
                 names(result) <- NULL
         }
         
@@ -344,6 +344,7 @@ getWhsIdNumber <- function(wikiMarkup) {
                 m <- regexec("whs_number[' '|\t]*=[' '|\t]*([0-9]+)", wikiMarkup)
                 result <- as.numeric(regmatches(wikiMarkup, m)[[1]][2])
         }
+        else result <- NA
         
         # Return result
         return(result)
