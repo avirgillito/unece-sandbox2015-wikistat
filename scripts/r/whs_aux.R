@@ -1,3 +1,5 @@
+# External code used
+source("./scripts/r/catscan.R")
 
 # Constants
 DATA_FOLDER <- "./data"
@@ -259,10 +261,10 @@ getWhsArticles <- function(continent){
         articles
 }
 
-#  This function gets the lists of articles in the language passed as parameter 
+# This function gets the lists of articles in the language passed as parameter 
 # for the world heritage sites in all continents in the world.
-getWhsAllArticles <- function(lang="en") {
-        # Get English articles for all continents
+getWhsArticlesFromLists <- function() {
+        # Get articles for all continents
         articles <- lapply(CONTINENTS, FUN=function(x) getWhsArticles(x))
         whsArticles <- do.call("c", articles)
         
@@ -277,8 +279,9 @@ getWhsAllArticles <- function(lang="en") {
         loginfo(message, logger="data.log")
 }
 
-# Alternative function to get WHS wikipedia articles using CatScan
-getWhsArticles <- function() {
+# This function returns a data frame with a list of WHS articles from the 
+# English wikipedia, based on their categorisation as WHS.
+getWhsArticlesFromCategories <- function() {
         # Get all articles in category 'World Heritage Sites by continent'
         data <- catScan(c("World Heritage Sites by continent",
                           "World Heritage Sites in the United Kingdom",
@@ -287,49 +290,57 @@ getWhsArticles <- function() {
                         combination="union",
                         depth=2)
         
-        # Filter list of articles
-        #data <- data[!grepl("List_of_", data$title), ]
-        #data <- data[!grepl("Lists_of_", data$title), ]
-        #data <- data[!grepl("Principles_", data$title), ]
-        #data <- data[!grepl("Tourism_", data$title), ]
-        
-        # Get WHS id_number for each article
+        # Get WHS id number for each article
         data$id_number <- as.numeric(NA)
         for (i in 1:length(data$title)) {
                 if (is.na(data$id_number)) {
                         wmd <- getWikiMarkup(data$title[i])
-                        if (isRedirect(wmd)) wmd <- getWikiMarkup(getRedirect(wmd))
-                        if (is.null(wmd)) {
-                                stop(paste("Could not get wiki markup for article index", i))
-                        }
-                        if (grepl("Infobox World Heritage Site", wmd)) {
-                                m <- regexec("[' '|\t]*\\|[' '|\t]*ID[' '|\t]*=[' '|\t]*([0-9]+)[a-z]*", wmd)
-                                data$id_number[i] <- as.numeric(regmatches(wmd, m)[[1]][2])
-                        }
-                        else if (grepl("designation1[' '|\t]*=[' '|\t]*WHS", wmd) 
-                                 || grepl("designation1[' '|\t]*=[' '|\t]*World Heritage Site", wmd)) {
-                                m <- regexec("designation1_number[' '|\t]*=[' '|\t]*[^' ']*[' ']*([0-9]+)[a-z]*\\]", wmd)
-                                data$id_number[i] <- as.numeric(regmatches(wmd, m)[[1]][2])
-                        }
-                        else if (grepl("designation2[' '|\t]*=[' '|\t]*WHS", wmd) 
-                                 || grepl("designation2[' '|\t]*=[' '|\t]*World Heritage Site", wmd)) {
-                                m <- regexec("designation2_number[' '|\t]*=[' '|\t]*[^' ']*[' ']*([0-9]+)[a-z]*\\]", wmd)
-                                data$id_number[i] <- as.numeric(regmatches(wmd, m)[[1]][2])
-                        }
-                        else if (grepl("whs_number[' '|\t]*=[' '|\t]*[0-9]+", wmd)) {
-                                m <- regexec("whs_number[' '|\t]*=[' '|\t]*([0-9]+)", wmd)
-                                data$id_number[i] <- as.numeric(regmatches(wmd, m)[[1]][2])
-                        }
+                        if (isRedirect(wmd)) wikiMarkup <- getWikiMarkup(getRedirect(wmd))
+                        data$id_number[i] <- getWhsIdNumber(wmd)
                 }
         }
         
-        whs$article_id <- NA
-        for (i in 1:nrow(data)) {
-                whs$article_id[whs$id_number == data$id_number[i]] <- data$id[i]
-        }
+        # Return data frame with list of articles
+        data
+}
 
-        missing <- whs[is.na(whs$article_id), c("id_number", "date_inscribed", "criteria_txt", "category","site", "states", "region", "location")]
+# This function gets the WHS id number for an article based on the presence of 
+# an appropriate InfoBox in wiki markup code of the article.
+getWhsIdNumber <- function(wikiMarkup) {
+        # Vectorised function
+        if (length(wikiMarkup) > 1) {
+                result <- sapply(wikiMarkup, FUN=function(x) getWhsIdNumber(x))
+                names(result) <- NULL
+        }
         
+        # Check validity of parameter
+        else if (is.null(wikiMarkup)) 
+                stop("WikiMarkup of WHS article is empty.")
+        else if (isRedirect(wikiMarkup))
+                stop("WikiMarkup of WHS article is a redirect.")
+        
+        # Get WHS id number from wiki markup code
+        else if (grepl("Infobox World Heritage Site", wikiMarkup)) {
+                m <- regexec("[' '|\t]*\\|[' '|\t]*ID[' '|\t]*=[' '|\t]*([0-9]+)[a-z]*", wikiMarkup)
+                result <- as.numeric(regmatches(wikiMarkup, m)[[1]][2])
+        }
+        else if (grepl("designation1[' '|\t]*=[' '|\t]*WHS", wikiMarkup) 
+                 || grepl("designation1[' '|\t]*=[' '|\t]*World Heritage Site", wikiMarkup)) {
+                m <- regexec("designation1_number[' '|\t]*=[' '|\t]*[^' ']*[' ']*([0-9]+)[a-z]*\\]", wikiMarkup)
+                result <- as.numeric(regmatches(wikiMarkup, m)[[1]][2])
+        }
+        else if (grepl("designation2[' '|\t]*=[' '|\t]*WHS", wikiMarkup) 
+                 || grepl("designation2[' '|\t]*=[' '|\t]*World Heritage Site", wikiMarkup)) {
+                m <- regexec("designation2_number[' '|\t]*=[' '|\t]*[^' ']*[' ']*([0-9]+)[a-z]*\\]", wikiMarkup)
+                result <- as.numeric(regmatches(wikiMarkup, m)[[1]][2])
+        }
+        else if (grepl("whs_number[' '|\t]*=[' '|\t]*[0-9]+", wikiMarkup)) {
+                m <- regexec("whs_number[' '|\t]*=[' '|\t]*([0-9]+)", wikiMarkup)
+                result <- as.numeric(regmatches(wikiMarkup, m)[[1]][2])
+        }
+        
+        # Return result
+        return(result)
 }
 
 downloadWhsArticles <- function(overwrite = FALSE) {
