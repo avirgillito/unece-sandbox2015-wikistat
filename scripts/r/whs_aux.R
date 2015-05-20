@@ -110,14 +110,26 @@ getWikiMarkup <- function(article, refresh=FALSE) {
                 # Replace spaces for underscores
                 articleName <- gsub(" ", "_", article)
                 
-                # If wiki markup was never downloaded then do it
+                # Compose file name of stored wiki markup
                 fileName <- paste0(WIKI_MARKUP_FOLDER, "/", article, ".json")
+                
+                # If wiki markup was never downloaded then do it
                 if (!file.exists(fileName) || refresh) {
                         url <- paste0(API_URL_WP,
                                       "?format=json&action=query&titles=",
                                       articleName,
                                       "&prop=revisions&rvprop=content")
-                        download.file(url, fileName, quiet=TRUE)
+                        
+                        # Create file name in the original encoding, because on
+                        # Windows the external download tool does not store the 
+                        # file with the name in the utf-8 encoding.
+                        fileName.enc <- enc2native(fileName)
+                        
+                        # Download wiki markup
+                        download.file(url, fileName.enc, quiet=TRUE)
+                        
+                        # Change file name from original encoding
+                        file.rename(fileName.enc, fileName)
                 }
                 
                 # Read json file
