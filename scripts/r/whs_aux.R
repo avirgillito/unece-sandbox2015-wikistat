@@ -316,33 +316,35 @@ getWhsIdNumber <- function(wikiMarkup) {
                 result <- sapply(wikiMarkup, FUN=getWhsIdNumber)
                 names(result) <- NULL
         }
-        
-        # Check validity of parameter
-        else if (is.null(wikiMarkup)) 
-                stop("WikiMarkup of WHS article is empty.")
-        else if (isRedirect(wikiMarkup))
-                stop("WikiMarkup of WHS article is a redirect.")
-        
-        # Get WHS id number from wiki markup code
-        else if (grepl("Infobox World Heritage Site", wikiMarkup)) {
-                m <- regexec("[' '|\t]*\\|[' '|\t]*ID[' '|\t]*=[' '|\t]*([0-9]+)[a-z]*", wikiMarkup)
-                result <- as.numeric(regmatches(wikiMarkup, m)[[1]][2])
+        else {
+                
+                # Check validity of parameter
+                if (is.null(wikiMarkup)) 
+                        stop("WikiMarkup of WHS article is empty.")
+                if (isRedirect(wikiMarkup))
+                        wikiMarkup <- getWikiMarkup(getRedirect(wikiMarkup))
+                
+                # Get WHS id number from wiki markup code
+                if (grepl("Infobox World Heritage Site", wikiMarkup)) {
+                        m <- regexec("[' '|\t]*\\|[' '|\t]*ID[' '|\t]*=[' '|\t]*([0-9]+)[a-z]*", wikiMarkup)
+                        result <- as.numeric(regmatches(wikiMarkup, m)[[1]][2])
+                }
+                else if (grepl("designation1[' '|\t]*=[' '|\t]*WHS", wikiMarkup) 
+                         || grepl("designation1[' '|\t]*=[' '|\t]*World Heritage Site", wikiMarkup)) {
+                        m <- regexec("designation1_number[' '|\t]*=[' '|\t]*[^' ']*[' ']*([0-9]+)[a-z]*\\]", wikiMarkup)
+                        result <- as.numeric(regmatches(wikiMarkup, m)[[1]][2])
+                }
+                else if (grepl("designation2[' '|\t]*=[' '|\t]*WHS", wikiMarkup) 
+                         || grepl("designation2[' '|\t]*=[' '|\t]*World Heritage Site", wikiMarkup)) {
+                        m <- regexec("designation2_number[' '|\t]*=[' '|\t]*[^' ']*[' ']*([0-9]+)[a-z]*\\]", wikiMarkup)
+                        result <- as.numeric(regmatches(wikiMarkup, m)[[1]][2])
+                }
+                else if (grepl("whs_number[' '|\t]*=[' '|\t]*[0-9]+", wikiMarkup)) {
+                        m <- regexec("whs_number[' '|\t]*=[' '|\t]*([0-9]+)", wikiMarkup)
+                        result <- as.numeric(regmatches(wikiMarkup, m)[[1]][2])
+                }
+                else result <- NA
         }
-        else if (grepl("designation1[' '|\t]*=[' '|\t]*WHS", wikiMarkup) 
-                 || grepl("designation1[' '|\t]*=[' '|\t]*World Heritage Site", wikiMarkup)) {
-                m <- regexec("designation1_number[' '|\t]*=[' '|\t]*[^' ']*[' ']*([0-9]+)[a-z]*\\]", wikiMarkup)
-                result <- as.numeric(regmatches(wikiMarkup, m)[[1]][2])
-        }
-        else if (grepl("designation2[' '|\t]*=[' '|\t]*WHS", wikiMarkup) 
-                 || grepl("designation2[' '|\t]*=[' '|\t]*World Heritage Site", wikiMarkup)) {
-                m <- regexec("designation2_number[' '|\t]*=[' '|\t]*[^' ']*[' ']*([0-9]+)[a-z]*\\]", wikiMarkup)
-                result <- as.numeric(regmatches(wikiMarkup, m)[[1]][2])
-        }
-        else if (grepl("whs_number[' '|\t]*=[' '|\t]*[0-9]+", wikiMarkup)) {
-                m <- regexec("whs_number[' '|\t]*=[' '|\t]*([0-9]+)", wikiMarkup)
-                result <- as.numeric(regmatches(wikiMarkup, m)[[1]][2])
-        }
-        else result <- NA
         
         # Return result
         return(result)
