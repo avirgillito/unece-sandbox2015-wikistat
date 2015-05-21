@@ -21,7 +21,6 @@ CONTINENTS <- c("Africa", "the_Americas", "Northern_and_Central_Asia",
 
 # Load required libraries
 library(jsonlite)
-library(curl)
 library(logging)
 library(XML)
 
@@ -112,7 +111,9 @@ getWikiMarkup <- function(article, lang="en", refresh=FALSE) {
                 
                 # Compose file name of stored wiki markup
                 createDataFolders()
-                fileName <- paste0(WIKI_MARKUP_FOLDER, "/", lang, "_", article, ".json")
+                validArticleName <- gsub("[:*?<>|/\"]", "_", articleName)
+                fileName <- paste0(WIKI_MARKUP_FOLDER, "/", lang, "_", 
+                                   validArticleName, ".json")
                 
                 # If wiki markup was never downloaded then do it
                 if (!file.exists(fileName) || refresh) {
