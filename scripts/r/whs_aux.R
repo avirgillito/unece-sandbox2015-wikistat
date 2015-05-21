@@ -12,7 +12,7 @@ WHS_RAW_FILE <- "whc-sites.xml"
 WHS_FILE <- "whc.RData"
 WHS_ARTICLES_FILE <- "whsArticles.RData"
 
-API_URL_WP <- "http://en.wikipedia.org/w/api.php"
+API_URL_WP <- "http://<lang>.wikipedia.org/w/api.php"
 API_URL_WPM <- "http://wikipedia-miner.cms.waikato.ac.nz/services/"
 CONTINENTS <- c("Africa", "the_Americas", "Northern_and_Central_Asia", 
                 "Western_Asia", "Eastern_Asia", "Southern_Asia", 
@@ -101,7 +101,7 @@ loadWHS <- function() {
 }
 
 # This function returns the markup text of a wikipedia article.
-getWikiMarkup <- function(article, refresh=FALSE) {
+getWikiMarkup <- function(article, lang="en", refresh=FALSE) {
         # Vectorised function
         if (length(article) > 1) {
                 wikiMarkup <- sapply(article, FUN=getWikiMarkup)
@@ -111,11 +111,13 @@ getWikiMarkup <- function(article, refresh=FALSE) {
                 articleName <- gsub(" ", "_", article)
                 
                 # Compose file name of stored wiki markup
-                fileName <- paste0(WIKI_MARKUP_FOLDER, "/", article, ".json")
+                createDataFolders()
+                fileName <- paste0(WIKI_MARKUP_FOLDER, "/", lang, ":", article, ".json")
                 
                 # If wiki markup was never downloaded then do it
                 if (!file.exists(fileName) || refresh) {
-                        url <- paste0(API_URL_WP,
+                        api_url <- gsub("<lang>", lang, API_URL_WP)
+                        url <- paste0(api_url,
                                       "?format=json&action=query&titles=",
                                       articleName,
                                       "&prop=revisions&rvprop=content")
