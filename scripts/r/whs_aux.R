@@ -112,7 +112,7 @@ getWikiMarkup <- function(article, lang="en", refresh=FALSE) {
                 
                 # Compose file name of stored wiki markup
                 createDataFolders()
-                fileName <- paste0(WIKI_MARKUP_FOLDER, "/", lang, ":", article, ".json")
+                fileName <- paste0(WIKI_MARKUP_FOLDER, "/", lang, "_", article, ".json")
                 
                 # If wiki markup was never downloaded then do it
                 if (!file.exists(fileName) || refresh) {
@@ -282,7 +282,7 @@ getWhsArticlesFromLists <- function() {
         whsArticles <- do.call("c", articles)
         
         # Convert articles to desired language
-        tmp <- lapply(whsArticles, FUN=function(x) )
+        #tmp <- lapply(whsArticles, FUN=function(x) )
         
         # Save list of articles to disk
         whsArticlesFileName <- paste(DATA_FOLDER, WHS_ARTICLES_FILE, sep="/")
