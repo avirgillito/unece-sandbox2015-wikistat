@@ -186,45 +186,45 @@ getRedirect <- function(wikiMarkup) {
 # This function gets the available translations of the English version article 
 # passed as parameter. If lang parameter is empty string then the list of all 
 # translations is returned.
-getArticleTranslation <- function(article, lang="") {
-        # Get wiki markup text of article to check if it is redirect
-        articleWikiMarkup <- getWikiMarkup(article)
-        
-        # If wiki page is redirected then get reference
-        if (isRedirect(articleWikiMarkup)) {
-                articleName <- getRedirect(articleWikiMarkup)
-        } else {
-                articleName <- article
-        }
-        
-        # Replace spaces for %20
-        articleName <- gsub(" ", "%20", articleName)
-        
-        # Query Wikipedia Miner for translations
-        url <- paste0(API_URL_WPM,
-                      "exploreArticle?title=", 
-                      articleName, "&translations=true&responseFormat=json")
-        data <- fromJSON(url)
-        trans <- data$translations$text
-        names(trans) <- data$translations$lang
-        
-        # Return translation requested or all of them
-        if (lang == "" || lang == "en") {
-                trans
-        } else {
-                trans[lang]
-        }
-}
-
-# This function gets a vector of articles and returns the vector of articles in 
-# the language passed as parameter.
 # This function is vectorised.
-translateArticlesList <- function(articles, lang="en") {
-        trans <- articles
-        for (i in 1:length(articles)) {
-                trans[i] <- getArticleTranslation(articles[i], lang)
+getLangVersion <- function(article, lang="") {
+        # Vectorised function
+        if (length(article) > 1) {
+                result <- sapply(article, FUN=function(x) getLangVersion(x, lang))
+                names(result) <- NULL
         }
-        trans
+        else {
+                # Get wiki markup text of article to check if it is redirect
+                articleWikiMarkup <- getWikiMarkup(article)
+                
+                # If wiki page is redirected then get reference
+                if (isRedirect(articleWikiMarkup)) {
+                        articleName <- getRedirect(articleWikiMarkup)
+                } else {
+                        articleName <- article
+                }
+                
+                # Replace spaces for %20
+                articleName <- gsub("[ |_]", "%20", articleName)
+                
+                # Query Wikipedia Miner for translations
+                url <- paste0(API_URL_WPM,
+                              "exploreArticle?title=", 
+                              articleName, "&translations=true&responseFormat=json")
+                data <- fromJSON(url)
+                trans <- data$translations$text
+                names(trans) <- data$translations$lang
+                
+                # Return translation requested or all of them
+                if (lang == "" || lang == "en") {
+                        result <- trans
+                } else {
+                        result <- trans[lang]
+                } 
+        }
+        
+        # Return result
+        return(result)
 }
 
 # This function gets the list of the English wikipedia articles for each world 
@@ -310,6 +310,7 @@ getWhsArticlesFromCategories <- function() {
 
 # This function gets the WHS id number for an article based on the presence of 
 # an appropriate InfoBox in wiki markup code of the article.
+# This function is vectorised.
 getWhsIdNumber <- function(wikiMarkup) {
         # Vectorised function
         if (length(wikiMarkup) > 1) {
