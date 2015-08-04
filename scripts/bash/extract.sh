@@ -19,5 +19,5 @@ transpose_script=$(cd "$( dirname "$0" )" && pwd)/transpose.awk
 
 
 
-# First remove the [ and ] that surround the entries then remove the first two columns (id and project name). Then run the transpose script. Then remove columns that duplicate the first column. Then translate all whitespace to a single space character. Finally remove separating quotes around the dates in the first column.
-hadoop dfs -cat $1/* | tr -d "[]," | awk '!($1="")' | awk '!($1="")' | awk -f ${transpose_script} | awk ' FNR==1 {for (i =1; i <=NF; i++) if ($i == $1) bad[i]=$i }; { for (i=2; i<=NF; i++) if (i in bad) $i=""; print $0 }' | tr -s " "| awk 'NR==1 {print $0}; NR>1{ $1=substr($1,2,length($1)-2);print $0}' > $2
+#First url encode non ascii characters as windows R seems unable to deal with them. Then remove the [ and ] that surround the entries then remove the first two columns (id and project name). Then run the transpose script. Then remove columns that duplicate the first column. Then translate all whitespace to a single space character. Finally remove separating quotes around the dates in the first column.
+hadoop dfs -cat $1/* | tr -d "[]," | perl -ne '$_ =~ s/([^\x00-\x7F])/sprintf("%%%0X", ord($1))/eg; print;' | awk '!($1="")' | awk '!($1="")' | awk -f ${transpose_script} | awk ' FNR==1 {for (i =1; i <=NF; i++) if ($i == $1) bad[i]=$i }; { for (i=2; i<=NF; i++) if (i in bad) $i=""; print $0 }' | tr -s " "| awk 'NR==1 {print $0}; NR>1{ $1=substr($1,2,length($1)-2);print $0}' > $2
