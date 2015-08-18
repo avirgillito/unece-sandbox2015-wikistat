@@ -10,7 +10,7 @@ WHS_RAW_FILE <- "whc-sites.xml"
 WHS_FILE <- "whc.RData"
 WHS_ARTICLES_FILE <- "whsArticles.RData"
 
-API_URL_WP <- "http://<lang>.wikipedia.org/w/api.php"
+API_URL_WP <- "https://<lang>.wikipedia.org/w/api.php"
 API_URL_WPM <- "http://wikipedia-miner.cms.waikato.ac.nz/services/"
 API_URL_CATSCAN <- "http://tools.wmflabs.org/catscan2/catscan2.php"
 
@@ -185,7 +185,7 @@ getWikiMarkup <- function(article, lang="en", refresh=FALSE) {
                         fileName.temp <- "temp_file.json"
                         
                         # Download wiki markup
-                        download.file(url, fileName.temp, quiet=TRUE)
+                        download.file(url, fileName.temp, quiet=TRUE, method="curl")
                         
                         # Change file name from original encoding
                         file.rename(fileName.temp, fileName)
