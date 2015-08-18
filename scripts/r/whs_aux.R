@@ -356,7 +356,8 @@ getWhsArticlesFromCategories <- function() {
         data <- catScan(c("World Heritage Sites by continent",
                           "World Heritage Sites in the United Kingdom",
                           "World Heritage Sites in the Republic of Ireland",
-                          "World Heritage Sites in Catalonia"), 
+                          "World Heritage Sites in Catalonia",
+        		  "World Heritage Sites in Austria"), 
                         combination="union",
                         depth=2)
         
