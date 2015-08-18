@@ -24,7 +24,7 @@ table(whsData[, c("region", "category")])
 
 ## Get list of whs articles in english wikipedia
 fileName <- paste0(DATA_FOLDER, "/whsArticles.csv")
-whsArticles <- read.csv(fileName)
+whsArticles <- read.csv(fileName, fileEncoding="UTF-8")
 
 # Check number of articles by whs
 t <- table(whsArticles$whs_id)
