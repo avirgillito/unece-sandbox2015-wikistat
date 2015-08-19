@@ -82,21 +82,13 @@ downloadWHS <- function(overwrite = FALSE) {
                 loginfo(message, logger="data.log")
                 
                 # Save data frame to disk
-                save(whs, file=whsFileName)
+                write.csv(whs, file=whsFileName, fileEncoding="UTF-8")
                 message <- paste0("WHS data frame '", whsFileName, 
                                   "' saved to disk.")
                 loginfo(message, logger="data.log")
                 if (fileExists) logwarn("WHS data frame file overwritten.", 
                                         logger="data.log")
         }
-}
-
-loadWHS <- function() {
-        whsFileName <- paste(DATA_FOLDER, WHS_FILE, sep="/")
-        load(whsFileName)
-        
-        # Return data frame
-        whs
 }
 
 # This function returns the list of articles categorised in the categories passed as parameter.
