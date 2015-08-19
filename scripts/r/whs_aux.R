@@ -28,9 +28,9 @@ library(XML)
 addHandler(writeToFile, logger="data.log", 
            file=paste(DATA_FOLDER, DATA_LOG_FILE, sep="/"))
 
-# This function checks if the data folders do not exist, in which case it 
-# creates them.
-createDataFolders <- function() {
+# This function checks if the data folder exist, and if it does not then 
+# creates it together with its subfolders structure.
+CheckDataFolderExists <- function() {
         if (!file.exists(DATA_FOLDER)) {
                 dir.create(DATA_FOLDER)
                 loginfo(paste0("Data folder '", DATA_FOLDER, "' created."), 
@@ -54,8 +54,8 @@ downloadWHS <- function(overwrite = FALSE) {
         whsRawFileName <- paste(RAW_DATA_FOLDER, WHS_RAW_FILE, sep="/")
         whsFileName <- paste(DATA_FOLDER, WHS_FILE, sep="/")
         
-        # If folders does not exist then create them
-        createDataFolders()
+        # If data folder does not exist then create it
+        CheckDataFolderExists()
         
         # If raw file does not exist or is to be overwritten then download it
         rawFileExists <- file.exists(whsRawFileName)
@@ -166,7 +166,7 @@ getWikiMarkup <- function(article, lang="en", refresh=FALSE) {
                 articleName <- gsub(" ", "_", article)
                 
                 # Compose file name of stored wiki markup
-                createDataFolders()
+                CheckDataFolderExists()
                 validArticleName <- gsub("[:*?<>|/\"]", "_", articleName)
                 fileName <- paste0(WIKI_MARKUP_FOLDER, "/", lang, "_", 
                                    validArticleName, ".json")
@@ -411,8 +411,8 @@ getWhsIdNumber <- function(wikiMarkup) {
 downloadWhsArticles <- function(overwrite = FALSE) {
         whsArticlesFileName <- paste(DATA_FOLDER, WHS_ARTICLES_FILE, sep="/")
         
-        # If folders does not exist then create them
-        createDataFolders()
+        # If data folder does not exist then create it
+        CheckDataFolderExists()
         
         # If raw file does not exist or is to be overwritten then download it
         fileExists <- file.exists(whsArticlesFileName)
