@@ -1,5 +1,5 @@
 Register '$python_helper' using jython as hourize;
-alldata = LOAD '$input_dir' USING PigStorage() AS (proj:chararray, art:chararray, total:int, B:{T:(hour:int, cnt:int)});
+alldata = LOAD '$input_dir' USING PigStorage() AS (proj:chararray, art:chararray, total:chararray, B:{T:(hour:int, cnt:int)});
 with_ids = FOREACH alldata GENERATE hourize.getId(), proj, art, total, B;
 store with_ids into '$output_dir'; 
 D = LOAD '$output_dir' using PigStorage() as (id:chararray, rest: chararray);
