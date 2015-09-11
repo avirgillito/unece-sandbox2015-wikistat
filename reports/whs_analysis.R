@@ -49,14 +49,14 @@ tmp[is.na(tmp$X),]
 
 ## Load page views time-series for articles
 fileName <- paste0(DATA_FOLDER, "/wikistats_en.txt")
-whsStats <- read.table(fileName, header = T)
-whsStats$article <- sapply(as.character(whsStats$article), FUN=URLdecode)
+whsViews <- read.table(fileName, header = T)
+whsViews$article <- sapply(as.character(whsViews$article), FUN=URLdecode)
 
 ## Melt page views data frame
-whsStats <- melt(whsStats, id.vars="article", variable.name="month")
+whsViews <- melt(whsViews, id.vars="article", variable.name="month")
 
 ## Compute total pageviews by article
-articles <- group_by(whsStats, article)
+articles <- group_by(whsViews, article)
 statArticles <- summarise(articles, tot_pageviews=sum(value))
 statArticles <- arrange(statArticles, desc(tot_pageviews))
 top20 <- statArticles[1:20,]
