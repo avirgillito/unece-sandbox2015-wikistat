@@ -1,0 +1,371 @@
+---
+title: "Wikistats exploratory analysis"
+author: "Fernando Reis"
+date: "20/08/2015"
+output: html_document
+---
+
+This report presents an exploratory data analysis of the number of page views of articles in the english wikipedia related to World Heritage Sites inscribed in UNESCO official list.
+
+The R markdown source code of this report is available from the GitHub repository:
+https://github.com/avirgillito/unece-sandbox2015-wikistat
+
+# Preparation for the data analysis
+
+## Loading libraries and auxiliar code
+
+Required libraries were loaded and auxiliar functions, declared in 'whs_aux.R', were sourced.
+```{r message=FALSE}
+library(dplyr)
+library(reshape2)
+library(ggplot2)
+library(maps)
+source("../scripts/r/whs_aux.R")
+```
+
+## Loading list of WHS
+
+UNESCO official list was loaded and the list of sites was restricted to those inscribed before 2015.
+```{r}
+whs <- read.csv("../data/whs.csv", fileEncoding="UTF-8") %>%
+	mutate(whs_id = as.numeric(as.character(id_number))) %>%
+	filter(date_inscribed < 2015)
+```
+
+A summary of the main characteristics of the WHS.
+```{r}
+summary(whs[, -c(6:15,17:20,23)])
+```
+
+And the evolution of nomination of sites over time.
+```{r fig.width=10}
+plot(table(whs$date_inscribed), type="l")
+```
+
+A map of the WHS.
+```{r fig.width=10, fig.height=5}
+world <- map_data("world")
+ggplot(world, aes(long, lat)) + 
+	geom_polygon(aes(group = group), fill = "white", color = "gray40", size = .2) + 
+	geom_point(data = whs, aes(longitude, latitude, color = category), alpha=0.8, size = 3)
+```
+
+
+## Loading WHS articles
+
+Get list of WHS articles in english wikipedia, deleting commas from the corresponding titles.
+```{r}
+fileName <- paste0(".", DATA_FOLDER, "/whsArticles.csv")
+whsArticles <- read.csv(fileName, fileEncoding="UTF-8") %>%
+	mutate(article = gsub(",", "", article))
+```
+
+Check number of articles by WHS.
+```{r}
+t <- as.data.frame(table(whsArticles$whs_id))
+table(t$Freq)
+```
+
+The highest number of articles is `r max(t$Freq)`, for WHS with id number `r ` '971' which corresponds to 'Churches of Chiloé'.
+The 17 articles correspond to each one of the churches.
+```{r}
+maxFreq <- max(t$Freq)
+filter(t, Freq==maxFreq)
+filter(whs, id_number==971)$site
+filter(whsArticles, whs_id==971)
+```
+
+Get articles with WHS ids which are not in the list. These artcles should refer only to sites inscribed after 2014.
+
+*__Note:__ 'id_number' needs to be first converted to character because it is a factor variable.*
+```{r}
+whsArticles %>%
+	left_join(whs[, c("whs_id", "site")]) %>%
+	filter(is.na(site)) %>%
+	select(article)
+```
+
+Get WHS in UNESCO list which do not have articles in the English wikipedia.
+```{r}
+whs %>%	
+	left_join(whsArticles) %>%
+	filter(is.na(X)) %>%
+	select(site)
+```
+
+## Loading WHS articles page views data
+
+Load page views time-series for articles.
+```{r}
+fileName <- paste0(".", DATA_FOLDER, "/wikistats_en.txt")
+whsArtViews <- read.table(fileName, header = T)
+whsArtViews$article <- sapply(as.character(whsArtViews$article), FUN=URLdecode)
+```
+
+Melt page views data frame.
+```{r}
+whsArtViews <- melt(whsArtViews, id.vars="article", variable.name="month")
+```
+
+Compute total pageviews by article.
+```{r}
+whsArtViews <- group_by(whsArtViews, article)
+aggrArticles <- summarise(whsArtViews, tot_pageviews=sum(value))
+aggrArticles <- arrange(aggrArticles, desc(tot_pageviews))
+```
+
+Get top 20 articles with highest number of page views.
+```{r fig.width=10}
+top20 <- aggrArticles[1:20,]
+top20$article <- as.character(top20$article)
+top20 <- transform(top20, article = reorder(article, tot_pageviews))
+ggplot(data=top20, aes(x=article, y=tot_pageviews)) +
+        geom_bar(stat="identity") + coord_flip() + scale_y_continuous('') + scale_x_discrete('')
+```
+
+Get WHS articles without page views time-series. These normally refer to articles which did not exist during the time reference of the page views time-series used.
+```{r}
+whsArticles %>%
+	left_join(aggrArticles) %>%
+	filter(is.na(tot_pageviews)) %>%
+	select(article)
+```
+
+Get WHS pageviews time-series for articles which are not listed. Normally this should not return any article.
+```{r}
+aggrArticles %>%
+	left_join(whsArticles) %>%
+	filter(is.na(X)) %>%
+	select(article)
+```
+
+# Exploratory data analysis
+
+Page views were aggregated by WHS.
+```{r}
+whsSiteViews <- whsArtViews %>%
+	left_join(whsArticles) %>%
+	group_by(whs_id, month) %>%
+	summarise(tot_pageviews=sum(value))
+```
+
+## Popularity of WHS in Wikipedia
+
+Most popular WHS.
+```{r fig.width=10}
+popWhs <- whsSiteViews %>%
+	group_by(whs_id) %>%
+	summarise(tot_pageviews = sum(tot_pageviews)) %>%
+	arrange(desc(tot_pageviews)) %>%
+	left_join(whs[, c("whs_id", "site")], by="whs_id")
+
+top20 <- popWhs %>%
+	slice(1:20) %>%
+	mutate(site = strtrim(as.character(site), 80)) %>%
+	mutate(site = reorder(site, tot_pageviews))
+
+ggplot(data=top20, aes(x=site, y=tot_pageviews)) +
+        geom_bar(stat="identity") + coord_flip() + scale_y_continuous('') + scale_x_discrete('')
+```
+
+Number of WHS per country.
+```{r fig.width=10}
+cntrSites <- whs %>%
+	select(whs_id, transboundary, iso_code) %>%
+	filter(transboundary == 0) %>%
+	group_by(iso_code) %>%
+	tally() %>%
+	arrange(desc(n)) %>%
+	slice(1:20) %>%
+	mutate(iso_code = reorder(iso_code, desc(n)))
+
+ggplot(data = cntrSites, aes(x = iso_code, y = n)) + 
+	geom_bar(stat = "identity")
+```
+
+Popularity of WHS per country.
+```{r fig.width=10}
+cntrViews <- whs %>%
+	select(whs_id, transboundary, iso_code) %>%
+	filter(transboundary == 0) %>%
+	left_join(whsSiteViews) %>%
+	select(iso_code, tot_pageviews) %>%
+	replace(is.na(.), 0) %>%
+	group_by(iso_code) %>%
+	tally(wt = tot_pageviews) %>%
+	arrange(desc(n)) %>%
+	slice(1:20) %>%
+	mutate(iso_code = reorder(iso_code, desc(n)))
+
+ggplot(data = cntrViews, aes(x = iso_code, y = n)) + 
+	geom_bar(stat="identity")
+```
+
+A map of the WHS popularity.
+```{r fig.width=10, fig.height=5}
+mapDat <- popWhs %>%
+	left_join(whs[, c("whs_id", "category", "latitude", "longitude")])
+	
+world  = map_data("world")
+ggplot(world, aes(long, lat)) + 
+	geom_polygon(aes(group = group), fill = "white", color = "gray40", size = .2) + 
+	geom_point(data = mapDat, aes(longitude, latitude, color = category, alpha=log(tot_pageviews)), size = 3)
+```
+
+Popularity of WHS per category. On average mixed sites are more popular.
+```{r}
+catViews <- whs %>%
+	select(whs_id, category) %>%
+	left_join(whsSiteViews) %>%
+	select(category, tot_pageviews) %>%
+	replace(is.na(.), 0) %>%
+	group_by(category) %>%
+	summarise(avg_pageviews = mean(tot_pageviews)) %>%
+	arrange(desc(avg_pageviews)) %>%
+	mutate(category = reorder(category, desc(avg_pageviews)))
+
+ggplot(data = catViews, aes(x = category, y = avg_pageviews)) + 
+	geom_bar(stat="identity")
+
+whs %>%
+	select(whs_id, category) %>%
+	group_by(category) %>%
+	tally()
+```
+
+The most popular Mixed sites.
+```{r}
+whsMixViews <- whs %>% 
+	left_join(whsSiteViews) %>% 
+	filter(category=="Mixed") %>% 
+	transform(site=paste0(site, " (", iso_code, ")")) %>%
+	select(site, tot_pageviews) %>%
+	replace(is.na(.), 0) %>%
+	group_by(site) %>% 
+	summarise(tot_pageviews=sum(tot_pageviews))
+
+top20Mix <- whsMixViews %>%
+	arrange(desc(tot_pageviews)) %>%
+	transform(site=reorder(site, tot_pageviews)) %>%
+	slice(1:20)
+
+ggplot(data=top20Mix, aes(x=site, y=tot_pageviews)) +
+        geom_bar(stat="identity") + 
+	coord_flip() + 
+	scale_y_continuous('') + 
+	scale_x_discrete('') +
+	ggtitle("Total number of page views during 2012-2013 for the 20 most popular mixed sites")
+```
+
+
+```{r}
+whsViews <- whs %>% 
+	left_join(whsSiteViews) %>% 
+	select(site, category, tot_pageviews) %>%
+	replace(is.na(.), 0) %>%
+	group_by(site, category) %>% 
+	summarise(tot_pageviews=sum(tot_pageviews))
+
+ggplot(whsViews, aes(x=category, y=log(tot_pageviews))) + 
+          geom_point(colour="blue", alpha=0.5, position="jitter") + 
+          geom_boxplot(outlier.size=3, alpha=0.2)
+
+ggplot(whsViews, aes(x=log(tot_pageviews), group=category, fill=category)) + 
+	geom_density(alpha=0.5)
+
+```
+
+Popularity of WHS by year inscribed.
+```{r}
+inscViews <- whs %>%
+	select(whs_id, date_inscribed) %>%
+	left_join(whsSiteViews) %>%
+	select(date_inscribed, tot_pageviews) %>%
+	replace(is.na(.), 0) %>%
+	group_by(date_inscribed) %>%
+	summarise(avg_pageviews = mean(tot_pageviews))
+
+ggplot(data = inscViews, aes(x = date_inscribed, y = avg_pageviews)) + 
+	geom_line(stat="identity") +
+	geom_point(stat="identity") +
+	ggtitle("Average number of page views during 2012-2013 according to the date of inscription")
+
+inscViews <- whs %>%
+	select(whs_id, date_inscribed) %>%
+	left_join(whsSiteViews) %>%
+	select(date_inscribed, tot_pageviews) %>%
+	replace(is.na(.), 0) %>%
+	group_by(date_inscribed) %>%
+	summarise(tot_pageviews = sum(tot_pageviews))
+
+ggplot(data = inscViews, aes(x = date_inscribed, y = tot_pageviews)) + 
+	geom_line(stat="identity") +
+	geom_point(stat="identity") +
+	ggtitle("Total number of page views during 2012-2013 according to the date of inscription")
+```
+
+
+## Popularity of WHS over time
+
+```{r}
+timeWhs <- whsSiteViews %>%
+	group_by(month) %>%
+	summarise(tot_pageviews=sum(tot_pageviews))
+
+tmPlot <- ggplot(data=timeWhs, aes(x=month, y=tot_pageviews, group=1)) + 
+	expand_limits(y=0) +
+	geom_line(size=1.6) + 
+	geom_point(colour="red", size=4, shape=21, fill="white") + 
+	xlab("Month") + ylab("Total number of page views") +
+	ggtitle("Page views of English Wikipedia articles related to World Heritage Sites")
+tmPlot
+```
+
+What about the most popular site?
+```{r}
+top20Time <- whsSiteViews %>%
+	inner_join(top20, by="whs_id") %>%
+	mutate(site = substr(site, 1, 30)) %>%
+	transform(site=reorder(site, tot_pageviews.y))
+	
+
+tmPlot + geom_area(data=top20Time, 
+		   aes(x=month, y=tot_pageviews.x, group=site, fill=site, order = desc(site)), 
+		   colour = 1)
+```
+
+WHS which grew the most from 2012 and 2013.
+```{r}
+gro <- whsSiteViews %>%
+	mutate(year=paste0("y", substr(month, 2, 5))) %>%
+	group_by(whs_id, year) %>%
+	summarise(tot_pageviews=sum(tot_pageviews)) %>%
+	dcast(whs_id ~ year) %>%
+	mutate(growth = y2013 / y2012 - 1)
+
+groTop20 <- gro %>%
+	left_join(whs, by="whs_id") %>%
+	select(whs_id, site, iso_code, y2013, y2012, growth) %>%
+	filter(y2012 != 0, y2013 != 0) %>%
+	arrange(desc(growth)) %>%
+	transform(site=reorder(site, growth)) %>%
+	slice(1:20) %>%
+	mutate(site=paste0(substr(site, 1, 40), " (", iso_code, ")"))
+
+groTop20[, c("site", "growth")]
+```
+
+WHS which decreased the most from 2012 and 2013.
+```{r}
+groBottom20 <- gro %>%
+	left_join(whs, by="whs_id") %>%
+	select(whs_id, site, iso_code, y2013, y2012, growth) %>%
+	filter(y2012 != 0, y2013 != 0) %>%
+	arrange(growth) %>%
+	transform(site=reorder(site, growth)) %>%
+	slice(1:20) %>%
+	mutate(site=paste0(substr(site, 1, 40), " (", iso_code, ")"))
+
+groBottom20[, c("site", "growth")]
+```
+

@@ -1,0 +1,424 @@
+World Heritage Sites - Insigths from Wikipedia page views
+========================================================
+author: Fernando Reis, Bogomil Kovachev
+date: 7th September 2015
+width: 1920
+height: 1080
+
+Data source
+========================================================
+
+- Big data as digital traces left by people in their activities
+- Wikipedia as digital traces
+	+ Content (text and links)
+	+ Page views
+	+ Edits
+- Public source
+- Wikipedia page views
+- In 2013, 44% of individuals 16 to 74 years old living in EU consulted wikis to obtain knowledge (e.g. Wikipedia)
+- This was 69% for individuals between 16 and 24 years old
+- [Wikistats](http://dumps.wikimedia.org/other/pagecounts-ez/): hourly number of page views for all articles of all wiki projects of the Wikimedia foundation;
+- We used the English Wikipedia only
+
+Raw data (1)
+========================================================
+
+- Example: **zu.z Ulimi 8 AE1,LN2O1Q1,\X1,_B2,**
+	+ [wiki code][article title][monthly total][hourly counts]
+- Wiki code: [subproject.project]
+	+ subproject is language code (fr, el, ja, etc)
+	+ Project can be b (wikibooks), k (wiktionary), n (wikinews), o (wikivoyage), q (wikiquote), s (wikisource), v (wikiversity), z (wikipedia)
+- Hourly counts can be deciphered as follows:
+	+ Hour: from 0 to 23, written as 0 = A, 1 = B ... 22 = W, 23 = X
+	+ Day: from 1 to 31, written as 1 = A, 2 = B ... 25 = Y, 26 = Z, 27 = [, 28 = \, 29 = ], 30 = ^, 31 = _
+	+ Example: 33 views on day 2, hour 4, and 155 views on day 3, hour 7 are coded as 'BE33,CH155' 
+
+Raw data (2)
+========================================================
+
+- Monthly files
+- years 2012 and 2013
+- Total: 387 GB
+
+Data processing
+========================================================
+
+- Sandbox computer cluster
+	+ 4 nodes, each:
+		+ 2 x Intel Xeon E5-2650 v3 10 cores
+		+ 128GB RAM
+		+ 4 x 4TB disk
+		+ FDR Infiniband (56Gbit)                                                              
+- 3 stages:
+	+ Pre-processing
+	+ Extraction
+	+ Analytics
+
+Pre-processing
+========================================================
+
+- Scripts in shell and Pig
+- Filtering of raw data to one project and one language
+- Change of time-series format: **en.z Banc_d'Arguin_National_Park [0, 0, 0, 5, 6, 16, 5, 20, 25, 21, 48, 29, 43, 40, 46, 0, 30, 55, 36, 39, 28, 28, 204, 218]**
+- Processing time: 4 Hours
+
+Extraction
+========================================================
+
+- Manual map-reduce job
+- Scripts in shell and python
+- Filtering to list of articles supplied
+- Time aggregation from hourly to daily, weekly and monthly
+- Processing time: 40 minutes
+
+Analytics
+========================================================
+- R and RStudio
+- Web scrapping of wikipedia for selection of articles
+- Data analysis
+
+
+UNESCO World Heritage sites
+========================================================
+title: true
+
+<!---
+Package leaflet needs to be instaled with devtools:
+devtools::install_github("rstudio/leaflet")
+Check r-bloggers
+-->
+
+```{r message=FALSE, echo=FALSE}
+library(dplyr)
+library(reshape2)
+library(ggplot2)
+library(maps)
+source("../scripts/r/whs_aux.R")
+
+whs <- read.csv("../data/whs.csv", fileEncoding="UTF-8") %>%
+	mutate(whs_id = as.numeric(as.character(id_number))) %>%
+	filter(date_inscribed < 2015)
+```
+
+```{r fig.width=40, fig.height=20, echo=FALSE, out.width="1920px", out.height="960px"}
+world <- map_data("world")
+ggplot(world, aes(long, lat)) + 
+	geom_polygon(aes(group = group), fill = "white", color = "gray40", size = .2) + 
+	geom_point(data = whs, aes(longitude, latitude, color = category), alpha=0.8, size = 5) +
+	xlab('Longitude') +
+        ylab('Latitude') +
+	scale_fill_discrete(name="Experimental\nCondition") +
+	theme(axis.title.y = element_text(size = rel(3), angle = 90)) +
+        theme(axis.title.x = element_text(size = rel(3), angle = 00)) +
+	theme(axis.text.x = element_text(hjust = 1, size=25)) +
+	theme(axis.text.y = element_text(hjust = 1, size=25)) + 
+	theme(legend.text = element_text(size=25), 
+	      legend.title = element_text(size=25))
+```
+
+Exploratory analysis
+========================================================
+Number of sites by category
+```{r, results='asis', echo=FALSE}
+t <- whs %>%
+	group_by(category) %>%
+	tally()
+knitr::kable(t, format = "html")
+```
+
+Exploratory analysis
+========================================================
+
+Number of sites by region
+```{r, results='asis', echo=FALSE}
+t <- whs %>%
+	group_by(region) %>%
+	tally()
+knitr::kable(t, format = "html")
+```
+
+Exploratory analysis
+========================================================
+
+Number of sites nominated by year
+
+```{r echo=FALSE, fig.width=20, fig.height=10, out.width="1920px", out.height="850px"}
+plotData <- whs %>%
+	group_by(date_inscribed) %>%
+	summarise(nsites = n())
+
+stdTheme <- theme(axis.title.y = element_text(size = rel(2), angle = 90),
+	      axis.title.x = element_text(size = rel(2), angle = 00),
+	      axis.text.x = element_text(hjust = 1, size=15),
+	      axis.text.y = element_text(hjust = 1, size=15),
+	      legend.text = element_text(size=15), 
+	      legend.title = element_text(size=20))
+
+ggplot(data=plotData, aes(x=date_inscribed, y=nsites, group=1)) + 
+	geom_line(size=1.6) +
+	stdTheme
+```
+
+Exploratory analysis
+========================================================
+
+## Wikipedia articles on WHS
+```{r echo=FALSE}
+fileName <- paste0(".", DATA_FOLDER, "/whsArticles.csv")
+whsArticles <- read.csv(fileName, fileEncoding="UTF-8") %>%
+	mutate(article = gsub(",", "", article))
+```
+
+Number of articles by WHS
+```{r echo=FALSE}
+t <- as.data.frame(table(whsArticles$whs_id))
+t <- t %>%
+	group_by(Freq) %>%
+	tally() %>%
+	transmute(Articles=Freq, Sites=n)
+knitr::kable(t, format = "html")
+```
+
+Exploratory analysis
+========================================================
+
+```{r echo=FALSE}
+fileName <- paste0(".", DATA_FOLDER, "/wikistats_en.txt")
+
+whsArtViews <- read.table(fileName, header = T)
+whsArtViews$article <- sapply(as.character(whsArtViews$article), FUN=URLdecode)
+whsArtViews <- whsArtViews %>%
+	melt(id.vars="article", variable.name="month") %>%
+	group_by(article) %>%
+	mutate(month = substr(month, 2, 8))
+
+aggrArticles <- whsArtViews %>%
+	summarise(tot_pageviews=sum(value)) %>%
+	arrange(desc(tot_pageviews))
+
+top20 <- aggrArticles %>%
+	slice(1:20) %>%
+	transform(article = reorder(article, tot_pageviews))
+	
+#top20$article <- as.character(top20$article)
+```
+
+Total number of page views during 2012-2013 for the top most visited articles
+
+```{r echo=FALSE, fig.width=20, fig.height=10, out.width="1920px", out.height="850px"}
+ggplot(data=top20, aes(x=article, y=tot_pageviews)) +
+        geom_bar(stat="identity") + coord_flip() + scale_y_continuous('') + scale_x_discrete('') +
+	stdTheme
+```
+
+Exploratory analysis
+========================================================
+
+```{r echo=FALSE}
+whsSiteViews <- whsArtViews %>%
+	left_join(whsArticles) %>%
+	group_by(whs_id, month) %>%
+	summarise(tot_pageviews=sum(value))
+popWhs <- whsSiteViews %>%
+	group_by(whs_id) %>%
+	summarise(tot_pageviews = sum(tot_pageviews)) %>%
+	arrange(desc(tot_pageviews)) %>%
+	left_join(whs[, c("whs_id", "site")], by="whs_id")
+top20 <- popWhs %>%
+	slice(1:20) %>%
+	mutate(site = strtrim(as.character(site), 80)) %>%
+	mutate(site = reorder(site, tot_pageviews))
+```
+
+Total number of page views during 2012-2013 for the top WHS with most visits to its articles
+
+```{r echo=FALSE, fig.width=20, fig.height=10, out.width="1920px", out.height="850px"}
+ggplot(data=top20, aes(x=site, y=tot_pageviews)) +
+        geom_bar(stat="identity") + coord_flip() + scale_y_continuous('') + scale_x_discrete('') +
+	stdTheme
+```
+
+Exploratory analysis
+========================================================
+
+```{r echo=FALSE}
+cntrSites <- whs %>%
+	select(whs_id, transboundary, iso_code) %>%
+	filter(transboundary == 0) %>%
+	group_by(iso_code) %>%
+	tally() %>%
+	arrange(desc(n)) %>%
+	slice(1:20) %>%
+	mutate(iso_code = reorder(iso_code, desc(n)))
+```
+
+Number of WHS per country
+
+```{r echo=FALSE, fig.width=20, fig.height=10, out.width="1920px", out.height="850px"}
+ggplot(data = cntrSites, aes(x = iso_code, y = n)) + 
+	geom_bar(stat = "identity") +
+	stdTheme
+```
+
+Exploratory analysis
+========================================================
+
+```{r echo=FALSE}
+cntrViews <- whs %>%
+	select(whs_id, transboundary, iso_code) %>%
+	filter(transboundary == 0) %>%
+	left_join(whsSiteViews) %>%
+	select(iso_code, tot_pageviews) %>%
+	replace(is.na(.), 0) %>%
+	group_by(iso_code) %>%
+	tally(wt = tot_pageviews) %>%
+	arrange(desc(n)) %>%
+	slice(1:20) %>%
+	mutate(iso_code = reorder(iso_code, desc(n)))
+```
+
+Number of WHS articles page views per country of location of the WHS
+
+```{r echo=FALSE, fig.width=20, fig.height=10, out.width="1920px", out.height="850px"}
+ggplot(data = cntrViews, aes(x = iso_code, y = n)) + 
+	geom_bar(stat="identity") +
+	stdTheme
+```
+
+Exploratory analysis
+========================================================
+
+Map of WHS popularity
+
+```{r fig.width=30, fig.height=15, echo=FALSE}
+mapDat <- popWhs %>%
+	left_join(whs[, c("whs_id", "category", "latitude", "longitude")])
+	
+world  = map_data("world")
+ggplot(world, aes(long, lat)) + 
+	geom_polygon(aes(group = group), fill = "white", color = "gray40", size = .2) + 
+	geom_point(data = mapDat, aes(longitude, latitude, color = category, alpha=log(tot_pageviews)), size = 3)
+```
+
+Exploratory analysis
+========================================================
+
+```{r echo=FALSE}
+catViews <- whs %>%
+	select(whs_id, category) %>%
+	left_join(whsSiteViews) %>%
+	select(category, tot_pageviews) %>%
+	replace(is.na(.), 0) %>%
+	group_by(category) %>%
+	summarise(avg_pageviews = mean(tot_pageviews)) %>%
+	arrange(desc(avg_pageviews)) %>%
+	mutate(category = reorder(category, desc(avg_pageviews)))
+```
+
+Popularity of WHS per category
+
+(Average number of page views per WHS)
+
+```{r echo=FALSE, fig.width=20, fig.height=10, out.width="1920px", out.height="850px"}
+ggplot(data = catViews, aes(x = category, y = avg_pageviews)) + 
+	geom_bar(stat="identity") +
+	stdTheme
+```
+
+Exploratory analysis
+========================================================
+
+Distribution of WHS by number of page views (log)
+
+```{r echo=FALSE, fig.width=20, fig.height=10, out.width="1920px", out.height="850px"}
+whsViews <- whs %>% 
+	left_join(whsSiteViews) %>% 
+	select(site, category, tot_pageviews) %>%
+	replace(is.na(.), 0) %>%
+	group_by(site, category) %>% 
+	summarise(tot_pageviews=sum(tot_pageviews))
+
+ggplot(whsViews, aes(x=log(tot_pageviews), group=category, fill=category)) + 
+	geom_density(alpha=0.5) +
+	stdTheme
+```
+
+Exploratory analysis
+========================================================
+
+Distribution of WHS by number of page views (NOT log)
+
+The percentage of page views going to the top 20 WHS is `r format(sum(top20$tot_pageviews) / sum(whsViews$tot_pageviews) * 100, digits=0, width=2)`%
+
+```{r echo=FALSE, fig.width=20, fig.height=10, out.width="1920px", out.height="850px"}
+ggplot(whsViews, aes(x=tot_pageviews, group=category, fill=category)) + 
+	geom_density(alpha=0.5) +
+	stdTheme
+```
+
+Exploratory analysis
+========================================================
+
+Average number of page views during 2012-2013 according to the date of inscription
+```{r echo=FALSE, fig.width=20, fig.height=10, out.width="1920px", out.height="850px"}
+inscViews <- whs %>%
+	select(whs_id, date_inscribed) %>%
+	left_join(whsSiteViews) %>%
+	select(date_inscribed, tot_pageviews) %>%
+	replace(is.na(.), 0) %>%
+	group_by(date_inscribed) %>%
+	summarise(avg_pageviews = mean(tot_pageviews))
+
+ggplot(data = inscViews, aes(x = date_inscribed, y = avg_pageviews)) + 
+	geom_line(stat="identity") +
+	geom_point(stat="identity") +
+	stdTheme
+```
+
+Exploratory analysis
+========================================================
+
+Popularity of WHS over time
+
+```{r echo=FALSE, fig.width=20, fig.height=10, out.width="1920px", out.height="850px"}
+timeWhs <- whsSiteViews %>%
+	group_by(month) %>%
+	summarise(tot_pageviews=sum(tot_pageviews))
+
+tmPlot <- ggplot(data=timeWhs, aes(x=month, y=tot_pageviews, group=1)) + 
+	expand_limits(y=0) +
+	geom_line(size=1.6) + 
+	geom_point(colour="red", size=4, shape=21, fill="white") + 
+	xlab("Month") + ylab("Total number of page views") +
+	ggtitle("Page views of English Wikipedia articles related to World Heritage Sites") +
+	stdTheme
+tmPlot
+```
+
+Exploratory analysis
+========================================================
+
+Popularity of WHS over time
+
+(What happened in March 2013?!)
+
+```{r echo=FALSE, fig.width=20, fig.height=10, out.width="1920px", out.height="850px"}
+top20Time <- whsSiteViews %>%
+	inner_join(top20, by="whs_id") %>%
+	mutate(site = substr(site, 1, 30)) %>%
+	transform(site=reorder(site, tot_pageviews.y))
+
+tmPlot + geom_area(data=top20Time, 
+		   aes(x=month, y=tot_pageviews.x, group=site, fill=site, order = desc(site)), 
+		   colour = 1) +
+	scale_fill_discrete(name="World Heritage Site")
+```
+
+Further improvements and limitations
+========================================================
+
+- Improvements
+	+ Use max instead of sum when aggregating articles pages views
+	+ Include all Wikipedia language versions
+- Limitations
+	+ Geographic origin of the page views
