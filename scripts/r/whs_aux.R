@@ -3,6 +3,7 @@
 DATA_FOLDER <- "./data"
 RAW_DATA_FOLDER <- paste(DATA_FOLDER, "raw", sep="/")
 WIKI_MARKUP_FOLDER <- paste(DATA_FOLDER, "wikimarkup", sep="/")
+HTML_FOLDER <- paste(DATA_FOLDER, "html", sep="/")
 DATA_LOG_FILE <- "data.log"
 
 WHS_UNESCO_URL <- "http://whc.unesco.org/en/list/xml/"
@@ -10,6 +11,7 @@ WHS_RAW_FILE <- "whc-sites.xml"
 WHS_FILE <- "whc.RData"
 WHS_ARTICLES_FILE <- "whsArticles.RData"
 
+WP_URL <- "https://<lang>.wikipedia.org/wiki/"
 API_URL_WP <- "https://<lang>.wikipedia.org/w/api.php"
 API_URL_WPM <- "http://wikipedia-miner.cms.waikato.ac.nz/services/"
 API_URL_CATSCAN <- "http://tools.wmflabs.org/catscan2/catscan2.php"
@@ -45,6 +47,11 @@ CheckDataFolderExists <- function() {
                 dir.create(WIKI_MARKUP_FOLDER)
                 loginfo(paste0("Wiki markup data folder '", WIKI_MARKUP_FOLDER, "' created."), 
                         logger="data.log")
+        }
+        if (!file.exists(HTML_FOLDER)) {
+        	dir.create(HTML_FOLDER)
+        	loginfo(paste0("Html data folder '", HTML_FOLDER, "' created."), 
+        		logger="data.log")
         }
 }
 
@@ -145,6 +152,47 @@ catScan <- function(categories, combination="subset", language="en",
 	
 	# Return data
 	data
+}
+
+# This function returns the html output of a wikipedia article.
+getHtml <- function(article, lang="en", refresh=FALSE) {
+	# Vectorised function
+	if (length(article) > 1) {
+		html <- sapply(article, FUN=getHtml)
+		names(html) <- NULL
+	} else {
+		# Replace spaces for underscores
+		articleName <- gsub(" ", "_", article)
+		
+		# Compose file name of stored html
+		CheckDataFolderExists()
+		validArticleName <- gsub("[:*?<>|/\"]", "_", articleName)
+		fileName <- paste0(HTML_FOLDER, "/", lang, "_", 
+				   validArticleName, ".html")
+		
+		# If html was never downloaded then do it
+		if (!file.exists(fileName) || refresh) {
+			lang_url <- gsub("<lang>", lang, WP_URL)
+			art_url <- paste0(lang_url, articleName)
+			
+			# Create temporary file name, because on Windows the 
+			# external download tool does not store the file with 
+			# the name in the utf-8 encoding.
+			fileName.temp <- "temp_file.json"
+			
+			# Download wiki markup
+			download.file(art_url, fileName.temp, quiet=TRUE, method="curl")
+			
+			# Change file name from original encoding
+			file.rename(fileName.temp, fileName)
+		}
+		
+		# Read html file
+		html <- readLines(fileName)
+	}
+	
+	# Return wiki markup of article
+	return(html)
 }
 
 # This function returns the markup text of a wikipedia article.
