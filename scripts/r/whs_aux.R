@@ -178,7 +178,7 @@ getHtml <- function(article, lang="en", refresh=FALSE) {
 			# Create temporary file name, because on Windows the 
 			# external download tool does not store the file with 
 			# the name in the utf-8 encoding.
-			fileName.temp <- "temp_file.json"
+			fileName.temp <- "temp_file.html"
 			
 			# Download wiki markup
 			download.file(art_url, fileName.temp, quiet=TRUE, method="curl")
@@ -188,7 +188,7 @@ getHtml <- function(article, lang="en", refresh=FALSE) {
 		}
 		
 		# Read html file
-		html <- readLines(fileName)
+		html <- paste(readLines(fileName), collapse = "")
 	}
 	
 	# Return wiki markup of article
