@@ -1,26 +1,38 @@
-World Heritage Sites - Insigths from Wikipedia page views
+Wikipedia as a big data source - Insigths for world heritage from Wikipedia page views
 ========================================================
-author: Fernando Reis, Bogomil Kovachev
+author: Wikistats Big Data Sandbox project team
 date: 7th September 2015
 width: 1920
 height: 1080
 
-Data source
+World Heritage Sites
 ========================================================
 
-- Big data as digital traces left by people in their activities
-- Wikipedia as digital traces
-	+ Content (text and links)
-	+ Page views
-	+ Edits
-- Public source
-- Wikipedia page views
-- In 2013, 44% of individuals 16 to 74 years old living in EU consulted wikis to obtain knowledge (e.g. Wikipedia)
-- This was 69% for individuals between 16 and 24 years old
-- [Wikistats](http://dumps.wikimedia.org/other/pagecounts-ez/): hourly number of page views for all articles of all wiki projects of the Wikimedia foundation;
-- We used the English Wikipedia only
+- [Convention Concerning the Protection of the World Cultural and Natural Heritage](http://whc.unesco.org/archive/convention-en.pdf)
+- [List of World Heritage Sites maintained by UNESCO](http://whc.unesco.org/en/list/)
 
-Raw data (1)
+
+Data sources
+========================================================
+
+1. [List of World Heritage Sites](http://whc.unesco.org/en/list/xml/) from UNESCO
+	+ Public source
+	+ Official information
+
+2. Wikipedia
+	+ Public source
+	+ Digital traces left by people in their activities
+	+ Widely used
+		+ In 2013, 44% of individuals 16 to 74 years old living in EU consulted wikis to obtain knowledge (e.g. Wikipedia)
+		+ This was 69% for individuals between 16 and 24 years old
+	1. Content (text and links)
+		- Selection of articles related to World Heritage sites
+	2. Page views
+		- [Wikistats](http://dumps.wikimedia.org/other/pagecounts-ez/): hourly number of page views for all articles of all wiki projects of the Wikimedia foundation;
+	+ We used the English Wikipedia only
+
+
+Raw data
 ========================================================
 
 - Example: **zu.z Ulimi 8 AE1,LN2O1Q1,\X1,_B2,**
@@ -33,7 +45,7 @@ Raw data (1)
 	+ Day: from 1 to 31, written as 1 = A, 2 = B ... 25 = Y, 26 = Z, 27 = [, 28 = \, 29 = ], 30 = ^, 31 = _
 	+ Example: 33 views on day 2, hour 4, and 155 views on day 3, hour 7 are coded as 'BE33,CH155' 
 
-Raw data (2)
+Raw data
 ========================================================
 
 - Monthly files
@@ -400,7 +412,7 @@ Exploratory analysis
 
 Popularity of WHS over time
 
-(What happened in March 2013?!)
+([What happened in March 2013?!](https://en.wikipedia.org/wiki/Papal_conclave,_2013))
 
 ```{r echo=FALSE, fig.width=20, fig.height=10, out.width="1920px", out.height="850px"}
 top20Time <- whsSiteViews %>%
@@ -420,5 +432,6 @@ Further improvements and limitations
 - Improvements
 	+ Use max instead of sum when aggregating articles pages views
 	+ Include all Wikipedia language versions
+	+ Include page views of the mobile version of Wikipedia
 - Limitations
 	+ Geographic origin of the page views
