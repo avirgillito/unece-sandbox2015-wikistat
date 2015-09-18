@@ -279,6 +279,33 @@ getRedirect <- function(wikiMarkup) {
         article
 }
 
+# This function returns the names of the articles to which the wikiMarkup link.
+getLinkedArticles <- function(wikiMarkup) {
+	# gsub does not escape properly the square brakets, so replace them
+	wikiMarkup <- gsub("\\[", "<", wikiMarkup)
+	wikiMarkup <- gsub("\\]", ">", wikiMarkup)
+	
+	# Identify links to other articles
+	m <- gregexpr("<<[^>]+>>", wikiMarkup)
+	articles <- unlist(regmatches(wikiMarkup, m))
+	
+	# Remove links to images and categories
+	sel <- !grepl(".:.", articles)
+	articles <- articles[sel]
+	
+	# Extract titles of articles linked to
+	articles <- gsub("<<([^>|]+)\\|*[^>]*>>", "\\1", articles)
+	
+	# Remove references to sections of articles
+	articles <- gsub("(.+)#.*", "\\1", articles)
+	
+	# Remove duplicated articles
+	articles <- unique(articles)
+	
+	# Return articles names
+	articles
+}
+
 # This function gets the available translations of the English version article 
 # passed as parameter. If lang parameter is empty string then the list of all 
 # translations is returned.
