@@ -395,15 +395,17 @@ Popularity of WHS over time
 ```{r echo=FALSE, fig.width=20, fig.height=10, out.width="1920px", out.height="850px"}
 timeWhs <- whsSiteViews %>%
 	group_by(month) %>%
-	summarise(tot_pageviews=sum(tot_pageviews))
+	summarise(tot_pageviews = sum(tot_pageviews)) %>%
+	mutate(tot_pageviews = tot_pageviews / 1000000)
 
 tmPlot <- ggplot(data=timeWhs, aes(x=month, y=tot_pageviews, group=1)) + 
 	expand_limits(y=0) +
 	geom_line(size=1.6) + 
 	geom_point(colour="red", size=4, shape=21, fill="white") + 
-	xlab("Month") + ylab("Total number of page views") +
+	xlab("Month") + ylab("Million of of page views") +
 	ggtitle("Page views of English Wikipedia articles related to World Heritage Sites") +
-	stdTheme
+	stdTheme +
+	theme(axis.text.x = element_text(angle = 60, hjust = 1))
 tmPlot
 ```
 
@@ -417,7 +419,7 @@ Popularity of WHS over time
 ```{r echo=FALSE, fig.width=20, fig.height=10, out.width="1920px", out.height="850px"}
 top20Time <- whsSiteViews %>%
 	inner_join(top20, by="whs_id") %>%
-	mutate(site = substr(site, 1, 30)) %>%
+	mutate(site = substr(site, 1, 30), tot_pageviews.x=tot_pageviews.x/1000000) %>%
 	transform(site=reorder(site, tot_pageviews.y))
 
 tmPlot + geom_area(data=top20Time, 
