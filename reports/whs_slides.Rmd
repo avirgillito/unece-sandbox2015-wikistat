@@ -219,9 +219,9 @@ top20 <- aggrArticles %>%
 	transform(article = reorder(article, tot_pageviews))
 ```
 
-Total number of page views during 2012-2013 for the top most visited articles
+Total number of page views during 2012-2013 for the top most viewed articles
 
-```{r echo=FALSE, fig.width=16, fig.height=7}
+```{r echo=FALSE, message=FALSE, fig.width=16, fig.height=7}
 ggplot(data=top20, aes(x=article, y=tot_pageviews)) +
         geom_bar(stat="identity") + coord_flip() + scale_y_continuous('') + scale_x_discrete('') +
 	stdTheme
@@ -229,7 +229,7 @@ ggplot(data=top20, aes(x=article, y=tot_pageviews)) +
 
 ## Exploratory analysis
 
-```{r echo=FALSE}
+```{r echo=FALSE, message=FALSE}
 whsSiteViews <- whsArtViews %>%
 	left_join(whsArticles) %>%
 	group_by(whs_id, month) %>%
@@ -247,7 +247,7 @@ top20 <- popWhs %>%
 
 Total number of page views during 2012-2013 for the top WHS with most visits to its articles
 
-```{r echo=FALSE, fig.width=16, fig.height=7}
+```{r echo=FALSE, message=FALSE, fig.width=16, fig.height=7}
 ggplot(data=top20, aes(x=site, y=tot_pageviews)) +
         geom_bar(stat="identity") + coord_flip() + scale_y_continuous('') + scale_x_discrete('') +
 	stdTheme
@@ -276,7 +276,7 @@ ggplot(data = cntrSites, aes(x = iso_code, y = n)) +
 
 ## Exploratory analysis
 
-```{r echo=FALSE}
+```{r echo=FALSE, message=FALSE}
 cntrViews <- whs %>%
 	select(whs_id, transboundary, iso_code) %>%
 	filter(transboundary == 0) %>%
@@ -292,7 +292,7 @@ cntrViews <- whs %>%
 
 Number of WHS articles page views per country of location of the WHS
 
-```{r echo=FALSE, fig.width=16, fig.height=7}
+```{r echo=FALSE, message=FALSE, fig.width=16, fig.height=7}
 ggplot(data = cntrViews, aes(x = iso_code, y = n)) + 
 	geom_bar(stat="identity") +
 	stdTheme
@@ -302,7 +302,7 @@ ggplot(data = cntrViews, aes(x = iso_code, y = n)) +
 
 Map of WHS popularity
 
-```{r echo=FALSE, fig.width=16, fig.height=7}
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=16, fig.height=7}
 mapDat <- popWhs %>%
 	left_join(whs[, c("whs_id", "category", "latitude", "longitude")])
 	
@@ -314,7 +314,7 @@ ggplot(world, aes(long, lat)) +
 
 ## Exploratory analysis
 
-```{r echo=FALSE}
+```{r echo=FALSE, message=FALSE}
 catViews <- whs %>%
 	select(whs_id, category) %>%
 	left_join(whsSiteViews) %>%
@@ -340,7 +340,7 @@ ggplot(data = catViews, aes(x = category, y = avg_pageviews)) +
 
 Distribution of WHS by number of page views (log)
 
-```{r echo=FALSE, fig.width=16, fig.height=7}
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=16, fig.height=7}
 whsViews <- whs %>% 
 	left_join(whsSiteViews) %>% 
 	select(site, category, tot_pageviews) %>%
@@ -368,7 +368,7 @@ ggplot(whsViews, aes(x=tot_pageviews, group=category, fill=category)) +
 ## Exploratory analysis
 
 Average number of page views during 2012-2013 according to the date of inscription
-```{r echo=FALSE, fig.width=16, fig.height=7}
+```{r echo=FALSE, message=FALSE, fig.width=16, fig.height=7}
 inscViews <- whs %>%
 	select(whs_id, date_inscribed) %>%
 	left_join(whsSiteViews) %>%
