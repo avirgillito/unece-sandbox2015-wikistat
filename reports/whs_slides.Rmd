@@ -2,7 +2,8 @@
 title: "Wikipedia as a big data source in the domain of culture statistics"
 subtitle: "Insigths about world heritage from the analysis of Wikipedia use"
 author: "Wikistats Big Data Sandbox project team"
-date: "19 de Setembro de 2015"
+<<<<<<< HEAD
+date: "21 de Setembro de 2015"
 output: slidy_presentation
 ---
 
@@ -247,7 +248,7 @@ top20 <- popWhs %>%
 
 Total number of page views during 2012-2013 for the top WHS with most visits to its articles
 
-```{r echo=FALSE, message=FALSE, fig.width=16, fig.height=7}
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=16, fig.height=7}
 ggplot(data=top20, aes(x=site, y=tot_pageviews)) +
         geom_bar(stat="identity") + coord_flip() + scale_y_continuous('') + scale_x_discrete('') +
 	stdTheme
