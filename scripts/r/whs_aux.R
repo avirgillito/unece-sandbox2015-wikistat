@@ -12,6 +12,7 @@ WHS_FILE <- "whc.RData"
 WHS_ARTICLES_FILE <- "whsArticles.RData"
 
 WP_URL <- "https://<lang>.wikipedia.org/wiki/"
+WIKISTATS_URL <- "http://dumps.wikimedia.org/other/pagecounts-ez/merged/"
 API_URL_WP <- "https://<lang>.wikipedia.org/w/api.php"
 API_URL_WPM <- "http://wikipedia-miner.cms.waikato.ac.nz/services/"
 API_URL_CATSCAN <- "http://tools.wmflabs.org/catscan2/catscan2.php"
@@ -96,6 +97,39 @@ downloadWHS <- function(overwrite = FALSE) {
                 if (fileExists) logwarn("WHS data frame file overwritten.", 
                                         logger="data.log")
         }
+}
+
+# This function returns the list of wikistats dumpfiles available from WMF
+wikistatsFiles <- function() {
+	# Get directory listing web page
+	lines <- readLines(WIKISTATS_URL)
+	
+	# Extract wikistats dump files info from lines
+	m <- regexec('<a href="(pagecounts-[0-9]{4}-[0-9]{2}-views-ge-5.bz2).+([0-9]{2}-[A-Z][a-z]{2}-[0-9]{4}[ ]+[0-9]{2}:[0-9]{2})[ ]+([0-9]+)', lines)
+	result <- regmatches(lines, m)
+	
+	# Convert info from a list into a matrix
+	for (s in result) {
+		if (length(s) > 0) {
+			record <- s[2:4]
+			if (exists("dfr")) {
+				dfr <- rbind(dfr, record)
+			} else {
+				dfr <- record
+			}
+			
+		}
+	}
+	
+	# Convert result to data frame
+	dfr <- as.data.frame(dfr)
+	names(dfr) <- c("name", "date", "size")
+	dfr$size <- as.numeric(as.character(dfr$size))
+	dfr$date <- strptime(dfr$date, format="%d-%b-%Y %H:%M")
+	row.names(dfr) <- NULL
+	
+	# Return result
+	dfr
 }
 
 # This function returns the list of articles categorised in the categories passed as parameter.
