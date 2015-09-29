@@ -1,9 +1,9 @@
 ---
-title: "Wikipedia as a big data source"
+title: "Wikipedia as a big data source in the domain of culture statistics"
+subtitle: "Insigths about world heritage from the analysis of Wikipedia use"
 author: "Wikistats Big Data Sandbox project team"
 date: "19 de Setembro de 2015"
-output: beamer_presentation
-subtitle: Insigths about world heritage from the analysis of Wikipedia use
+output: slidy_presentation
 ---
 
 ```{r echo=FALSE}
