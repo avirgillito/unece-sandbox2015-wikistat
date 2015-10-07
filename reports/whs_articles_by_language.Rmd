@@ -1,0 +1,68 @@
+---
+title: "Language versions of WHS articles in wikipedia"
+author: "Fernando Reis"
+date: "06/10/2015"
+output: html_document
+---
+
+Required packages are attached.
+```{r message=FALSE}
+library(dplyr)
+library(ggplot2)
+library(grid)
+```
+
+
+A data file with the names of the articles associated to world heritage sites for every language needs to be available in the data folder. This data file can be produced with the script `scripts/r/whs_get_all_languages.R`.
+
+```{r}
+file_name <- "../data/whsArticlesLang.csv"
+whsArticlesLang <- read.csv(file_name, fileEncoding="UTF-8")
+```
+
+There are a total of `r nrow(whsArticlesLang)` Wikipedia articles associated with world heritage sites.
+```{r}
+nrow(whsArticlesLang)
+```
+
+Grouping articles names by language.
+```{r}
+art_by_lang <- whsArticlesLang %>%
+	group_by(lang) %>%
+	tally() %>%
+	rename(n_art = n)
+```
+
+These articles are distributed by `r nrow(art_by_lang)` language versions.
+```{r}
+nrow(art_by_lang)
+```
+
+Top main languages in number of articles are the following.
+```{r, echo=FALSE}
+top20 <- art_by_lang %>%
+	arrange(desc(n_art)) %>%
+	slice(1:20) %>%
+	transform(lang = reorder(lang, n_art))
+```
+
+```{r echo=FALSE, message=FALSE, fig.width=16, fig.height=7}
+ggplot(data=top20, aes(x=lang, y=n_art)) +
+        geom_bar(stat="identity") + coord_flip() + scale_y_continuous('') + scale_x_discrete('') +
+	theme(plot.title = element_text(size = rel(3.2), vjust=3),
+                  plot.margin = unit(c(0.06,0.03,0.05,0.03), "npc"),
+                  axis.title.y = element_text(size = rel(2), angle = 90, vjust = 1.5),
+                  axis.title.x = element_text(size = rel(2), angle = 00, vjust = -1.5),
+                  axis.text.x = element_text(hjust = 1, size=15),
+                  axis.text.y = element_text(hjust = 1, size=15),
+                  legend.title = element_text(size=20),
+                  legend.text = element_text(size=15))
+```
+
+Percentage of articles covered by the top20 languages.
+```{r}
+tally(top20, n_art) / nrow(whsArticlesLang)
+```
+
+
+
