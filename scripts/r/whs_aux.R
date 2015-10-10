@@ -127,6 +127,8 @@ CheckDataFolderExists <- function() {
         	loginfo(paste0("Html data folder '", HTML_FOLDER, "' created."), 
         		logger="data.log")
         }
+}
+
 # This function removes html ampersand character codes.
 # Function based on solution provided by Karsten W. in 
 # http://stackoverflow.com/questions/21790957/unescape-html-nn-sequences
