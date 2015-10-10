@@ -54,6 +54,18 @@ CheckDataFolderExists <- function() {
         	loginfo(paste0("Html data folder '", HTML_FOLDER, "' created."), 
         		logger="data.log")
         }
+getPlainText <- function(html) {
+	# Remove html tags
+	html <- gsub("<.*?>", "", html)
+	
+	# Remove new lines
+	html <- gsub("\n", " ", html)
+	
+	# Decode html ampersand character codes
+	html <- strdehtml(html)
+	
+	# Return result
+	return(html)
 }
 
 # This function downloads the raw file with the official list of worl heritage 
@@ -88,6 +100,12 @@ downloadWHS <- function(overwrite = FALSE) {
                 message <- paste0("WHS raw file '", whsRawFileName, 
                                   "' converted to data frame.")
                 loginfo(message, logger="data.log")
+                
+                # Remove html tags
+                whs$historical_description <- getPlainText(whs$historical_description)
+                whs$justification <- getPlainText(whs$justification)
+                whs$long_description <- getPlainText(whs$long_description)
+                whs$short_description <- getPlainText(whs$short_description)
                 
                 # Save data frame to disk
                 write.csv(whs, file=whsFileName, fileEncoding="UTF-8")
