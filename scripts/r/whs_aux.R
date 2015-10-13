@@ -135,7 +135,7 @@ CheckDataFolderExists <- function() {
 removeAmpersandCodes <- function(html) {
 	# Vectorise function
 	if (length(html) > 1) {
-		res <- sapply(html, FUN=strdehtml)
+		res <- sapply(html, FUN=removeAmpersandCodes)
 		names(res) <- NULL
 	} else {
 		# Replace ampersand encoding
@@ -155,7 +155,7 @@ getPlainText <- function(html) {
 	html <- gsub("\n", " ", html)
 	
 	# Decode html ampersand character codes
-	html <- strdehtml(html)
+	html <- removeAmpersandCodes(html)
 	
 	# Return result
 	return(html)
