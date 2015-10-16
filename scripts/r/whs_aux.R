@@ -8,7 +8,7 @@ DATA_LOG_FILE <- "data.log"
 
 WHS_UNESCO_URL <- "http://whc.unesco.org/en/list/xml/"
 WHS_RAW_FILE <- "whc-sites.xml"
-WHS_FILE <- "whc.RData"
+WHS_FILE <- "whs.csv"
 WHS_ARTICLES_FILE <- "whsArticles.RData"
 
 WP_URL <- "https://<lang>.wikipedia.org/wiki/"
@@ -184,7 +184,7 @@ downloadWHS <- function(overwrite = FALSE) {
                 newFile <- FALSE
         }
         
-        # If new raw file downloaded or converted file non-existent then do it
+        # If new raw file downloaded or CSV file non-existent then create it
         fileExists <- file.exists(whsFileName)
         if (!fileExists || newFile) {
                 
@@ -201,7 +201,7 @@ downloadWHS <- function(overwrite = FALSE) {
                 whs$short_description <- getPlainText(whs$short_description)
                 
                 # Save data frame to disk
-                write.csv(whs, file=whsFileName, fileEncoding="UTF-8")
+                write.csv(whs, file=whsFileName, row.names=FALSE, fileEncoding="UTF-8")
                 message <- paste0("WHS data frame '", whsFileName, 
                                   "' saved to disk.")
                 loginfo(message, logger="data.log")
