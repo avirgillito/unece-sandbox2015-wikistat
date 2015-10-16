@@ -1,0 +1,4 @@
+alldata = LOAD '$input_file' USING PigStorage(' ') AS (proj, art, total, hourly);
+lang = FILTER alldata BY(proj MATCHES '$lang.*');
+lang_with_dates = FOREACH lang GENERATE '$yearmonth' AS yearmonth, *;  
+STORE lang_with_dates INTO '$output_dir';
