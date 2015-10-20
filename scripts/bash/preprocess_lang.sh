@@ -37,25 +37,25 @@ indir=/datasets/wikistats/
 outdir=${rootdir}filtered_${lang}/
 tempdir=${rootdir}temp_${lang}/
 hadoop fs -mkdir ${outdir}
-sh scripts/bash/filter_lang.sh -l ${lang} -i ${indir} -o ${outdir} -t ${tempdir}
+scripts/bash/filter_lang.sh -l ${lang} -i ${indir} -o ${outdir} -t ${tempdir}
 
 # Step2 - Hourizing
 indir=${rootdir}filtered_${lang}/
 outdir=${rootdir}hourized_${lang}/
-sh scripts/bash/hourize.sh -i ${indir} -o ${outdir}
+scripts/bash/hourize.sh -i ${indir} -o ${outdir}
 #hadoop fs -rm -R $indir
 
 # Step3 - Linearizing
 indir=${rootdir}hourized_${lang}/
 outdir=${rootdir}linearized_${lang}/
-sh scripts/bash/linearize_direct.sh -i ${indir} -o ${outdir}
+scripts/bash/linearize_direct.sh -i ${indir} -o ${outdir}
 #hadoop fs -rm -R $indir
 
 # Step4 - Adding ids
 indir=${rootdir}linearized_${lang}/
 outdir=${rootdir}articles_time-series_${lang}/
 collisiondir=${rootdir}collisions_${lang}/
-sh scripts/bash/add_ids.sh -i ${indir} -o ${outdir} -c ${collisiondir}
+scripts/bash/add_ids.sh -i ${indir} -o ${outdir} -c ${collisiondir}
 #hadoop fs -rm -R $indir
 
 # Report sucess
