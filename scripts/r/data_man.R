@@ -44,6 +44,95 @@ CheckDataFolderExists <- function() {
 	}
 }
 
+list_archived_versions <- function(file) {
+	# Check parameter
+	if (missing(file)) stop ("file name is missing")
+	
+	# Remove path from file name
+	file <- basename(file)
+	
+	# Split name from extension
+	library(tools)
+	ext <- file_ext(file)
+	name <- file_path_sans_ext(file)
+	
+	# Compose search pattern
+	pattern <- paste0(name, "_", "([^.]+)", ".", ext)
+	
+	# Get names of versions files
+	versions <- list.files(ARCHIVE_DATA_FOLDER, pattern)
+	
+	# Extract dates from names of archived versions
+	m <- regexec(pattern, versions)
+	dates <- unlist(regmatches(versions, m))
+	dates <- as.Date(dates, format = "%Y-%m-%d-%H-%M-%S")
+	dates <- dates[!is.na(dates)]
+	
+	# Return dates of archived versions
+	res <- versions
+	attr(res, "date") <- dates
+	return(res)
+}
+
+# This function returns the latest archived version of file at the date passed
+# as parameter. If no date is passed then the currently latest version is
+# returned.
+get_from_archive <- function(file, date) {
+	# Check parameters
+	if (missing(file)) stop ("file name is missing")
+	if (missing(date)) date <- Sys.Date()
+	
+	# Make sure date is of class Date
+	date <- as.Date(date)
+	
+	# Get list of archived versions
+	versions <- list_archived_versions(file)
+	ver_dates <- attr(versions, "date")
+	
+	# Select latest version by date passed as parameter
+	sel <- (ver_dates <= date)
+	if (!any(sel)) {
+		warning(paste0("no versions from ", date, 
+			       " or before found in archive"))
+		return()
+	}
+	latest_version <- max(ver_dates[ver_dates <= date])
+	
+	# Return name of archive file
+	versions[ver_dates == latest_version]
+}
+
+# This function only copies to the archive if the file is different than the 
+# most recent archived version.
+copy_to_archive <- function(file_name) {
+	# Check if file exists
+	if (!file.exists(file_name)) 
+		stop(paste0("file '", file_name, "' does not exist"))
+	
+	# Remove path
+	base_name <- basename(file_name)
+	
+	# Remove extension
+	library(tools)
+	ext <- file_ext(base_name)
+	sole_name <- file_path_sans_ext(base_name)
+	
+	# Get date of the file
+	file_date <- strftime(file.mtime(file_name), format="%Y-%m-%d-%H-%M-%S")
+	
+	# Compose archive name
+	arch_file_name <- paste0(ARCHIVE_DATA_FOLDER, "/", 
+				 sole_name, "_", file_date, ".", ext)
+	
+	# Check if file is different to most recent archived version
+	
+	
+	# Check if archive file already exists
+	if (file.exists(arch_file_name)) stop("this is strange, there is already ")
+	
+	return(arch_file_name)
+}
+
 # This function returns the list of wikistats dumpfiles available from WMF
 wikistatsFiles <- function() {
 	# Get directory listing web page
