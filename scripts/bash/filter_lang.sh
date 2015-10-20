@@ -98,7 +98,8 @@ for d in "${tempdirs[@]}"
 do
   if [ ${d:0:1} != "." ] 
   then
-    outfiles=($(hadoop fs -ls $d | sed -n '1!p' | awk '{ print $NF }'))
+    # the line below filters out non-empty files. The solution is hacky and relies on the ordering of fields provided by the -ls command of hdfs
+    outfiles=($(hadoop fs -ls $d | sed -n '1!p' | awk '{ if ($5 != 0) print $NF }'))
     for o in "${outfiles[@]}"
     do
       fname=$(basename $o)
