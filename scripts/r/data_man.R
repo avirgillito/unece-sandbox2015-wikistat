@@ -1,8 +1,9 @@
 
+
 # Constants
 HDFS <- TRUE
 if (HDFS) {
-	DATA_DIR <- "/projects/wikistats"
+	DATA_DIR <- "hdfs:/projects/wikistats"
 } else {
 	DATA_DIR <- "./data"
 }
@@ -53,21 +54,24 @@ addHandler(writeToHdfs, logger="data.log",
 
 # This function works like base R function 'file.exists', but it also works on
 # the HDFS if the global variable HDFS is set to TRUE.
-file_exists <- function(...) {
-	if (!HDFS) {
-		base::file.exists(...)
+# NOTE: This function is not vectorised.
+file_exists <- function(file) {
+	if (substring(file, 1, 5) == "hdfs:") {
+		file <- substring(file, 6, nchar(file))
+		rhdfs::hdfs.exists(file)
 	} else {
-		rhdfs::hdfs.exists(...)
+		base::file.exists(file)
 	}
 }
 
 # This function works like base R function 'dir.create', but it also works on
 # the HDFS if the global variable HDFS is set to TRUE.
-dir_create <- function(...) {
-	if (!HDFS) {
-		base::dir.create(...)
+dir_create <- function(path) {
+	if (substring(path, 1, 5) == "hdfs:") {
+		path <- substring(path, 6, nchar(path))
+		rhdfs::hdfs.dircreate(path)
 	} else {
-		rhdfs::hdfs.dircreate(...)
+		base::dir.create(path)
 	}
 }
 
@@ -75,47 +79,71 @@ dir_create <- function(...) {
 # works on the HDFS if the global variable HDFS is set to TRUE.
 list_files <- function(path= ".", pattern = NULL, full.names = FALSE, 
 		       recursive=FALSE, ignore.case = FALSE) {
-	if (!HDFS) {
-		base::list.files(path, pattern, FALSE, full.names, recursive, 
-				 ignore.case)
-	} else {
+	if (substring(path, 1, 5) == "hdfs:") {
+		path <- substring(path, 6, nchar(path))
 		res <- rhdfs::hdfs.ls(path, recursive)$file
 		if (!full.names) 
 			res <- basename(res)
 		if (!is.null(pattern)) 
 			res <- grep(pattern, res, ignore.case, value = TRUE)
 		return(res)
+	} else {
+		base::list.files(path, pattern, FALSE, full.names, recursive, 
+				 ignore.case)
 	}
 }
 
 # This function works like base R function 'file.mtime', but it also works on
 # the HDFS if the global variable HDFS is set to TRUE.
 file_mtime <- function(path) {
-	if (!HDFS) {
-		base::file.mtime(path)
-	} else {
+	if (substring(path, 1, 5) == "hdfs:") {
+		path <- substring(path, 6, nchar(path))
 		as.POSIXct(rhdfs::hdfs.ls(path)$modtime, 
 			   format = "%Y-%m-%d %H:%M")
+	} else {
+		base::file.mtime(path)
 	}
 }
 
 # This function works like base R function 'file.copy', but it also works on
 # the HDFS if the global variable HDFS is set to TRUE.
 file_copy <- function(from, to, overwrite=FALSE) {
-	if (!HDFS) {
-		base::file.copy(from, to, overwrite)
+	using_hdfs <- FALSE
+	
+	# Check if source file is in HDFS
+	if (substring(from, 1, 5) == "hdfs:") {
+		from <- substring(from, 6, nchar(from))
+		srcFS <- hdfs.defaults("fs")
+		using_hdfs <- TRUE
 	} else {
-		rhdfs::hdfs.copy(from, to, overwrite)
+		srcFS <- hdfs.defaults("local")
+	}
+	
+	# Check if destination file is in HDFS
+	if (substring(to, 1, 5) == "hdfs:") {
+		to <- substring(to, 6, nchar(to))
+		dstFS <- hdfs.defaults("fs")
+		using_hdfs <- TRUE
+	} else {
+		dstFS <- hdfs.defaults("local")
+	}
+	
+	# Copy file
+	if (using_hdfs) {
+		rhdfs::hdfs.copy(from, to, overwrite, srcFS, dstFS)	
+	} else {
+		base::file.copy(from, to, overwrite)
 	}
 }
 
 # This function works similar to base R function 'readLines', but it also works
 # on the HDFS if the global variable HDFS is set to TRUE.
 read_lines <- function(path) {
-	if (!HDFS) {
-		base::readLines(path)
-	} else {
+	if (substring(path, 1, 5) == "hdfs:") {
+		path <- substring(path, 6, nchar(path))
 		rhdfs::hdfs.read.text.file(path)
+	} else {
+		base::readLines(path)
 	}
 }
 
