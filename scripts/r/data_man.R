@@ -197,8 +197,11 @@ get_from_archive <- function(archive, file, date) {
 # most recent archived version.
 copy_to_archive <- function(archive, file_name) {
 	# Check if file exists
-	if (!file_exists(file_name)) 
-		stop(paste0("file '", file_name, "' does not exist"))
+	if (!file_exists(file_name)) {
+		msg <- paste0("file '", file_name, "' does not exist")
+		logerror(paste0("Error when archiving: ", msg), logger = "data.log")
+		stop(msg)
+	}
 	
 	# Remove path
 	base_name <- basename(file_name)
