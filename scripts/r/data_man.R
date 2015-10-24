@@ -2,16 +2,16 @@
 # Constants
 HDFS <- TRUE
 if (HDFS) {
-	DATA_FOLDER <- "/projects/wikistats"
+	DATA_DIR <- "/projects/wikistats"
 } else {
-	DATA_FOLDER <- "./data"
+	DATA_DIR <- "./data"
 }
-WIKI_MARKUP_FOLDER <- paste(DATA_FOLDER, "wiki_cache/wikimarkup", sep="/")
-HTML_FOLDER <- paste(DATA_FOLDER, "wiki_cache/html", sep="/")
-DATA_DIR_STR <- c(DATA_FOLDER,
-		  WIKI_MARKUP_FOLDER,
-		  HTML_FOLDER)
-DATA_LOG_FILE <- "data.log"
+WIKI_MARKUP_DIR <- paste(DATA_DIR, "wiki_cache/wikimarkup", sep="/")
+HTML_DIR <- paste(DATA_DIR, "wiki_cache/html", sep="/")
+DATA_DIR_STR <- c(DATA_DIR,
+		  WIKI_MARKUP_DIR,
+		  HTML_DIR)
+DATA_LOG_FILE <- "applications_data/whs/data.log"
 
 # Load required packages
 library(logging)
@@ -21,8 +21,35 @@ if (HDFS) {
 }
 
 # Set up data logger
-addHandler(writeToFile, logger="data.log", 
-	   file=paste(DATA_FOLDER, DATA_LOG_FILE, sep="/"))
+writeToHdfs <- function (msg, handler, ...) {
+	if (length(list(...)) && "dry" %in% names(list(...))) 
+		return(exists("file", envir = handler))
+	log_file <- with(handler, file)
+	if (!HDFS) {
+		cat(paste(msg, "\n", sep = ""), file = log_file, append = TRUE)
+	} else {
+		# Copy log file to local file system and add message
+		temp_file <- tempfile()
+		hdfs.get(log_file, temp_file)
+		cat(paste(msg, "\n", sep = ""), file = temp_file, append = TRUE)
+		
+		# Workaround bug https://issues.apache.org/jira/browse/HADOOP-7199
+		crc_file <- paste0(dirname(temp_file), "/.", basename(temp_file), ".crc")
+		file.remove(crc_file)
+		
+		# Copy log file back to hdfs
+		hdfs.put(temp_file, log_file)
+	}
+	
+}
+loginfo <- function(msg, logger = "") {
+	user <- Sys.info()[["user"]]
+	msg <- paste(user, msg, sep=":")
+	logging::loginfo(msg, logger = logger)
+}
+logReset()
+addHandler(writeToHdfs, logger="data.log", 
+	   file=paste(DATA_DIR, DATA_LOG_FILE, sep="/"))
 
 # This function works like base R function 'file.exists', but it also works on
 # the HDFS if the global variable HDFS is set to TRUE.
