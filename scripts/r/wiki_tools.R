@@ -182,13 +182,13 @@ getHtml <- function(article, lang="en", refresh=FALSE) {
 		articleName <- gsub(" ", "_", article)
 		
 		# Compose file name of stored html
-		CheckDataFolderExists()
+		check_data_folders(DATA_DIR_STR)
 		validArticleName <- gsub("[:*?<>|/\"]", "_", articleName)
 		fileName <- paste0(HTML_FOLDER, "/", lang, "_", 
 				   validArticleName, ".html")
 		
 		# If html was never downloaded then do it
-		if (!file.exists(fileName) || refresh) {
+		if (!file_exists(fileName) || refresh) {
 			lang_url <- gsub("<lang>", lang, WP_URL)
 			art_url <- paste0(lang_url, articleName)
 			
@@ -200,12 +200,16 @@ getHtml <- function(article, lang="en", refresh=FALSE) {
 			# Download wiki markup
 			download.file(art_url, fileName.temp, quiet=TRUE, method="curl")
 			
-			# Change file name from original encoding
-			file.rename(fileName.temp, fileName)
+			# Change file name from original encoding and move to HDFS
+			if (!HDFS) {
+				file.rename(fileName.temp, fileName)
+			} else {
+				hdfs.put(fileName.temp, fileName)
+			}
 		}
 		
 		# Read html file
-		html <- paste(readLines(fileName), collapse = "")
+		html <- paste(read_lines(fileName), collapse = "")
 	}
 	
 	# Return wiki markup of article
@@ -223,13 +227,13 @@ getWikiMarkup <- function(article, lang="en", refresh=FALSE) {
 		articleName <- gsub(" ", "_", article)
 		
 		# Compose file name of stored wiki markup
-		CheckDataFolderExists()
+		check_data_folders(DATA_DIR_STR)
 		validArticleName <- gsub("[:*?<>|/\"]", "_", articleName)
 		fileName <- paste0(WIKI_MARKUP_FOLDER, "/", lang, "_", 
 				   validArticleName, ".json")
 		
 		# If wiki markup was never downloaded then do it
-		if (!file.exists(fileName) || refresh) {
+		if (!file_exists(fileName) || refresh) {
 			api_url <- gsub("<lang>", lang, API_URL_WP)
 			url <- paste0(api_url,
 				      "?format=json&action=query&titles=",
@@ -244,12 +248,17 @@ getWikiMarkup <- function(article, lang="en", refresh=FALSE) {
 			# Download wiki markup
 			download.file(url, fileName.temp, quiet=TRUE, method="curl")
 			
-			# Change file name from original encoding
-			file.rename(fileName.temp, fileName)
+			# Change file name from original encoding and move to HDFS
+			if (!HDFS) {
+				file.rename(fileName.temp, fileName)
+			} else {
+				hdfs.put(fileName.temp, fileName)
+			}
 		}
 		
 		# Read json file
-		json <- jsonlite::fromJSON(fileName)
+		text <- read_lines(fileName)
+		json <- jsonlite::fromJSON(text)
 		
 		# Get wiki markup of article
 		wikiMarkup <- json$query$pages[[1]]$revisions[1, 3]

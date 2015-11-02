@@ -1,50 +1,169 @@
 
+
 # Constants
-DATA_FOLDER <- "./data"
-RAW_DATA_FOLDER <- paste(DATA_FOLDER, "raw", sep="/")
-WIKI_MARKUP_FOLDER <- paste(DATA_FOLDER, "wikimarkup", sep="/")
-HTML_FOLDER <- paste(DATA_FOLDER, "html", sep="/")
-ARCHIVE_DATA_FOLDER <- paste(DATA_FOLDER, "archive", sep="/")
-DATA_LOG_FILE <- "data.log"
+HDFS <- TRUE
+if (HDFS) {
+	DATA_DIR <- "hdfs:/projects/wikistats"
+} else {
+	DATA_DIR <- "./data"
+}
+WIKI_MARKUP_DIR <- paste(DATA_DIR, "wiki_cache/wikimarkup", sep="/")
+HTML_DIR <- paste(DATA_DIR, "wiki_cache/html", sep="/")
+DATA_DIR_STR <- c(DATA_DIR,
+		  WIKI_MARKUP_DIR,
+		  HTML_DIR)
+DATA_LOG_FILE <- "applications_data/whs/data.log"
 
 # Load required packages
 library(logging)
+if (HDFS) {
+	library(rhdfs)
+	hdfs.init()
+}
 
 # Set up data logger
-addHandler(writeToFile, logger="data.log", 
-	   file=paste(DATA_FOLDER, DATA_LOG_FILE, sep="/"))
+writeToHdfs <- function (msg, handler, ...) {
+	if (length(list(...)) && "dry" %in% names(list(...))) 
+		return(exists("file", envir = handler))
+	log_file <- with(handler, file)
+	if (!HDFS) {
+		cat(paste(msg, "\n", sep = ""), file = log_file, append = TRUE)
+	} else {
+		# Copy log file to local file system and add message
+		temp_file <- tempfile()
+		hdfs.get(log_file, temp_file)
+		cat(paste(msg, "\n", sep = ""), file = temp_file, append = TRUE)
+		
+		# Workaround bug https://issues.apache.org/jira/browse/HADOOP-7199
+		crc_file <- paste0(dirname(temp_file), "/.", basename(temp_file), ".crc")
+		file.remove(crc_file)
+		
+		# Copy log file back to hdfs
+		hdfs.put(temp_file, log_file)
+	}
+	
+}
+loginfo <- function(msg, logger = "") {
+	user <- Sys.info()[["user"]]
+	msg <- paste(user, msg, sep=":")
+	logging::loginfo(msg, logger = logger)
+}
+logReset()
+addHandler(writeToHdfs, logger="data.log", 
+	   file=paste(DATA_DIR, DATA_LOG_FILE, sep="/"))
 
-# This function checks if the data folder exist, and if it does not then 
-# creates it together with its subfolders structure.
-CheckDataFolderExists <- function() {
-	if (!file.exists(DATA_FOLDER)) {
-		dir.create(DATA_FOLDER)
-		loginfo(paste0("Data folder '", DATA_FOLDER, "' created."), 
-			logger="data.log")
-	}
-	if (!file.exists(RAW_DATA_FOLDER)) {
-		dir.create(RAW_DATA_FOLDER)
-		loginfo(paste0("Raw data folder '", RAW_DATA_FOLDER, "' created."), 
-			logger="data.log")
-	}
-	if (!file.exists(WIKI_MARKUP_FOLDER)) {
-		dir.create(WIKI_MARKUP_FOLDER)
-		loginfo(paste0("Wiki markup data folder '", WIKI_MARKUP_FOLDER, "' created."), 
-			logger="data.log")
-	}
-	if (!file.exists(HTML_FOLDER)) {
-		dir.create(HTML_FOLDER)
-		loginfo(paste0("Html data folder '", HTML_FOLDER, "' created."), 
-			logger="data.log")
-	}
-	if (!file.exists(ARCHIVE_DATA_FOLDER)) {
-		dir.create(ARCHIVE_DATA_FOLDER)
-		loginfo(paste0("Data archive folder '", ARCHIVE_DATA_FOLDER, "' created."), 
-			logger="data.log")
+# This function works like base R function 'file.exists', but it also works on
+# the HDFS if the global variable HDFS is set to TRUE.
+# NOTE: This function is not vectorised.
+file_exists <- function(file) {
+	if (substring(file, 1, 5) == "hdfs:") {
+		file <- substring(file, 6, nchar(file))
+		rhdfs::hdfs.exists(file)
+	} else {
+		base::file.exists(file)
 	}
 }
 
-list_archived_versions <- function(file) {
+# This function works like base R function 'dir.create', but it also works on
+# the HDFS if the global variable HDFS is set to TRUE.
+dir_create <- function(path) {
+	if (substring(path, 1, 5) == "hdfs:") {
+		path <- substring(path, 6, nchar(path))
+		rhdfs::hdfs.dircreate(path)
+	} else {
+		base::dir.create(path)
+	}
+}
+
+# This function works almost like base R function 'list.files', but it also
+# works on the HDFS if the global variable HDFS is set to TRUE.
+list_files <- function(path= ".", pattern = NULL, full.names = FALSE, 
+		       recursive=FALSE, ignore.case = FALSE) {
+	if (substring(path, 1, 5) == "hdfs:") {
+		path <- substring(path, 6, nchar(path))
+		res <- rhdfs::hdfs.ls(path, recursive)$file
+		if (!full.names) 
+			res <- basename(res)
+		if (!is.null(pattern)) 
+			res <- grep(pattern, res, ignore.case, value = TRUE)
+		return(res)
+	} else {
+		base::list.files(path, pattern, FALSE, full.names, recursive, 
+				 ignore.case)
+	}
+}
+
+# This function works like base R function 'file.mtime', but it also works on
+# the HDFS if the global variable HDFS is set to TRUE.
+file_mtime <- function(path) {
+	if (substring(path, 1, 5) == "hdfs:") {
+		path <- substring(path, 6, nchar(path))
+		as.POSIXct(rhdfs::hdfs.ls(path)$modtime, 
+			   format = "%Y-%m-%d %H:%M")
+	} else {
+		base::file.mtime(path)
+	}
+}
+
+# This function works like base R function 'file.copy', but it also works on
+# the HDFS if the global variable HDFS is set to TRUE.
+file_copy <- function(from, to, overwrite=FALSE) {
+	using_hdfs <- FALSE
+	
+	# Check if source file is in HDFS
+	if (substring(from, 1, 5) == "hdfs:") {
+		from <- substring(from, 6, nchar(from))
+		srcFS <- hdfs.defaults("fs")
+		using_hdfs <- TRUE
+	} else {
+		srcFS <- hdfs.defaults("local")
+	}
+	
+	# Check if destination file is in HDFS
+	if (substring(to, 1, 5) == "hdfs:") {
+		to <- substring(to, 6, nchar(to))
+		dstFS <- hdfs.defaults("fs")
+		using_hdfs <- TRUE
+	} else {
+		dstFS <- hdfs.defaults("local")
+	}
+	
+	# Copy file
+	if (using_hdfs) {
+		rhdfs::hdfs.copy(from, to, overwrite, srcFS, dstFS)	
+	} else {
+		base::file.copy(from, to, overwrite)
+	}
+}
+
+# This function works similar to base R function 'readLines', but it also works
+# on the HDFS if the global variable HDFS is set to TRUE.
+read_lines <- function(path) {
+	if (substring(path, 1, 5) == "hdfs:") {
+		path <- substring(path, 6, nchar(path))
+		rhdfs::hdfs.read.text.file(path)
+	} else {
+		base::readLines(path)
+	}
+}
+
+
+# This function checks if the data folder exist, and if it does not then 
+# creates it together with its subfolders structure.
+check_data_folders <- function(data_folders) {
+	# Vectorise function
+	if (length(data_folders) > 1) {
+		res <- sapply(data_folders, FUN=check_data_folders)
+	} else {
+		if (!file_exists(data_folders)) {
+			dir_create(data_folders)
+			loginfo(paste0("Data folder '", data_folders, "' created."), 
+				logger="data.log")
+		}
+	}
+}
+
+list_archived_versions <- function(archive, file) {
 	# Check parameter
 	if (missing(file)) stop ("file name is missing")
 	
@@ -60,7 +179,7 @@ list_archived_versions <- function(file) {
 	pattern <- paste0(name, "_", "([^.]+)", ".", ext)
 	
 	# Get names of versions files
-	versions <- list.files(ARCHIVE_DATA_FOLDER, pattern)
+	versions <- list_files(archive, pattern)
 	
 	# Extract dates from names of archived versions
 	m <- regexec(pattern, versions)
@@ -69,15 +188,15 @@ list_archived_versions <- function(file) {
 	dates <- dates[!is.na(dates)]
 	
 	# Return dates of archived versions
-	res <- versions
+	res <- paste(archive, versions, sep = "/")
 	attr(res, "date") <- dates
 	return(res)
 }
 
-# This function returns the latest archived version of file at the date passed
-# as parameter. If no date is passed then the currently latest version is
-# returned.
-get_from_archive <- function(file, date) {
+# This function returns the name of the latest archived version of file at the
+# date passed as parameter. If no date is passed then the currently latest
+# version is returned.
+get_from_archive <- function(archive, file, date) {
 	# Check parameters
 	if (missing(file)) stop ("file name is missing")
 	if (missing(date)) date <- Sys.Date()
@@ -86,7 +205,7 @@ get_from_archive <- function(file, date) {
 	date <- as.Date(date)
 	
 	# Get list of archived versions
-	versions <- list_archived_versions(file)
+	versions <- list_archived_versions(archive, file)
 	ver_dates <- attr(versions, "date")
 	
 	# Select latest version by date passed as parameter
@@ -104,10 +223,13 @@ get_from_archive <- function(file, date) {
 
 # This function only copies to the archive if the file is different than the 
 # most recent archived version.
-copy_to_archive <- function(file_name) {
+copy_to_archive <- function(archive, file_name) {
 	# Check if file exists
-	if (!file.exists(file_name)) 
-		stop(paste0("file '", file_name, "' does not exist"))
+	if (!file_exists(file_name)) {
+		msg <- paste0("file '", file_name, "' does not exist")
+		logerror(paste0("Error when archiving: ", msg), logger = "data.log")
+		stop(msg)
+	}
 	
 	# Remove path
 	base_name <- basename(file_name)
@@ -118,19 +240,17 @@ copy_to_archive <- function(file_name) {
 	sole_name <- file_path_sans_ext(base_name)
 	
 	# Get date of the file
-	file_date <- strftime(file.mtime(file_name), format="%Y-%m-%d-%H-%M-%S")
+	file_date <- strftime(file_mtime(file_name), format="%Y-%m-%d-%H-%M-%S")
 	
 	# Compose archive name
-	arch_file_name <- paste0(ARCHIVE_DATA_FOLDER, "/", 
+	arch_file_name <- paste0(archive, "/", 
 				 sole_name, "_", file_date, ".", ext)
 	
-	# Check if file is different to most recent archived version
-	
-	
 	# Check if archive file already exists
-	if (file.exists(arch_file_name)) stop("this is strange, there is already ")
+	if (file.exists(arch_file_name)) stop("file is already archived")
 	
-	return(arch_file_name)
+	# Copy file to archive
+	file_copy(file_name, arch_file_name)
 }
 
 # This function returns the list of wikistats dumpfiles available from WMF
