@@ -1,0 +1,18 @@
+Register '$python_helper' using jython as helper;
+data = LOAD '$input_dir' USING PigStorage() AS (id:chararray, proj:chararray, art:chararray, rest:chararray);
+headers = FILTER data BY(id == 'hour') OR (id == 'month') OR (id=='week') OR (id == 'day');
+header_raw = LIMIT headers 1;
+header = FOREACH header_raw GENERATE proj, art, helper.remove_commas_and_braces(rest);
+--header = header_raw;
+
+body = FILTER data BY(NOT ((id == 'hour') OR (id == 'month') OR (id=='week') OR (id == 'day')));
+grouped = GROUP body BY (proj, art);
+--final = UNION header, body;
+--final = UNION header, grouped;
+
+--grpd = LOAD '$input_dir' USING PigStorage() as (T: (projout:chararray, AOUT:(artout:chararray)), B:{T2:(yearmonth:chararray, projin:chararray, AIN:(artin:chararray), monthcount:int, B2:{T3:(hour:int, count:int)})});
+agglomerated = FOREACH grouped GENERATE group.proj, group.art, helper.remove_commas_and_braces(helper.agglomerate_periods(group.proj, group.art, body)) as periods;
+--agglomerated = FOREACH grouped GENERATE group.proj, group.art, helper.agglomerate_periods(group.proj, group.art, body) as periods;
+
+final = UNION header, agglomerated;
+STORE final INTO '$output_dir';
