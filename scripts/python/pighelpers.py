@@ -12,7 +12,7 @@ count = 0
 @outputSchema("id:int")
 def getId():
   #return int(hashlib.md5(str(proj) + str(art)).hexdigest(), 16)
-  return random.randint(1,100000000000000)
+  return random.randint(1,100000000000000000)
   #return random.randint(1,2)
 
 @outputSchema("y:bag{t:tuple(id:chararray, hour:int, hits:int)}")
@@ -45,7 +45,53 @@ def parseHours(yearmonth, hrs):
   offset_at_first_day = (current_date - epoch).days * 24
   res = convert_all(hrs, offset_at_first_day)
   return res
-  
+
+@outputSchema("y:chararray")
+def remove_commas_and_braces(x):
+    x = x.replace("[","")
+    x = x.replace("]","")
+    x = x.replace(",","")
+    return x
+
+@outputSchema("y:chararray")
+def agglomerate_periods(proj, art, all):
+    strings = [a[3] for a in all]
+    arrays = []
+    for s in strings:
+        s = s[1:-1]
+        arrays += [[int(t) for t in re.split(",",s)]]    
+    res = str([sum([t[i] for t in arrays]) for i in range(0,len(arrays[0]))])
+    return res
+
+    strings = [a[3] for a in all]
+    arrays = []
+    for s in strings: 
+        toexec="nextarray=" + s
+        try:
+            exec(toexec) 
+        except:
+            return str(sys.exc_info())
+        arrays += [nextarray]
+
+    res = str([sum([t[i] for t in arrays]) for i in range(0,len(arrays[0]))])
+    # remove surrounding [ and ] and commas inbetween
+    return res
+
+    # first strip the surrounding [ and ]
+    all = all[1:-1]
+    opening_braces=[m.start() for m in re.finditer("\[",all)]  
+    closing_braces=[m.start() for m in re.finditer("\]",all)]
+    if len(opening_braces) != len(closing_braces):
+        raise "Problem with" + str(proj) + " " + str(art) + " check for [ or ] in the article name."
+    pairs = zip(openening_braces, closing_braces)
+    # each element will be an array corresponding the full period where only one year is not (necesserily) zeroed out
+    # expected is that the elements are equal in length
+    arrays = []
+    for p in pairs:
+        toexec="nextarray="+all[p[0]:p[1]+1]
+        exec(toexec) 
+        arrays += [nextarray]
+    return str([sum([t[i] for t in arrays]) for i in range(0,len(arrays[0]))])
 
 @outputSchema("y:bag{t:tuple(hour:int, hits:int)}")
 def combineBags(allbags):
