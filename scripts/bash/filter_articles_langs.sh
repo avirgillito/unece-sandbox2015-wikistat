@@ -110,5 +110,5 @@ pighelpers=$(dirname $(cd "$( dirname "$0" )" && pwd))/python/pighelpers.py
 
 pig -f $pigdir/assemble_from_languages.grunt -param input_dir=$tempdir -param output_dir=$outdir -param python_helper=$pighelpers
 
-#hadoop dfs -rm -R $tempdir
+hadoop dfs -rm -R $tempdir
 echo "done"  
