@@ -2,6 +2,7 @@
 usage() { echo "Usage: $0 -c <config_file> (-g <hour|day|week|month>)
 config file format:
 outdir=\"<hdfs_folder_for_output>\"
+tempdir=\"<hdfs_folder_for_temporary_files>\"
 proj1=\"<proj> <file_with_articles> <input_for_2012_2012> <input_for_2014_2015>\"
 proj2=\"<proj> <file_with_articles> <input_for_2012_2012> <input_for_2014_2015>\"
 ...
