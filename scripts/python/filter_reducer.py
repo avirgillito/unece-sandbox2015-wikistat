@@ -10,12 +10,22 @@ current_count = 0
 word = None
 
 aggr=str(os.environ["WIKI_AGGR"]).strip()
+first_year=str(os.environ["FIRST_YEAR"]).strip()
+first_month=str(os.environ["FIRST_MONTH"]).strip()
+first_day=str(os.environ["FIRST_DAY"]).strip()
+last_year=str(os.environ["LAST_YEAR"]).strip()
+last_month=str(os.environ["LAST_MONTH"]).strip()
+last_day=str(os.environ["LAST_DAY"]).strip()
+
 #wiki=str(os.environ["WIKI_PROJ"]).strip()
 
 epoch = datetime.datetime(1970,1,1)
-first_hour = datetime.datetime(2012,1,1,0)
+#first_hour = datetime.datetime(2014,1,1,0)
+#last_hour = datetime.datetime(2015,12,31,23)
+first_hour = datetime.datetime(int(first_year),int(first_month),int(first_day),0)
+last_hour = datetime.datetime(int(last_year),int(last_month),int(last_day),23)
+
 first_day = first_hour.date()
-last_hour = datetime.datetime(2013,12,31,23)
 
 offset_at_first_hour = (first_hour - epoch).days * 24
 offset_at_last_hour = (last_hour - epoch).days * 24 + (last_hour - epoch).seconds/3600
@@ -58,6 +68,8 @@ for line in sys.stdin:
   
   cmd = "normalized=["+counts[1:-1] + "]"
   exec(cmd) 
+  #exception0=str(absolute_offset)+"#"+str(offset_at_first_hour)+"#"+str(normalized)
+  #raise Exception(exception0)
   for n in normalized:
     absolute_offset = n[0]
     cnt = n[1]
