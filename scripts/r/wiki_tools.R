@@ -5,6 +5,7 @@ WIKISTATS_URL <- "http://dumps.wikimedia.org/other/pagecounts-ez/merged/"
 API_URL_WP <- "https://<lang>.wikipedia.org/w/api.php"
 API_URL_WPM <- "http://wikipedia-miner.cms.waikato.ac.nz/services/"
 API_URL_CATSCAN <- "http://tools.wmflabs.org/catscan2/catscan2.php"
+API_URL_MEDIAWIKI_EN <- "http://en.wikipedia.org/w/api.php"
 
 AMPERSAND_CODES <- setNames(
 	c("\u0022", "\u0026", "\u0027", "\u003C", "\u003E", "\u00A0", "\u00A1",
@@ -357,12 +358,23 @@ getLangVersion <- function(article, lang="") {
 		articleName <- gsub("[ |_]", "%20", articleName)
 		
 		# Query Wikipedia Miner for translations
-		url <- paste0(API_URL_WPM,
-			      "exploreArticle?title=", 
-			      articleName, "&translations=true&responseFormat=json")
+#		url <- paste0(API_URL_WPM,
+#			      "exploreArticle?title=", 
+#			      articleName, "&translations=true&responseFormat=json")
+        url <- paste0(API_URL_MEDIAWIKI_EN,"?action=query",
+                "&titles=",
+                articleName,
+                "&prop=langlinks",
+                "&format=json",
+                "&lllimit=500")
+
 		data <- fromJSON(url)
-		trans <- data$translations$text
-		names(trans) <- data$translations$lang
+        langlinks <- data$query$pages[[1]]$langlinks
+		trans <- langlinks$`*`
+        names(trans) <- langlinks$lang
+        
+        #trans <- data$translations$text
+		#names(trans) <- data$translations$lang
 		
 		# Return translation requested or all of them
 		if (lang == "" || lang == "en") {
