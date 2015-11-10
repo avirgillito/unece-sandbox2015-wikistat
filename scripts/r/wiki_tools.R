@@ -229,7 +229,7 @@ getWikiMarkup <- function(article, lang="en", refresh=FALSE) {
 		# Compose file name of stored wiki markup
 		check_data_folders(DATA_DIR_STR)
 		validArticleName <- gsub("[:*?<>|/\"]", "_", articleName)
-		fileName <- paste0(WIKI_MARKUP_FOLDER, "/", lang, "_", 
+		fileName <- paste0(WIKI_MARKUP_DIR, "/", lang, "_", 
 				   validArticleName, ".json")
 		
 		# If wiki markup was never downloaded then do it
