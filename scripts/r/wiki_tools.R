@@ -1,3 +1,5 @@
+# Source dependencies
+source("./scripts/r/data_man.R")
 
 # Constants
 WP_URL <- "https://<lang>.wikipedia.org/wiki/"
@@ -361,6 +363,7 @@ getLangVersion <- function(article, lang="") {
 			      "exploreArticle?title=", 
 			      articleName, "&translations=true&responseFormat=json")
 		data <- fromJSON(url)
+		if ("error" %in% names(data)) warning(data$error)
 		trans <- data$translations$text
 		names(trans) <- data$translations$lang
 		
