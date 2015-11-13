@@ -1,3 +1,5 @@
+# Source dependencies
+source("./scripts/r/data_man.R")
 
 # Constants
 WP_URL <- "https://<lang>.wikipedia.org/wiki/"
@@ -357,24 +359,18 @@ getLangVersion <- function(article, lang="") {
 		# Replace spaces for %20
 		articleName <- gsub("[ |_]", "%20", articleName)
 		
-		# Query Wikipedia Miner for translations
-#		url <- paste0(API_URL_WPM,
-#			      "exploreArticle?title=", 
-#			      articleName, "&translations=true&responseFormat=json")
-        url <- paste0(API_URL_MEDIAWIKI_EN,"?action=query",
-                "&titles=",
-                articleName,
-                "&prop=langlinks",
-                "&format=json",
-                "&lllimit=500")
-
+		# Query Wikipedia API for translations
+		url <- paste0(API_URL_MEDIAWIKI_EN,"?action=query",
+			      "&titles=",
+			      articleName,
+			      "&prop=langlinks",
+			      "&format=json",
+			      "&lllimit=500")
+		
 		data <- fromJSON(url)
-        langlinks <- data$query$pages[[1]]$langlinks
+		langlinks <- data$query$pages[[1]]$langlinks
 		trans <- langlinks$`*`
-        names(trans) <- langlinks$lang
-        
-        #trans <- data$translations$text
-		#names(trans) <- data$translations$lang
+		names(trans) <- langlinks$lang
 		
 		# Return translation requested or all of them
 		if (lang == "" || lang == "en") {
