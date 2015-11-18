@@ -15,7 +15,7 @@ while getopts ":d:t:s:m:" o; do
           startmonth=${OPTARG}
           ;;
        m)
-          monhts=${OPTARG}
+          months=${OPTARG}
           ;;
        p)
           par=${OPTARG}
