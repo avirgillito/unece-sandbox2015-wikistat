@@ -170,6 +170,21 @@ read_lines <- function(path) {
 	}
 }
 
+# This function works similar to base R function 'read.csv', but it also works
+# on the HDFS if the file name starts with 'hdfs:'.
+read_csv <- function(file, ...) {
+	if (is_in_hdfs(file)) {
+		file_hdfs <- hdfs_path(file)
+		file <- tempfile()
+		rhdfs::hdfs.get(file_hdfs, file)
+		data <- read.csv(file, ...)
+		file.remove(file)
+	} else {
+		data <- read.csv(file, ...)
+	}
+	return(data)
+}
+
 
 # This function checks if the data folder exist, and if it does not then 
 # creates it together with its subfolders structure.
