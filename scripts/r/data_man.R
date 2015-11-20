@@ -52,12 +52,16 @@ logReset()
 addHandler(writeToHdfs, logger="data.log", 
 	   file=paste(DATA_DIR, DATA_LOG_FILE, sep="/"))
 
+is_in_hdfs <- function(file_path) {
+	return(substring(file_path, 1, 5) == "hdfs:")
+}
+
 # This function works like base R function 'file.exists', but it also works on
 # the HDFS if the global variable HDFS is set to TRUE.
 # NOTE: This function is vectorised.
 file_exists <- function(file) {
 	# Identify hdfs files and local files
-	hdfs_files <- (substring(file, 1, 5) == "hdfs:")
+	hdfs_files <- is_in_hdfs(file)
 	local_files <- !hdfs_files
 	
 	# Check hdfs files, if any
@@ -82,7 +86,7 @@ file_exists <- function(file) {
 # This function works like base R function 'dir.create', but it also works on
 # the HDFS if the global variable HDFS is set to TRUE.
 dir_create <- function(path) {
-	if (substring(path, 1, 5) == "hdfs:") {
+	if (is_in_hdfs(path)) {
 		path <- substring(path, 6, nchar(path))
 		rhdfs::hdfs.dircreate(path)
 	} else {
@@ -94,7 +98,7 @@ dir_create <- function(path) {
 # works on the HDFS if the global variable HDFS is set to TRUE.
 list_files <- function(path= ".", pattern = NULL, full.names = FALSE, 
 		       recursive=FALSE, ignore.case = FALSE) {
-	if (substring(path, 1, 5) == "hdfs:") {
+	if (is_in_hdfs(path)) {
 		path <- substring(path, 6, nchar(path))
 		res <- rhdfs::hdfs.ls(path, recursive)$file
 		if (!full.names) 
@@ -111,7 +115,7 @@ list_files <- function(path= ".", pattern = NULL, full.names = FALSE,
 # This function works like base R function 'file.mtime', but it also works on
 # the HDFS if the global variable HDFS is set to TRUE.
 file_mtime <- function(path) {
-	if (substring(path, 1, 5) == "hdfs:") {
+	if (is_in_hdfs(path)) {
 		path <- substring(path, 6, nchar(path))
 		as.POSIXct(rhdfs::hdfs.ls(path)$modtime, 
 			   format = "%Y-%m-%d %H:%M")
@@ -126,7 +130,7 @@ file_copy <- function(from, to, overwrite=FALSE) {
 	using_hdfs <- FALSE
 	
 	# Check if source file is in HDFS
-	if (substring(from, 1, 5) == "hdfs:") {
+	if (is_in_hdfs(from)) {
 		from <- substring(from, 6, nchar(from))
 		srcFS <- hdfs.defaults("fs")
 		using_hdfs <- TRUE
@@ -135,7 +139,7 @@ file_copy <- function(from, to, overwrite=FALSE) {
 	}
 	
 	# Check if destination file is in HDFS
-	if (substring(to, 1, 5) == "hdfs:") {
+	if (is_in_hdfs(to)) {
 		to <- substring(to, 6, nchar(to))
 		dstFS <- hdfs.defaults("fs")
 		using_hdfs <- TRUE
@@ -154,7 +158,7 @@ file_copy <- function(from, to, overwrite=FALSE) {
 # This function works similar to base R function 'readLines', but it also works
 # on the HDFS if the global variable HDFS is set to TRUE.
 read_lines <- function(path) {
-	if (substring(path, 1, 5) == "hdfs:") {
+	if (is_in_hdfs(path)) {
 		path <- substring(path, 6, nchar(path))
 		rhdfs::hdfs.read.text.file(path)
 	} else {
