@@ -54,14 +54,29 @@ addHandler(writeToHdfs, logger="data.log",
 
 # This function works like base R function 'file.exists', but it also works on
 # the HDFS if the global variable HDFS is set to TRUE.
-# NOTE: This function is not vectorised.
+# NOTE: This function is vectorised.
 file_exists <- function(file) {
-	if (substring(file, 1, 5) == "hdfs:") {
-		file <- substring(file, 6, nchar(file))
-		rhdfs::hdfs.exists(file)
-	} else {
-		base::file.exists(file)
-	}
+	# Identify hdfs files and local files
+	hdfs_files <- (substring(file, 1, 5) == "hdfs:")
+	local_files <- !hdfs_files
+	
+	# Check hdfs files, if any
+	if (any(hdfs_files)) {
+		hdfs_file_names <- substring(file[hdfs_files], 6, nchar(file[hdfs_files]))
+		hdfs_res <- rhdfs::hdfs.exists(hdfs_file_names)
+	} else hdfs_res <- FALSE
+	
+	# Check local files, if any
+	if (any(local_files)) {
+		local_file_names <- file[local_files]
+		local_res <- base::file.exists(local_file_names)
+	} else local_res <- FALSE
+	
+	# Return result
+	res <- logical(length(file))
+	res[hdfs_files] <- hdfs_res
+	res[local_files] <- local_res
+	return(res)
 }
 
 # This function works like base R function 'dir.create', but it also works on
