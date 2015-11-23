@@ -5,13 +5,16 @@ import urllib
 
 def normalize(art):
   norm = urllib.unquote(art)
-  if norm == art:
-    norm = re.sub(" ", "_", norm)
-    norm = re.sub("'", "_", norm)
-    #norm = re.sub("/", "", norm)
-    return norm
-  else:
-    return normalize(norm)    
+  norm = re.sub(" ", "_", norm)
+  norm = re.sub("'", "_", norm)
+  return norm
+  #if norm == art:
+  #  norm = re.sub(" ", "_", norm)
+  #  norm = re.sub("'", "_", norm)
+  #  #norm = re.sub("/", "", norm)
+  #  return norm
+  #else:
+  #  return normalize(norm)    
 
 
 wiki=str(os.environ["WIKI_PROJ"]).strip()
@@ -20,8 +23,8 @@ articles=str(os.environ["ART_FILE"]).strip()
 #lines = open('tst.txt','r').readlines()
 lines = open(articles,'r').readlines()
 
-#articles_list = [normalize(x.strip()) for x in lines]
-articles_list = [x.strip() for x in lines]
+articles_list = [normalize(x.strip()) for x in lines]
+#articles_list = [x.strip() for x in lines]
 
 articles = dict(zip(articles_list, [1 for t in articles_list]))
 get_everything=False
@@ -67,8 +70,8 @@ for line in sys.stdin:
     art = toks[2]
     if proj != wiki:
       continue
-    #if not normalize(art) in articles:
-    if not art in articles:
+    if not normalize(art) in articles:
+    #if not art in articles:
       continue
     print line
   except IndexError:
