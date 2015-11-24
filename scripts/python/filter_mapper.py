@@ -1,20 +1,21 @@
 #!/usr/bin/python
+import re
 import sys
 import os
 import urllib
 
 def normalize(art):
   norm = urllib.unquote(art)
-  norm = re.sub(" ", "_", norm)
-  norm = re.sub("'", "_", norm)
-  return norm
-  #if norm == art:
   #  norm = re.sub(" ", "_", norm)
   #  norm = re.sub("'", "_", norm)
-  #  #norm = re.sub("/", "", norm)
-  #  return norm
-  #else:
-  #  return normalize(norm)    
+  #return norm
+  if norm == art:
+    norm = re.sub(" ", "_", norm)
+    norm = re.sub("'", "_", norm)
+    norm = re.sub("/", "_", norm)
+    return norm
+  else:
+    return normalize(norm)    
 
 
 wiki=str(os.environ["WIKI_PROJ"]).strip()
