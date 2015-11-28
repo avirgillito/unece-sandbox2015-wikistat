@@ -16,6 +16,7 @@ DATA_LOG_FILE <- "applications_data/whs/data.log"
 
 # Load required packages
 library(logging)
+library(magrittr)
 if (HDFS) {
 	library(rhdfs)
 	hdfs.init()
@@ -91,50 +92,45 @@ file_exists <- function(file) {
 	return(res)
 }
 
-# Just like 'utils' function 'download.file', but it is vectorised.
-download_file <- function (url, destfile, method = "curl", quiet = FALSE, 
-			   mode = "w", cacheOK = TRUE, 
-			   extra = getOption("download.file.extra")) 
-{
-	method <- if (missing(method)) 
-		getOption("download.file.method", default = "auto")
-	else match.arg(method, c("auto", "internal", "libcurl", "wget", 
-				 "curl", "lynx"))
-	if (method == "auto") {
-		method <- "curl"
-	}
-	if (method == "internal") {
-		stop("method 'internal' not available.")
-	}
-	else if (method == "libcurl") {
-		status <- .Internal(curlDownload(url, destfile, quiet, 
-						 mode, cacheOK))
-		if (!quiet) 
-			flush.console()
-	}
-	else if (method == "wget") {
-		stop("method 'wget' not available.")
-	}
-	else if (method == "curl") {
-		if (typeof(url) != "character") 
-			stop("'url' must be a character vector")
-		if (typeof(destfile) != "character") 
-			stop("'destfile' must be a character vector")
-		if (quiet) 
-			extra <- c(extra, "-s -S")
-		if (!cacheOK) 
-			extra <- c(extra, "-H 'Pragma: no-cache'")
-		extras <- paste(extra, collapse = " ")
-		do_curl <- function (url, destfile) {
-			system(paste("curl", extras, shQuote(url), " -o", 
-				     shQuote(path.expand(destfile))))
-		}
-		status <- mapply(FUN = do_curl, url, destfile)
-	}
-	else if (method == "lynx") 
-		stop("method 'lynx' is defunct as from R 3.1.0", domain = NA)
-	if (any(status)) 
-		warning("some download had nonzero exit status")
+# Just like 'utils' function 'download.file', but it is vectorised. It usels 
+# only 'curl' as method.
+# TODO: handle destfile in hdfs
+download_file <- function (url, destfile, quiet = FALSE, cacheOK = TRUE, 
+			   extra = getOption("download.file.extra")) {
+	
+	# Validate parameters
+	if (typeof(url) != "character") 
+		stop("'url' must be a character vector")
+	if (typeof(destfile) != "character") 
+		stop("'destfile' must be a character vector")
+	
+	# Compose extras
+	if (quiet) extra <- c(extra, "-s -S")
+	if (!cacheOK) extra <- c(extra, "-H 'Pragma: no-cache'")
+	extras <- paste(extra, collapse = " ")
+	
+	# Identify hdfs files
+	hdfs_files <- is_in_hdfs(destfile)
+	
+	# Compose temporary names for hdfs dest files
+	temp_dir <- tempdir()
+	local_files <- path.expand(destfile)
+	local_files[hdfs_files] %<>% 
+		hdfs_path() %>%
+		basename() %>%
+		paste(temp_dir, ., sep = "/")
+	
+	# Compose system calls
+	calls <- paste("curl", extras, shQuote(url), "-o", shQuote(local_files))
+	
+	# Make system calls
+	status <- sapply(calls, FUN = system)
+	if (any(status)) warning("some download had nonzero exit status")
+	
+	# Move temporary dest files to hdfs
+	rhdfs::hdfs.put(local_files[hdfs_files], destfile[hdfs_files])
+	
+	# Return status invisibly
 	invisible(status)
 }
 
