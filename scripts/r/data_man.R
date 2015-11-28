@@ -139,13 +139,17 @@ download_file <- function (url, destfile, method = "curl", quiet = FALSE,
 }
 
 # This function works like base R function 'dir.create', but it also works on
-# the HDFS if the global variable HDFS is set to TRUE.
-dir_create <- function(path) {
-	if (is_in_hdfs(path)) {
-		rhdfs::hdfs.dircreate(hdfs_path(path))
-	} else {
-		base::dir.create(path)
-	}
+# the HDFS if the path to the folder starts with 'hdfs:'.
+# NOTE: This function is vectorised.
+dir_create <- function(paths) {
+# 	rhdfs::hdfs.dircreate(hdfs_path(paths), 
+# 			      ifelse(is_in_hdfs(paths), 
+# 			             hdfs.defaults("fs"), 
+# 			             hdfs.defaults("local")))
+	
+	fs <- rep(hdfs.defaults("local"), length(paths))
+	fs[is_in_hdfs(paths)] <- hdfs.defaults("fs")
+	rhdfs::hdfs.dircreate(hdfs_path(paths), fs)
 }
 
 # This function works almost like base R function 'list.files', but it also
@@ -231,7 +235,6 @@ read_csv <- function(file, ...) {
 	}
 	return(data)
 }
-
 
 # This function checks if the data folder exist, and if it does not then 
 # creates it together with its subfolders structure.
