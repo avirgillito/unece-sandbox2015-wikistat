@@ -91,6 +91,53 @@ file_exists <- function(file) {
 	return(res)
 }
 
+# Just like 'utils' function 'download.file', but it is vectorised.
+download_file <- function (url, destfile, method = "curl", quiet = FALSE, 
+			   mode = "w", cacheOK = TRUE, 
+			   extra = getOption("download.file.extra")) 
+{
+	method <- if (missing(method)) 
+		getOption("download.file.method", default = "auto")
+	else match.arg(method, c("auto", "internal", "libcurl", "wget", 
+				 "curl", "lynx"))
+	if (method == "auto") {
+		method <- "curl"
+	}
+	if (method == "internal") {
+		stop("method 'internal' not available.")
+	}
+	else if (method == "libcurl") {
+		status <- .Internal(curlDownload(url, destfile, quiet, 
+						 mode, cacheOK))
+		if (!quiet) 
+			flush.console()
+	}
+	else if (method == "wget") {
+		stop("method 'wget' not available.")
+	}
+	else if (method == "curl") {
+		if (typeof(url) != "character") 
+			stop("'url' must be a character vector")
+		if (typeof(destfile) != "character") 
+			stop("'destfile' must be a character vector")
+		if (quiet) 
+			extra <- c(extra, "-s -S")
+		if (!cacheOK) 
+			extra <- c(extra, "-H 'Pragma: no-cache'")
+		extras <- paste(extra, collapse = " ")
+		do_curl <- function (url, destfile) {
+			system(paste("curl", extras, shQuote(url), " -o", 
+				     shQuote(path.expand(destfile))))
+		}
+		status <- mapply(FUN = do_curl, url, destfile)
+	}
+	else if (method == "lynx") 
+		stop("method 'lynx' is defunct as from R 3.1.0", domain = NA)
+	if (any(status)) 
+		warning("some download had nonzero exit status")
+	invisible(status)
+}
+
 # This function works like base R function 'dir.create', but it also works on
 # the HDFS if the global variable HDFS is set to TRUE.
 dir_create <- function(path) {
