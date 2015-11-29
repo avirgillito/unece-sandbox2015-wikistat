@@ -92,9 +92,8 @@ file_exists <- function(file) {
 	return(res)
 }
 
-# Just like 'utils' function 'download.file', but it is vectorised. It usels 
-# only 'curl' as method.
-# TODO: handle destfile in hdfs
+# Just like 'utils' function 'download.file', but it is vectorised. It uses 
+# only 'curl' as method. It handles dest files with path in the hdfs.
 download_file <- function (url, destfile, quiet = FALSE, cacheOK = TRUE, 
 			   extra = getOption("download.file.extra")) {
 	
@@ -209,12 +208,23 @@ file_copy <- function(from, to, overwrite=FALSE) {
 
 # This function works similar to base R function 'readLines', but it also works
 # on the HDFS if the global variable HDFS is set to TRUE.
-read_lines <- function(path) {
-	if (is_in_hdfs(path)) {
-		rhdfs::hdfs.read.text.file(hdfs_path(path))
-	} else {
-		base::readLines(path)
+read_lines <- function(path, collapse = FALSE) {
+	# Initialise result variable
+	res <- character(0)
+	
+	# Cycle through the files
+	for (one_path in path) {
+		if (is_in_hdfs(one_path)) {
+			lines <- rhdfs::hdfs.read.text.file(hdfs_path(one_path))
+		} else {
+			lines <- base::readLines(one_path)
+		}
+		if (collapse) lines <- paste(lines, collapse = "\n")
+		res <- c(res, lines)
 	}
+	
+	# Return result
+	return(res)
 }
 
 # This function works similar to base R function 'read.csv', but it also works
