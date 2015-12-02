@@ -219,6 +219,11 @@ getHtml <- function(article, lang="en", refresh=FALSE) {
 	return(html)
 }
 
+# This function removes section references from articles titles.
+remove_section_ref <- function(article) {
+	return(sub("#.+$", "", article))
+}
+
 # This function returns the markup text of a wikipedia article.
 getWikiMarkup <- function(article, lang="en", refresh=FALSE) {
 	# Vectorised function
