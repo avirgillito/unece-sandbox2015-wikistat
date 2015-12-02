@@ -291,17 +291,49 @@ getWikiMarkup <- function(article, lang="en", refresh=FALSE) {
 	return(res)
 }
 
+# Language specific wikimarkup codes for redirecting articles
+REDIR_WIKIMARKUP <- c(
+	"#виж",			# BG
+	"#PŘESMĚRUJ",		# CS
+	"#REDIRECT",		# EN, DA, LV
+	"#WEITERLEITUNG",	# DE
+	"#ΑΝΑΚΑΤΕΥΘΥΝΣΗ",	# EL
+	"#REDIRECCIÓN",		# ES
+	"#SUUNA",		# ET
+	"#REDIRECTION",		# FR
+	"#OHJAUS",		# FI
+	"#ATHSHEOLADH",		# GA
+	"#PREUSMJERI",		# HR
+	"#ÁTIRÁNYÍTÁS",		# HU
+	"#TILVÍSUN",		# IS
+	"#RINVIA", 		# IT
+	"#PERADRESAVIMAS",	# LT
+	"#ПРЕНАСОЧУВАЊЕ",	# MK
+	"#RINDIRIZZA",		# MT
+	"#DOORVERWIJZING",	# NL
+	"#OMDIRIGERING",	# NO
+	"#PATRZ",		# PL
+	"#REDIRECIONAMENTO",	# PT
+	"#REDIRECTEAZA",	# RO
+	"#ПЕРЕНАПРАВЛЕНИЕ",	# RU
+	"#PRESMERUJ",		# SK
+	"#PREUSMERITEV",	# SL
+	"#RIDREJTO",		# SQ
+	"#ПРЕУСМЕРИ",		# SR
+	"#OMDIRIGERING",	# SV
+	"#YÖNLENDİRME"		# TR
+	)
+
 # This function returns TRUE if the wikiMarkup redirects to another wiki page.
+# NOTE: This function is vectorised.
 isRedirect <- function(wikiMarkup) {
-	# Check if redirect text is present
-	redirectLine <- grep('#REDIRECT', wikiMarkup)
+	# Build regex
+	redir_regex <- REDIR_WIKIMARKUP %>%
+		paste(collapse = "|") %>%
+		paste0("^(", ., ") *\\[\\[.+\\]\\]")
 	
 	# Return result
-	if (length(redirectLine) == 0) {
-		return(FALSE)
-	} else {
-		return(TRUE)
-	}
+	return(grepl(redir_regex, wikiMarkup, ignore.case = TRUE, perl = TRUE))
 }
 
 # This function returns the name of the article to which the wikiMarkup directs.
