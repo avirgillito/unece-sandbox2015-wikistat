@@ -225,55 +225,70 @@ remove_section_ref <- function(article) {
 }
 
 # This function returns the markup text of a wikipedia article.
+# NOTE: It might be needed to create temporary file name, because on Windows the
+# external download tool does not store the file with the name in the utf-8
+# encoding.
 getWikiMarkup <- function(article, lang="en", refresh=FALSE) {
-	# Vectorised function
-	if (length(article) > 1) {
-		wikiMarkup <- sapply(article, FUN=getWikiMarkup)
-		names(wikiMarkup) <- NULL
-	} else {
-		# Replace spaces for underscores
-		articleName <- gsub(" ", "_", article)
+	# Create data folders if they don't exit
+	check_data_folders(DATA_DIR_STR)
+	
+	# Remove possible references to sections in the articles
+	article <- remove_section_ref(article)
+	
+	# Replace spaces for underscores
+	article_name <- gsub(" ", "_", article)
+	
+	# Compose file name of stored wiki markup
+	valid_article_name <- gsub("[:*?<>|/\"]", "_", article_name)
+	file_name <- paste0(WIKI_MARKUP_DIR, "/", lang, "_",  
+			   valid_article_name, ".json")
+	
+	# Find out which files need to be downloaded
+	to_download <- !file_exists(file_name) | refresh
+	
+	# Download files not in the cache
+	if (any(to_download)) {
 		
-		# Compose file name of stored wiki markup
-		check_data_folders(DATA_DIR_STR)
-		validArticleName <- gsub("[:*?<>|/\"]", "_", articleName)
-		fileName <- paste0(WIKI_MARKUP_DIR, "/", lang, "_", 
-				   validArticleName, ".json")
-		
-		# If wiki markup was never downloaded then do it
-		if (!file_exists(fileName) || refresh) {
-			api_url <- gsub("<lang>", lang, API_URL_WP)
-			url <- paste0(api_url,
-				      "?format=json&action=query&titles=",
-				      articleName,
-				      "&prop=revisions&rvprop=content")
-			
-			# Create temporary file name, because on Windows the 
-			# external download tool does not store the file with 
-			# the name in the utf-8 encoding.
-			fileName.temp <- "temp_file.json"
-			
-			# Download wiki markup
-			download.file(url, fileName.temp, quiet=TRUE, method="curl")
-			
-			# Change file name from original encoding and move to HDFS
-			if (!HDFS) {
-				file.rename(fileName.temp, fileName)
-			} else {
-				hdfs.put(fileName.temp, fileName)
-			}
+		# Compose url's from where to get the files
+		url <- character(length(file_name))
+		for (one_lang in unique(lang[to_download])) {
+			api_url <- gsub("<lang>", one_lang, API_URL_WP)
+			sel <- (lang == one_lang) & (to_download)
+			url[sel] <- paste0(api_url,
+					   "?format=json&action=query&titles=",
+					   article_name[sel],
+					   "&prop=revisions&rvprop=content")
 		}
 		
-		# Read json file
-		text <- read_lines(fileName)
-		json <- jsonlite::fromJSON(text)
-		
-		# Get wiki markup of article
-		wikiMarkup <- json$query$pages[[1]]$revisions[1, 3]
+		# Download wiki markup of articles not in cache
+		download_file(url[to_download], file_name[to_download])
+	}	
+	
+	# Read json files and extract wiki markup
+	res <- character(0)
+	for (one_file in file_name) {
+		text <- read_lines(one_file, collapse = TRUE)
+		if (jsonlite::validate(text)) {
+			json <- jsonlite::fromJSON(text)
+			if ("missing" %in% names(json$query$pages[[1]])) {
+				wiki_markup <- "ERROR: wikimarkup missing"
+				warning(paste("wikimarkup missing in"), one_file)
+			} else {
+				wiki_markup <- json$query$pages[[1]]$revisions[1, 3]
+			}
+		} else {
+			wiki_markup <- "ERROR: not valid json text"
+			warning(paste("json text not valid in"), one_file)
+		}
+		if (is.null(wiki_markup)) {
+			wiki_markup <- "ERROR: wikimarkup is null"
+			warning(paste("null wikimarkup in"), one_file)
+		}
+		res <- c(res, wiki_markup)
 	}
 	
-	# Return wiki markup of article
-	return(wikiMarkup)
+	# Return wiki markup of articles
+	return(res)
 }
 
 # This function returns TRUE if the wikiMarkup redirects to another wiki page.
