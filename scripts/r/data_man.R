@@ -76,7 +76,8 @@ file_exists <- function(file) {
 	# Check hdfs files, if any
 	if (any(hdfs_files)) {
 		hdfs_file_names <- hdfs_path(file[hdfs_files])
-		hdfs_res <- rhdfs::hdfs.exists(hdfs_file_names)
+		hdfs_res <- sapply(hdfs_file_names, rhdfs::hdfs.exists)
+		names(hdfs_res) <- NULL
 	} else hdfs_res <- FALSE
 	
 	# Check local files, if any
