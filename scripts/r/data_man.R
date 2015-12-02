@@ -93,8 +93,9 @@ file_exists <- function(file) {
 	return(res)
 }
 
-# Just like 'utils' function 'download.file', but it is vectorised. It uses 
-# only 'curl' as method. It handles dest files with path in the hdfs.
+# This function works just like 'utils' function 'download.file', but it is
+# vectorised. It uses only 'curl' as method. It handles dest files with path in
+# the hdfs.
 download_file <- function (url, destfile, quiet = FALSE, cacheOK = TRUE, 
 			   extra = getOption("download.file.extra")) {
 	
@@ -123,12 +124,16 @@ download_file <- function (url, destfile, quiet = FALSE, cacheOK = TRUE,
 	# Compose system calls
 	calls <- paste("curl", extras, shQuote(url), "-o", shQuote(local_files))
 	
-	# Make system calls
-	status <- sapply(calls, FUN = system)
-	if (any(status)) warning("some download had nonzero exit status")
-	
-	# Move temporary dest files to hdfs
-	rhdfs::hdfs.put(local_files[hdfs_files], destfile[hdfs_files])
+	# Make system calls and move temporary dest files to hdfs
+	for (i in 1:length(local_files)) {
+		status <- system(calls[i])
+		if (status) {
+			warning("download had nonzero exit status")
+		} else {
+			if (hdfs_files[i]) 
+				rhdfs::hdfs.put(local_files[i], destfile[i])
+		}
+	}
 	
 	# Return status invisibly
 	invisible(status)
