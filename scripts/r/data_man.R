@@ -235,6 +235,7 @@ read_lines <- function(path, collapse = FALSE) {
 
 # This function works similar to base R function 'read.csv', but it also works
 # on the HDFS if the file name starts with 'hdfs:'.
+# NOTE: This function is NOT vectorised
 read_csv <- function(file, ...) {
 	if (is_in_hdfs(file)) {
 		file_hdfs <- hdfs_path(file)
@@ -246,6 +247,25 @@ read_csv <- function(file, ...) {
 		data <- read.csv(file, ...)
 	}
 	return(data)
+}
+
+# This function works similar to base R function 'write.csv', but it also works
+# on the HDFS if the file name starts with 'hdfs:'.
+# NOTE: This function is NOT vectorised
+write_csv <- function(x, file = "", ...) {
+	if (is_in_hdfs(file)) {
+		file_hdfs <- hdfs_path(file)
+		file <- tempfile()
+		write.csv(x, file, ...)
+		status <- rhdfs::hdfs.put(file, file_hdfs)
+		file.remove(file)
+		
+	} else {
+		write.csv(x, file, ...)
+	}
+	
+	# Return status invisibly
+	invisible(status)
 }
 
 # This function checks if the data folder exist, and if it does not then 
