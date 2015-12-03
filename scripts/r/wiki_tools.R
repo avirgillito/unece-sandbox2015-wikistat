@@ -338,26 +338,43 @@ isRedirect <- function(wikiMarkup) {
 
 # This function returns the name of the article to which the wikiMarkup directs.
 getRedirect <- function(wikiMarkup) {
-	# Split text in lines
-	wikiMarkup <- strsplit(wikiMarkup, "\\n")[[1]]
+	# Vectorised function
+	if (length(wikiMarkup) > 1) {
+		res <- sapply(wikiMarkup, FUN = getRedirect)
+		names(res) <- NULL
+	} else {
+		# Make sure wikiMarket is not a list of 1 element
+		wikiMarkup <- unlist(wikiMarkup)
+		
+		# Split text in lines
+		wikiMarkup <- strsplit(wikiMarkup, "\\n")[[1]]
+		
+		# Get line with redirect text
+		redir_regex <- REDIR_WIKIMARKUP %>%
+			paste(collapse = "|") %>%
+			paste0("^(", ., ") *\\[\\[.+\\]\\]")
+		redirectLine <- grep(redir_regex, wikiMarkup, 
+				     ignore.case = TRUE, perl = TRUE, 
+				     value = TRUE)
+		
+		# gsub does not escape properly the square brakets, so replace them
+		redirectLine <- gsub("\\[", "<", redirectLine)
+		redirectLine <- gsub("\\]", ">", redirectLine)
+		
+		# Get article to which it redirects
+		m <- gregexpr("<<[^>]+>>", redirectLine)
+		article <- regmatches(redirectLine, m)
+		article <- gsub("<<([^>]+)>>", "\\1", article)
+		
+		# Remove possible references to sections in the articles
+		article <- remove_section_ref(article)
+		
+		# Return article name
+		res <- article
+	}
 	
-	# Get line with redirect text
-	redirectLine <- grep('#REDIRECT', wikiMarkup, value=TRUE)
-	
-	# gsub does not escape properly the square brakets, so replace them
-	redirectLine <- gsub("\\[", "<", redirectLine)
-	redirectLine <- gsub("\\]", ">", redirectLine)
-	
-	# Get article to which it redirects
-	m <- gregexpr("<<[^>]+>>", redirectLine)
-	article <- regmatches(redirectLine, m)
-	article <- gsub("<<([^>]+)>>", "\\1", article)
-	
-	# If redirect includes reference to section then remove it
-	if (grepl("#", article)) article <- gsub("(.+)#.*", "\\1", article)
-	
-	# Return article name
-	article
+	# Return result
+	return(res)
 }
 
 # This function returns the names of the articles to which the wikiMarkup link.
