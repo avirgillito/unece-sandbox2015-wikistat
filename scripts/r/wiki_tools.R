@@ -272,17 +272,17 @@ getWikiMarkup <- function(article, lang="en", refresh=FALSE) {
 			json <- jsonlite::fromJSON(text)
 			if ("missing" %in% names(json$query$pages[[1]])) {
 				wiki_markup <- "ERROR: wikimarkup missing"
-				warning(paste("wikimarkup missing in"), one_file)
+				warning(paste("wikimarkup missing in "), one_file)
 			} else {
 				wiki_markup <- json$query$pages[[1]]$revisions[1, 3]
 			}
 		} else {
 			wiki_markup <- "ERROR: not valid json text"
-			warning(paste("json text not valid in"), one_file)
+			warning(paste("json text not valid in "), one_file)
 		}
 		if (is.null(wiki_markup)) {
 			wiki_markup <- "ERROR: wikimarkup is null"
-			warning(paste("null wikimarkup in"), one_file)
+			warning(paste("null wikimarkup in "), one_file)
 		}
 		res <- c(res, wiki_markup)
 	}
