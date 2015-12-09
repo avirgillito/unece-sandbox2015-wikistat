@@ -233,6 +233,22 @@ read_lines <- function(path, collapse = FALSE) {
 	return(res)
 }
 
+# This function works similar to base R function 'read.table', but it also works
+# on the HDFS if the file name starts with 'hdfs:'.
+# NOTE: This function is NOT vectorised
+read_table <- function(file, ...) {
+	if (is_in_hdfs(file)) {
+		file_hdfs <- hdfs_path(file)
+		file <- tempfile()
+		rhdfs::hdfs.get(file_hdfs, file)
+		data <- read.table(file, ...)
+		file.remove(file)
+	} else {
+		data <- read.table(file, ...)
+	}
+	return(data)
+}
+
 # This function works similar to base R function 'read.csv', but it also works
 # on the HDFS if the file name starts with 'hdfs:'.
 # NOTE: This function is NOT vectorised
