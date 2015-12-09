@@ -1,40 +1,45 @@
-# Analysis of language versions of WHS articles
+# This scripts reads the list of articles selected in the English Wikipedia,
+# gets all the language versions of those articles and saves it as a data frame.
 
-## Load required libraries
+# Load required libraries
 library(dplyr)
 library(reshape2)
 
-## Load auxiliar functions
-source("./scripts/r/whs_aux.R")
+# Load auxiliar functions
+source("./scripts/r/whs_data_man.R")
 
-## Get list of whs articles in english wikipedia
-fileName <- paste0(DATA_FOLDER, "/whsArticles.csv")
-whsArticles <- read.csv(fileName, fileEncoding="UTF-8")
+# Constants
+IN_FILE <- paste0(WHS_DIR, "/whs_articles_en.csv")
+OUT_FILE <- paste0(WHS_DIR, "/whs_articles.csv")
 
-## Get language versions of articles
-langVer <- getLangVersion(whsArticles$article)
+# Get list of whs articles in english wikipedia
+whs_articles_en <- read_csv(IN_FILE, fileEncoding = "UTF-8")
+
+# Get all other language versions of articles
+langVer <- getLangVersion(whs_articles_en$article)
 
 ## Convert list to data frame
-for (i in 1:nrow(whsArticles)) {
-	whs_id <- whsArticles$whs_id[i]
+for (i in 1:nrow(whs_articles_en)) {
+	whs_id <- whs_articles_en$whs_id[i]
 	
 	# Add row for English article
 	lang <- "en"
-	article_title <- as.character(whsArticles$article[i])
+	article_title <- as.character(whs_articles_en$article[i])
 	
 	# If data frame doesn't exist then create it
-	if (!exists("whsArticlesLang")) {
-		whsArticlesLang <- data.frame(whs_id = whs_id, lang = lang, 
+	if (!exists("whs_articles")) {
+		whs_articles <- data.frame(whs_id = whs_id, lang = lang, 
 					      article = article_title)
-		row.names(whsArticlesLang) <- NULL
-		whsArticlesLang$whs_id <- as.factor(whsArticlesLang$whs_id)
-		whsArticlesLang$lang <- as.factor(whsArticlesLang$lang)
-		whsArticlesLang$article <- as.character(whsArticlesLang$article)
+		row.names(whs_articles) <- NULL
+		whs_articles$whs_id <- as.factor(whs_articles$whs_id)
+		whs_articles$lang <- as.factor(whs_articles$lang)
+		whs_articles$article <- as.character(whs_articles$article)
 	} else {
-		t <- data.frame(whs_id = as.factor(whs_id), lang = lang, article = article_title)
+		t <- data.frame(whs_id = as.factor(whs_id), lang = lang, 
+				article = article_title)
 		t$whs_id <- as.factor(t$whs_id)
 		row.names(t) <- NULL
-		whsArticlesLang <- rbind(whsArticlesLang, t)
+		whs_articles <- rbind(whs_articles, t)
 	}
 	
 	# Add rows for languages other than English
@@ -42,10 +47,12 @@ for (i in 1:nrow(whsArticles)) {
 	if (!is.null(langList)) {
 		t <- cbind(whs_id, lang = names(langList), article = langList)
 		row.names(t) <- NULL
-		whsArticlesLang <- rbind(whsArticlesLang, t)
+		whs_articles <- rbind(whs_articles, t)
 	}
 }
 
-## Save data frame to disk
-fileName <- paste0(DATA_FOLDER, "/whsArticlesLang.csv")
-write.csv(whsArticlesLang, fileName, row.names = FALSE, fileEncoding = "UTF-8")
+# Remove references to sections in names of articles
+whs_articles$article <- get_no_section(whs_articles$article)
+
+# Save data frame to disk
+write_csv(whs_articles, OUT_FILE, row.names = FALSE, fileEncoding = "UTF-8")
