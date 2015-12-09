@@ -1,5 +1,3 @@
-# Source dependencies
-source("./scripts/r/data_man.R")
 
 # Constants
 WP_URL <- "https://<lang>.wikipedia.org/wiki/"
@@ -451,4 +449,19 @@ getLangVersion <- function(article, lang="") {
 	
 	# Return result
 	return(result)
+}
+
+encode_article_name <- function(article_name) {
+	# Replace spaces by underscore
+	article_name <- gsub(" ", "_", article_name)
+	
+	# URL encode names of articles
+	article_name <- urltools::url_encode(article_name)
+	
+	# Remove encoding of parenthesis
+	article_name <- gsub("%28", "(", article_name)
+	article_name <- gsub("%29", ")", article_name)
+	
+	#return result
+	return(article_name)
 }
