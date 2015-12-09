@@ -17,6 +17,7 @@ DATA_LOG_FILE <- "applications_data/whs/data.log"
 # Load required packages
 library(logging)
 library(magrittr)
+library(reshape2)
 library(urltools)
 if (HDFS) {
 	library(rhdfs)
@@ -292,6 +293,27 @@ normalize <- function(art) {
 		norm[norm == art] <- gsub("[ |'|/]", "_", norm[norm == art])
 		return(norm)
 	}
+}
+
+read_wikistats <- function(data_file, header_file) {
+	# Compose header of the data frame
+	header <- read_lines(header_file) %>%
+		strsplit("[\t| ]") %>%
+		unlist() %>%
+		gsub(x = ., pattern = "'", replacement = "")
+	header <- paste0("T", header)
+	header[1:2] <- c("project", "article")
+	
+	# Read data
+	data <- read_table(data_file, col.names = header) %>%
+		transform(article = normalize(as.character(article)),
+			  lang = substr(project, 1, 2)) %>%
+		select(-project) %>%
+		melt(id.vars = c("lang", "article"), variable.name = "month")
+	levels(data$month) <- substr(levels(data$month), 2, nchar(levels(data$month)))
+	
+	# Return result
+	return(data)
 }
 
 # This function checks if the data folder exist, and if it does not then 
