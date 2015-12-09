@@ -8,6 +8,9 @@ print("Let's start getting redirects.")
 # Constants
 IN_FILE <- "hdfs:/projects/wikistats/applications_data/whs/whs_articles.csv"
 OUT_FILE <- "hdfs:/projects/wikistats/applications_data/whs/whs_redirects.csv"
+LANGUAGES <- c("bg", "cs", "da", "de", "el", "en", "es", "et", "fi", "fr", "ga", 
+	       "hr", "hu", "is", "it", "lt", "lv", "mk", "mt", "nl", "no", "pl", 
+	       "pt", "ro", "ru", "sk", "sl", "sq", "sr", "sv", "tr")
 
 # Attach packages used
 library(dplyr)
@@ -24,10 +27,7 @@ if (!file_exists(IN_FILE)) {
 }
 
 whs_articles <- read_csv(IN_FILE, fileEncoding = "UTF-8") %>%
-	filter(lang %in% c("bg", "cs", "da", "de", "el", "en", "es", "et", "fr", 
-			   "fi", "ga", "hr", "hu", "is", "it", "lt", "lv", "mk", 
-			   "mt", "nl", "no", "pl", "pt", "ro", "ru", "sk", "sl", 
-			   "sq", "sr", "sv", "tr")) %>%
+	filter(lang %in% LANGUAGES) %>%
 	mutate(article = gsub("_", " ", as.character(article)))
 
 # Get articles wiki markup
