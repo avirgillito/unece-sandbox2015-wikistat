@@ -17,6 +17,7 @@ DATA_LOG_FILE <- "applications_data/whs/data.log"
 # Load required packages
 library(logging)
 library(magrittr)
+library(urltools)
 if (HDFS) {
 	library(rhdfs)
 	hdfs.init()
@@ -282,6 +283,15 @@ write_csv <- function(x, file = "", ...) {
 	
 	# Return status invisibly
 	invisible(status)
+}
+
+normalize <- function(art) {
+	if (length(art) > 0) {
+		norm <- url_decode(art)
+		norm[norm != art] <- normalize(norm[norm != art])
+		norm[norm == art] <- gsub("[ |'|/]", "_", norm[norm == art])
+		return(norm)
+	}
 }
 
 # This function checks if the data folder exist, and if it does not then 
