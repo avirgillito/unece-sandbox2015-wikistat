@@ -375,6 +375,34 @@ get_redirect_target <- function(wikiMarkup) {
 	return(res)
 }
 
+get_redirect_final_target <- function(wiki_markup, lang) {
+	# This is a recursive function and this is a stop condition
+	if (length(wiki_markup) == 0) return()
+
+	# Initialise variable to store result
+	final_target <- character(length(wiki_markup))
+
+	# Check if there are any redirects
+	sel <- is_redirect(wiki_markup)
+	if (!any(sel)) return(final_target)
+
+	# Get immediate redirects
+	final_target[sel] <- get_redirect_target(wiki_markup[sel])
+
+	# If targets are themselves redirects, iterate function
+	wm <- character(length(final_target))
+	wm[sel] <- getWikiMarkup(final_target[sel], lang[sel])
+
+	# If targets are themselves redirects, iterate function
+	sel <- is_redirect(wm)
+	if (any(sel)) {
+		final_target[sel] <- get_redirect_final_target(final_target[sel])
+	}
+	
+	# Return result
+	return(final_target)
+}
+
 # This function returns the names of the articles to which the wikiMarkup link.
 getLinkedArticles <- function(wikiMarkup) {
 	# gsub does not escape properly the square brakets, so replace them
