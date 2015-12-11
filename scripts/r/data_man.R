@@ -14,6 +14,9 @@ DATA_DIR_STR <- c(DATA_DIR,
 		  HTML_DIR)
 DATA_LOG_FILE <- "applications_data/whs/data.log"
 
+# Source dependencies
+source("./scripts/r/wiki_tools.R")
+
 # Load required packages
 library(logging)
 library(magrittr)
