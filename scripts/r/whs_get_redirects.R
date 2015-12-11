@@ -7,7 +7,7 @@ print("Let's start getting redirects.")
 
 # Constants
 IN_FILE <- "hdfs:/projects/wikistats/applications_data/whs/whs_articles.csv"
-OUT_FILE <- "hdfs:/projects/wikistats/applications_data/whs/whs_redirects.csv"
+OUT_FILE <- "hdfs:/projects/wikistats/applications_data/whs/whs_redirect_targets.csv"
 LANGUAGES <- c("bg", "cs", "da", "de", "el", "en", "es", "et", "fi", "fr", "ga", 
 	       "hr", "hu", "is", "it", "lt", "lv", "mk", "mt", "nl", "no", "pl", 
 	       "pt", "ro", "ru", "sk", "sl", "sq", "sr", "sv", "tr")
@@ -35,12 +35,12 @@ print("Getting wiki markup of articles.")
 whs_articles <- whs_articles %>%
 	mutate(wm = getWikiMarkup(article, lang))
 
-# If there are articles which redirect to other articles, then getting destination articles and 
-if (any(isRedirect(whs_articles$wm))) {
+# If there are articles which redirect to other articles, then get target articles
+if (any(is_redirect(whs_articles$wm))) {
 	print("Articles with redirects were found. Getting destination articles.")
 	res <- whs_articles %>%
-		filter(isRedirect(wm)) %>%
-		mutate(dest = getRedirect(wm)) %>%
+		filter(is_redirect(wm)) %>%
+		mutate(dest = get_redirect_target(wm)) %>%
 		select(-wm)
 	print(paste("Saving results in output file:", OUT_FILE))
 	write_csv(res, OUT_FILE, row.names = FALSE, quote = TRUE, 
