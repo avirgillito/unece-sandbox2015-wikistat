@@ -324,7 +324,7 @@ REDIR_WIKIMARKUP <- c(
 
 # This function returns TRUE if the wikiMarkup redirects to another wiki page.
 # NOTE: This function is vectorised.
-isRedirect <- function(wikiMarkup) {
+is_redirect <- function(wikiMarkup) {
 	# Build regex
 	redir_regex <- REDIR_WIKIMARKUP %>%
 		paste(collapse = "|") %>%
@@ -335,10 +335,10 @@ isRedirect <- function(wikiMarkup) {
 }
 
 # This function returns the name of the article to which the wikiMarkup directs.
-getRedirect <- function(wikiMarkup) {
+get_redirect_target <- function(wikiMarkup) {
 	# Vectorised function
 	if (length(wikiMarkup) > 1) {
-		res <- sapply(wikiMarkup, FUN = getRedirect)
+		res <- sapply(wikiMarkup, FUN = get_redirect_target)
 		names(res) <- NULL
 	} else {
 		# Make sure wikiMarket is not a list of 1 element
