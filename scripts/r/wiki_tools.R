@@ -479,6 +479,41 @@ getLangVersion <- function(article, lang="") {
 	return(result)
 }
 
+# This function returns the gets the available translations of the English version article 
+# passed as parameter. If lang parameter is empty string then the list of all 
+# translations is returned.
+# This function is vectorised.
+# NOTE: One language at a time
+get_redirect <- function(article, lang="en") {
+	# Vectorised function
+	if (length(article) > 1) {
+		result <- mapply(get_redirect, article, lang)
+		#names(result) <- NULL
+	}
+	else {	
+		# Replace spaces for %20
+		article <- gsub("[ |_]", "%20", article)
+		
+		# Query Wikipedia API for translations
+		api_url <- gsub("<lang>", lang, API_URL_WP)
+		url <- paste0(api_url,"?action=query",
+			      "&titles=",
+			      article,
+			      "&prop=redirects",
+			      "&format=json",
+			      "&lllimit=500")
+		
+		data <- fromJSON(url)
+		redirects <- data$query$pages[[1]]$redirects$title
+		
+		# Return redirects
+		result <- redirects
+	}
+	
+	# Return result
+	return(result)
+}
+
 encode_article_name <- function(article_name) {
 	# Replace spaces by underscore
 	article_name <- gsub(" ", "_", article_name)
