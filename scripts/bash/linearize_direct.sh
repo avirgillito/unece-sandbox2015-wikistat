@@ -55,5 +55,6 @@ reducer=$(dirname $(cd "$( dirname "$0" )" && pwd))/python/linearize_reducer.py
 
 # real work
 
-cmd="hadoop jar /usr/hdp/2.2.4.2-2/hadoop-mapreduce/hadoop-streaming.jar -D mapred.reduce.tasks=7 -file ${mapper} -mapper ${mapper} -file ${reducer} -reducer ${reducer} -input ${indir} -output ${outdir}"
+#cmd="hadoop jar /usr/hdp/2.2.4.2-2/hadoop-mapreduce/hadoop-streaming.jar -D mapred.reduce.tasks=7 -file ${mapper} -mapper ${mapper} -file ${reducer} -reducer ${reducer} -input ${indir} -output ${outdir}"
+cmd="hadoop jar /usr/hdp/2.3.2.0-2950/hadoop-mapreduce/hadoop-streaming.jar -D mapred.reduce.tasks=7 -file ${mapper} -mapper ${mapper} -file ${reducer} -reducer ${reducer} -input ${indir} -output ${outdir}"
 $cmd
