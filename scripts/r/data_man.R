@@ -8,6 +8,7 @@ if (HDFS) {
 	DATA_DIR <- "./data"
 }
 WIKI_MARKUP_DIR <- paste(DATA_DIR, "wiki_cache/wikimarkup", sep="/")
+REDIRECTS_DIR <- paste(DATA_DIR, "wiki_cache/redirects", sep="/")
 HTML_DIR <- paste(DATA_DIR, "wiki_cache/html", sep="/")
 DATA_DIR_STR <- c(DATA_DIR,
 		  WIKI_MARKUP_DIR,
@@ -20,6 +21,7 @@ source("./scripts/r/wiki_tools.R")
 # Load required packages
 library(logging)
 library(magrittr)
+library(dplyr)
 library(reshape2)
 library(urltools)
 if (HDFS) {
@@ -298,7 +300,12 @@ normalize <- function(art) {
 	}
 }
 
-read_wikistats <- function(data_file, header_file) {
+# This function reads the data file produced by the script 'filter_articles_langs.sh'.
+# Optionally it appends it to an existing wikistats file. If 'append_file' does 
+# not exist then it will just save the data frame on disk.
+read_wikistats <- function(data_file = paste0("hdfs:/user/", Sys.info()[["user"]], "/many_lang_extraction/part-m-00000"), 
+			   header_file = paste0("hdfs:/user/", Sys.info()[["user"]], "/many_lang_extraction/part-m-00001"), 
+			   append_file = "") {
 	# Compose header of the data frame
 	header <- read_lines(header_file) %>%
 		strsplit("[\t| ]") %>%
@@ -308,12 +315,13 @@ read_wikistats <- function(data_file, header_file) {
 	header[1:2] <- c("project", "article")
 	
 	# Read data
-	data <- read_table(data_file, col.names = header) %>%
+	data <- read_table(data_file, col.names = header, quote = "") %>%
 		transform(article = normalize(as.character(article)),
 			  lang = substr(project, 1, 2)) %>%
 		select(-project) %>%
-		melt(id.vars = c("lang", "article"), variable.name = "month")
-	levels(data$month) <- substr(levels(data$month), 2, nchar(levels(data$month)))
+		melt(id.vars = c("lang", "article"), variable.name = "time") %>%
+		group_by(lang, article, time) %>%
+		summarise(value = sum(value))
 	
 	# Return result
 	return(data)
@@ -457,3 +465,60 @@ wikistatsFiles <- function() {
 	dfr
 }
 
+# This function creates text files with the titles of articles for each
+# different language and also the config file to be passed to the bash script
+# which will perform the extraction.
+make_extract_config <- function(articles, languages, 
+				out_dir = "./data/", 
+				art_file_prefix = "articles_", 
+				config_file = "multilang_extraction.cfg", 
+				hdfs_temp_dir = paste0("/user/", Sys.info()[["user"]], "/temp/"), 
+				hdfs_out_dir = paste0("/user/", Sys.info()[["user"]], "/many_lang_extraction/")) {
+	
+	# Encode names of articles
+	articles <- gsub(" ", "_", articles)
+	
+	# Create initial lines of the config file
+	lines <- c(paste0('outdir="', hdfs_out_dir, '"'),
+		   paste0('tempdir="', hdfs_temp_dir, '"'))
+	
+	# Get list of unique languages
+	unique_languages <- levels(languages)
+	
+	# For each unique language
+	seq <- 1
+	for (l in unique_languages) {
+		
+		# Select articles of language l
+		language_articles <- articles[languages == l]
+
+		# If there are any articles of language l
+		if (length(language_articles) > 0) {
+			
+			# Write list of articles for language l in text file
+			file_name <- paste0(out_dir, art_file_prefix, l, ".txt")
+			writeLines(as.character(language_articles), file_name)
+			
+			# Add articles list file to conf
+			line <- paste0('proj', seq, '="', l, '.z ', file_name,
+				       ' /projects/wikistats/views_processed_2012-2013/articles_time-series_', 
+				       l, ' /projects/wikistats/views_processed_2014-2015/articles_time-series_', 
+				       l, '"')
+			lines <- c(lines, line)
+			seq <- seq + 1
+		}
+	}
+	
+	# Write config file
+	file_name <- paste0(out_dir, config_file)
+	writeLines(lines, file_name, sep = "\n")
+	
+	# Give instructions to user on how to use the extraction config file
+	message(paste0("Config file and text files with lists of articles per ",
+		     "language were saved in directory ", out_dir))
+	message("In order to extract page views data for those articles run script")
+	message("./scripts/bash/filter_articles_langs.sh -c <config_file> (-g <hour|day|week|month>)")
+	message("For example:")
+	message(paste0("./scripts/bash/filter_articles_langs.sh -c ", file_name, " -g month"))
+	message(paste0("Extracted page views can then be found in the HDFS in directory ", hdfs_out_dir))
+}
