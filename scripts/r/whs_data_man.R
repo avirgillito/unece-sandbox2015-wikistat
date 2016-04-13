@@ -8,10 +8,12 @@ WHS_UNESCO_URL <- "http://whc.unesco.org/en/list/xml/"
 WHS_RAW_FILE <- "whc-sites.xml"
 WHS_FILE <- "whs.csv"
 if (HDFS) {
-	ARCHIVE_DATA_DIR <- paste(DATA_DIR, "applications_data/whs/archive", sep="/")
+	WHS_DIR <- paste(DATA_DIR, "applications_data/whs", sep="/")
 } else {
-	ARCHIVE_DATA_DIR <- paste(DATA_DIR, "archive", sep="/")
+	WHS_DIR <- DATA_DIR
 }
+ARCHIVE_DATA_DIR <- paste(WHS_DIR, "archive", sep="/")
+
 DATA_DIR_STR <- append(DATA_DIR_STR, ARCHIVE_DATA_DIR)
 
 # This function downloads the raw XML file with the official list of world 
