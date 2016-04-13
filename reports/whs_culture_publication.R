@@ -54,7 +54,7 @@ whs_wikistats <-
 	left_join(whs_articles, by = c("lang", "article")) %>%
 	
 	# Aggregate wikistats by WHS
-	group_by(lang, whs_id, month) %>%
+	group_by(lang, whs_id, time) %>%
 	summarise(value = sum(value)) %>%
 	
 	# Link to main WHS table
@@ -74,7 +74,7 @@ whs_culture_map <- whs_wikistats %>%
 	# Restrict whs to Europe and wikistats to 2015
 	filter(latitude >= EUR_LAT_MIN, latitude <= EUR_LAT_MAX, 
 	       longitude >= EUR_LONG_MIN, longitude <= EUR_LONG_MAX,
-	       substr(month, 2, 5) == "2015") %>%
+	       substr(time, 2, 5) == "2015") %>%
 	
 	# Aggregate Wikipedia language versions and months
 	group_by(whs_id, longitude, latitude) %>%
@@ -99,7 +99,7 @@ ggsave(WHS_CULTURE_MAP, map_plot)
 whs_culture_ts <- whs_wikistats %>%
 	
 	# Aggregate Wikipedia language versions and months
-	group_by(month) %>%
+	group_by(time) %>%
 	summarise(value = sum(value))
 
 ## Save data to disk
