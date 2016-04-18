@@ -283,12 +283,11 @@ write_csv <- function(x, file = "", ...) {
 		status <- rhdfs::hdfs.put(file, file_hdfs)
 		file.remove(file)
 		
+		# Return status invisibly
+		invisible(status)
 	} else {
 		write.csv(x, file, ...)
-	}
-	
-	# Return status invisibly
-	invisible(status)
+	}	
 }
 
 normalize <- function(art) {
