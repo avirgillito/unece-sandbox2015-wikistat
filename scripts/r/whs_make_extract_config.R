@@ -33,14 +33,14 @@ whs_articles <- melt(whs_articles, id.vars = c("whs_id", "lang"),
 		      variable.name = "type", value.name = "article")
 
 # Get articles time-series already obtained
-whs_stats <- read.table(IN_FILE_STATS, header = T) %>%
-	mutate(article = url_decode(as.character(article))) %>%
-	mutate(lang = substr(project, 1, 2)) %>%
-	select(-project)
+# whs_stats <- read.table(IN_FILE_STATS, header = T) %>%
+# 	mutate(article = url_decode(as.character(article))) %>%
+# 	mutate(lang = substr(project, 1, 2)) %>%
+# 	select(-project)
 
 # Filter articles to only those for which time-series are missing
-whs_articles2 <- whs_articles %>%
-	anti_join(whs_stats, by = c("lang", "article"))
+# whs_articles <- whs_articles %>%
+# 	anti_join(whs_stats, by = c("lang", "article"))
 
 # Encode names of articles
 whs_articles$article <- gsub(" ", "_", whs_articles$article)
