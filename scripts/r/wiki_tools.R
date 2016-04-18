@@ -394,7 +394,7 @@ get_redirect_final_target <- function(wiki_markup, lang) {
 	# Get immediate redirects
 	final_target[sel] <- get_redirect_target(wiki_markup[sel])
 
-	# If targets are themselves redirects, iterate function
+	# Get wiki markup of the target articles
 	wm <- character(length(final_target))
 	wm[sel] <- getWikiMarkup(final_target[sel], lang[sel])
 
@@ -519,6 +519,83 @@ get_redirect <- function(article, lang="en") {
 	return(result)
 }
 
+get_redirect_origins <- function(article, lang="en", refresh=FALSE) {
+	# Get rid of mount fuji character
+	if (any(article == "\U0001f5fb")) {
+		article[article == "\U0001f5fb"] <- "Unicode Character MOUNT FUJI"
+	}
+	
+	# Create data folders if they don't exit
+	check_data_folders(DATA_DIR_STR)
+	
+	# Make article and lang vectors of same length
+	lang <- rep(lang, len = length(article))
+	
+	# Remove possible references to sections in the articles
+	article <- remove_section_ref(article)
+	
+	# Replace spaces for underscores
+	article_name <- gsub(" ", "_", article)
+	
+	# Compose file name of stored json file with API reply
+	valid_article_name <- gsub("[:*?<>|/\"]", "_", article_name)
+	file_name <- paste0(REDIRECTS_DIR, "/", lang, "_",  
+			    valid_article_name, "_redir.json")
+	
+	# Find out which files need to be downloaded
+	to_download <- !file_exists(file_name) | refresh
+	
+	# Download files not in the cache
+	if (any(to_download)) {
+		
+		# Compose url's from where to get the files
+		url <- character(length(file_name))
+		for (one_lang in unique(lang[to_download])) {
+			api_url <- gsub("<lang>", one_lang, API_URL_WP)
+			sel <- (lang == one_lang) & (to_download)
+			url[sel] <- paste0(api_url,
+					   "?format=json&action=query&titles=",
+					   article_name[sel],
+					   "&prop=redirects")
+		}
+		
+		# Download json files with API replies
+		download_file(url[to_download], file_name[to_download])
+	}	
+	
+	# Read json files and extract wiki markup
+	res <- vector("list", length = length(article))
+	counter <- 0
+	for (one_file in file_name) {
+		text <- read_lines(one_file, collapse = TRUE)
+		if (jsonlite::validate(text)) {
+			json <- jsonlite::fromJSON(text)
+			if ("missing" %in% names(json$query$pages[[1]])) {
+				redirects <- "ERROR: redirect origins missing"
+				warning(paste("redirect origins missing in "), one_file)
+			} else {
+				redirects <- json$query$pages[[1]]$redirects$title
+			}
+		} else {
+			redirects <- "ERROR: not valid json text"
+			warning(paste("json text not valid in "), one_file)
+		}
+		if (is.null(redirects)) {
+			redirects <- NA
+		}
+		counter <- counter + 1
+		attr(redirects, "lang") <- lang[counter]
+		res[[counter]] <- redirects
+	}
+	names(res) <- article
+	#attr(res, "lang") <- lang
+	
+	# Return wiki markup of articles
+	return(res)
+}
+
+# This function is currently only used in script 'whs_make_extract_config.R' and
+# it is commented out.
 encode_article_name <- function(article_name) {
 	# Replace spaces by underscore
 	article_name <- gsub(" ", "_", article_name)
