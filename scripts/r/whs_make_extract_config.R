@@ -11,8 +11,7 @@ source("scripts/r/wiki_tools.R")
 source("scripts/r/whs_data_man.R")
 
 # Constants
-IN_FILE_ART <- paste0(WHS_DIR, "/whs_articles.csv")
-IN_FILE_ART <- paste0(WHS_DIR, "/whs_redirects.csv")
+IN_FILE_ART <- paste0(WHS_DIR, "/whs_redirect_targets_origins.csv")
 IN_FILE_STATS <- "./data/wikistats.txt"
 
 # Output directory needs to be in the local file system
