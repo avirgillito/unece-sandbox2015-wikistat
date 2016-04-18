@@ -445,7 +445,7 @@ getLangVersion <- function(article, lang="") {
 		articleWikiMarkup <- getWikiMarkup(article)
 		
 		# If wiki page is redirected then get reference
-		if (isRedirect(articleWikiMarkup)) {
+		if (is_redirect(articleWikiMarkup)) {
 			articleName <- getRedirect(articleWikiMarkup)
 		} else {
 			articleName <- article
