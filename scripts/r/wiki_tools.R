@@ -227,6 +227,11 @@ remove_section_ref <- function(article) {
 # external download tool does not store the file with the name in the utf-8
 # encoding.
 getWikiMarkup <- function(article, lang="en", refresh=FALSE) {
+	# Get rid of mount fuji character
+	if (any(article == "\U0001f5fb")) {
+		article[article == "\U0001f5fb"] <- "Unicode Character MOUNT FUJI"
+	}
+	
 	# Create data folders if they don't exit
 	check_data_folders(DATA_DIR_STR)
 	
