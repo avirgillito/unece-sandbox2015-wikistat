@@ -47,28 +47,5 @@ whs_articles$article <- gsub(" ", "_", whs_articles$article)
 #whs_articles$article <- encode_article_name(whs_articles$article)
 
 ## Create lists of articles per language and config file for ts extraction
-lines <- c('outdir="/user/fernando/many_lang_extraction/"',
-	   'tempdir="/user/fernando/temp/"')
-seq <- 1
-for (l in LANGUAGES) {
-	articles <- whs_articles %>%
-		filter(lang == l) %>%
-		select(article)
-	if (nrow(articles) > 0) {
-		
-		# Write list of articles for language
-		file_name <- paste0("./data/whs_articles_", l, ".txt")
-		writeLines(as.character(articles$article), file_name)
-		
-		# Add articles list file to conf
-		line <- paste0('proj', seq, '="', l, '.z ./data/whs_articles_', l, '.txt ',
-			       '/projects/wikistats/views_processed_2012-2013/articles_time-series_', 
-			       l, ' /projects/wikistats/views_processed_2014-2015/articles_time-series_', 
-			       l, '"')
-		lines <- c(lines, line)
-		seq <- seq + 1
-	}
-}
+make_extract_config(whs_articles$article, whs_articles$lang)
 
-# Write config file
-writeLines(lines, OUT_FILE_CFG, sep = "\n")
