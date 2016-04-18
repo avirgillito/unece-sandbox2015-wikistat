@@ -27,7 +27,9 @@ LANGUAGES <- c("bg", "cs", "da", "de", "el", "en", "es", "et", "fi", "fr", "ga",
 
 # Get list of whs articles in all language versions of Wikipedia
 whs_articles <- read_csv(IN_FILE_ART, fileEncoding = "UTF-8") %>%
-	filter(lang %in% LANGUAGES)
+	filter(lang %in% LANGUAGES) %>%
+	filter(!is.na(whs_id)) %>%
+	select(whs_id, lang, article)
 
 whs_articles <- melt(whs_articles, id.vars = c("whs_id", "lang"), 
 		      variable.name = "type", value.name = "article")
