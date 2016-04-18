@@ -10,10 +10,87 @@ source("./scripts/r/whs_data_man.R")
 
 # Constants
 IN_FILE <- paste0(WHS_DIR, "/whs_articles.csv")
-OUT_FILE <- paste0(WHS_DIR, "/whs_redirects.csv")
+OUT_FILE <- paste0(WHS_DIR, "/whs_redirect_targets_origins.csv")
+
 LANGUAGES <- c("bg", "cs", "da", "de", "el", "en", "es", "et", "fi", "fr", "ga", 
 	       "hr", "hu", "is", "it", "lt", "lv", "mk", "mt", "nl", "no", "pl", 
 	       "pt", "ro", "ru", "sk", "sl", "sq", "sr", "sv", "tr")
+
+# This function adds redirect targets to a list of articles.
+# It uses the fields: wm, target, lang
+add_redirect_targets <- function(articles) {
+	# Check if there are redirect articles
+	if (all(!is_redirect(articles$wm) | articles$target != "")) return (articles)
+	
+	# Get targets
+	targets <- articles %>%
+		filter(is_redirect(wm), target == "") %>%
+		mutate(target = get_redirect_target(wm),
+		       article = target,
+		       target = "",
+		       wm = getWikiMarkup(article, lang))
+
+	# If targets are also redirects then recursively resolve redirects
+	if (any(is_redirect(targets$wm))) {
+		targets <- add_redirect_targets(targets)
+	}
+	
+	# Add targets to the list of articles and eliminate duplicates
+	res <- articles %>%
+		union(targets) %>%
+		distinct()
+	
+	# Return result
+	return(res)
+
+}
+
+# This function converts a vector to data frame including its attributes as fields
+as.data.frame.attr <- function(v) {
+	return(data.frame(origin = as.character(v), lang = attr(v, "lang")))
+}
+
+# This function adds redirect origins to a list of articles.
+add_redirect_origins <- function(articles) {
+	# Check if there are articles to be checked for redirect origins
+	if (all(articles$origins_checked)) return (articles)
+	
+	# Flag articles as checked for redirect origins
+	to_check <- !articles$origins_checked
+	articles$origins_checked <- TRUE
+	
+	# Get redirect origins
+	origins <- get_redirect_origins(articles[to_check, "article"], articles[to_check, "lang"]) %>%
+		plyr::ldply(.fun = as.data.frame.attr, .id = "article")
+	
+	# Check if there are redirect origins
+	if (all(is.na(origins$origin))) return (articles)
+	
+	# Process origins found
+	origins <- origins%>%
+		filter(!is.na(origin)) %>%
+		left_join(articles, by = c("article", "lang")) %>%
+		select(whs_id, lang, article, origin) %>%
+		mutate(target = article,
+		       article = as.character(origin),
+		       wm = getWikiMarkup(article, lang),
+		       origins_checked = FALSE) %>%
+		select(-origin)
+	
+	# Add origins to the list of articles that are not already there
+	res <- origins %>%
+		anti_join(articles, by = c("lang", "article")) %>%
+		union(articles)
+
+	# If there are any new articles in the list then recursively get their origins
+	if (any(!res$origins_checked)) {
+		res <- add_redirect_origins(res)
+	}
+	
+	# Return result
+	return(res)
+	
+}
 
 # Read list of articles
 print("Getting list of WHS articles.")
@@ -29,28 +106,20 @@ whs_articles <- read_csv(IN_FILE, fileEncoding = "UTF-8") %>%
 # Get articles wiki markup
 print("Getting wiki markup of articles.")
 whs_articles <- whs_articles %>%
-	mutate(wm = getWikiMarkup(article, lang))
+	mutate(wm = getWikiMarkup(article, lang),
+	       target = "",
+	       origins_checked = FALSE)
 
-# Get final targets of redirecting articles
-# If there are articles which redirect to other articles, then get target articles
-if (any(is_redirect(whs_articles$wm))) {
-	whs_articles <- whs_articles %>%
-		mutate(target = get_redirect_final_target(wm, lang)) %>%
-		select(-wm)
-}
-
-# Replace redirect articles by their final targets
+# Add redirects targets and origins
+print("Getting redirect targets and origins.")
 whs_articles <- whs_articles %>%
-        filter(target != "") %>%
-        mutate(article = target,
-               target = "") %>%
-        union(whs_articles) %>%
-        distinct() %>%
-        filter(target == "")
+	add_redirect_targets() %>%
+	add_redirect_origins() %>%
+	select(-wm)
 
-# Get redirect articles
-print("Getting redirects to WHS articles.")
-redir <- get_redirect(whs_articles$article, whs_articles$lang)
+# Save data frame to disk
+write_csv(whs_articles, OUT_FILE, row.names = FALSE, fileEncoding = "UTF-8")
+
 
 # ## Convert list to data frame
 # for (i in 1:nrow(whs_articles)) {
