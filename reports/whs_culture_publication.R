@@ -1,8 +1,3 @@
-rm(list=ls())
-
-# Set working directory
-#setwd("C:/Users/signose/Desktop/Wiki/unece-sandbox2015-wikistat-master/unece-sandbox2015-wikistat-master")
-
 # Attach packages used
 library(dplyr)
 library(reshape2)
