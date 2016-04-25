@@ -1,7 +1,9 @@
 #!/bin/bash
 usage() { 
-  printf "Usage: $0 -o <outpu_dir> -s <start_date> -e <end_date> -p proj (-g <hour|day|week|month>) \n Dates are in a format understandable by GNU date.\n" 1>&2; exit 1; 
+  printf "Usage: $0 -o <output_dir> -s <start_date> -e <end_date> \n Dates have to be in a format understandable by GNU date.\n" 1>&2; exit 1; 
 }
+nodir() { echo "Output directory has to exist." 1>&2; exit 1; }
+dirnotempty() { echo "Output directory has to be empty." 1>&2; exit 1; }
 dateunreachable() {
   printf "Can't download from $1 \n" 1>&2; exit 1; 
 }
@@ -43,17 +45,33 @@ while getopts ":o:s:e:p:g:" o; do
           aggregation=${OPTARG}
           ;;
        *)
+          echo "d"
           usage
           ;;
     esac
 done
 shift $((OPTIND-1))
 if [ -z "${startdate}" ]; then
+  echo "a"
   usage
 fi
 
 if [ -z "${enddate}" ]; then
+  echo "b"
   usage
+fi
+
+if [ -z "${outdir}" ]; then
+  echo "c"
+  usage
+fi
+
+if [ ! -d "${outdir}" ]; then
+  nodir
+fi
+
+if [ "$(ls -A $outdir)" ]; then
+  dirnotempty
 fi
 
 startyear=$(date -d "$startdate" +%Y)
@@ -68,13 +86,30 @@ prefix="http://dumps.wikimedia.org/other/pagecounts-all-sites/"
 starturl=$prefix$startyear"/"$startyear-$startmonth"/projectcounts-"$startyear$startmonth$startday-$starthour"0000"
 endurl=$prefix$endyear"/"$endyear-$endmonth"/projectcounts-"$endyear$endmonth$endday-$endhour"0000"
 
-testurl $starturl
-testurl $endurl
-echo "urls tested!"
+#testurl $starturl
+#testurl $endurl
+#echo "urls tested!"
 
 epoch1=$(echo "("$(date -d "$startdate" +%s)"/ 3600)" | bc)
 epoch2=$(echo "("$(date -d "$enddate" +%s)"/ 3600)" | bc)
-echo $epoch1
-echo $epoch2
+#echo $epoch1
+#echo $epoch2
 diff=$(echo "$epoch2-$epoch1" | bc)
-echo $diff
+#echo $diff
+
+for i in $(seq 0 $diff);
+do
+  newhour=$(((epoch1+i)*3600));
+  year=$(date -d @"$newhour" +%Y)
+  month=$(date -d @"$newhour" +%m)
+  day=$(date -d @"$newhour" +%d)
+  hour=$(date -d @"$newhour" +%H)
+  url=$prefix$year"/"$year-$month"/projectcounts-"$year$month$day-$hour"0000"
+  echo $url
+  rand=$(echo "$RANDOM % 3" | bc)
+  sleep $rand
+  wget -P ${outdir} $url
+done
+
+
+
