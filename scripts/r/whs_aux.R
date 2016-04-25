@@ -80,7 +80,7 @@ getWhsArticlesFromLists <- function() {
 # English wikipedia, based on their categorisation as WHS.
 getWhsArticlesFromCategories <- function() {
         # Get all articles in category 'World Heritage Sites by continent'
-        data <- catScan(c("World Heritage Sites by continent",
+        data <- get_articles_in_cat(c("World Heritage Sites by continent",
                           "World Heritage Sites in the United Kingdom",
                           "World Heritage Sites in the Republic of Ireland",
                           "World Heritage Sites in Catalonia",

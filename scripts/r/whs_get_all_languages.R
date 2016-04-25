@@ -52,7 +52,7 @@ for (i in 1:nrow(whs_articles_en)) {
 }
 
 # Remove references to sections in names of articles
-whs_articles$article <- get_no_section(whs_articles$article)
+whs_articles$article <- remove_section_ref(whs_articles$article)
 
 # Save data frame to disk
 write_csv(whs_articles, OUT_FILE, row.names = FALSE, fileEncoding = "UTF-8")

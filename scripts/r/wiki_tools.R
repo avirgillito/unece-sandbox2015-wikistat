@@ -4,7 +4,7 @@ WP_URL <- "https://<lang>.wikipedia.org/wiki/"
 WIKISTATS_URL <- "http://dumps.wikimedia.org/other/pagecounts-ez/merged/"
 API_URL_WP <- "https://<lang>.wikipedia.org/w/api.php"
 API_URL_WPM <- "http://wikipedia-miner.cms.waikato.ac.nz/services/"
-API_URL_CATSCAN <- "http://tools.wmflabs.org/catscan2/catscan2.php"
+API_URL_CATSCAN <- "https://petscan.wmflabs.org/"
 API_URL_MEDIAWIKI_EN <- "http://en.wikipedia.org/w/api.php"
 
 AMPERSAND_CODES <- setNames(
@@ -117,9 +117,13 @@ getPlainText <- function(html) {
 }
 
 # This function returns the list of articles categorised in the categories passed as parameter.
-# language=en&project=wikipedia&depth=0&categories=World+Heritage+Sites+in+Algeria&negcats=&comb%5Bsubset%5D=1&atleast_count=0&ns%5B0%5D=1&show_redirects=both&templates_yes=&templates_any=&templates_no=&outlinks_yes=&outlinks_any=&outlinks_no=&edits%5Bbots%5D=both&edits%5Banons%5D=both&edits%5Bflagged%5D=both&before=&after=&max_age=&larger=&smaller=&minlinks=&maxlinks=&min_redlink_count=1&min_topcat_count=1&sortby=none&sortorder=ascending&format=csv&ext_image_data=1&file_usage_data=1&doit=Do+it%21&interface_language=en
-catScan <- function(categories, combination="subset", language="en", 
-		    project="wikipedia", depth=0, namespaces="article") {
+catScan <- function(...) {
+	warning("Function 'catScan' is deprecated. Please use function 'get_articles_in_cat'.")
+	get_articles_in_cat(...)
+}
+
+get_articles_in_cat <- function(categories, combination="subset", language="en", 
+		    project="wikipedia", depth=1, namespaces="article") {
 	# Process categories parameter
 	categories <- gsub(" ", "+", categories)
 	categories <- paste(categories, collapse = "%0D%0A")
@@ -128,8 +132,8 @@ catScan <- function(categories, combination="subset", language="en",
 	# TODO: prepare code for several combinations
 	# TODO: prepare error message for vectorised 'combination' parameter
 	comb <- ""
-	if ("subset" %in% combination) comb <- paste0(comb, "&comb[subset]=1")
-	else if ("union" %in% combination) comb <- paste0(comb, "&comb[union]=1")
+	if ("subset" %in% combination) comb <- paste0(comb, "&combination=subset")
+	else if ("union" %in% combination) comb <- paste0(comb, "&combination=union")
 	if (comb == "")
 		stop(paste0("Invalid categories combination specified: '", 
 			    combination,
@@ -153,17 +157,17 @@ catScan <- function(categories, combination="subset", language="en",
 			"&categories=", categories,
 			comb,
 			ns,
-			"&format=csv&doit=1")
+			"&format=tsv&doit=1")
 	
 	# Download to temporary file
 	temp_file <- tempfile("catscan_", fileext = ".csv")
 	download.file(query, temp_file, quiet = TRUE)
 	
 	# Load temporary file
-	data <- read.csv(temp_file, skip=1, encoding="UTF-8")
+	data <- read.csv(temp_file, sep = "\t", encoding="UTF-8")
 	
 	# Correct quotation marks escaped in CSV file
-	levels(data$title) <- gsub("\\\\" , "\"", levels(data$title))
+	levels(data$Title) <- gsub("\\\\" , "\"", levels(data$Title))
 	
 	# Delete temporary file
 	file.remove(temp_file)
@@ -174,6 +178,9 @@ catScan <- function(categories, combination="subset", language="en",
 
 # This function returns the html output of a wikipedia article.
 getHtml <- function(article, lang="en", refresh=FALSE) {
+	# Make article and lang vectors of same length
+	lang <- rep(lang, len = length(article))
+	
 	# Vectorised function
 	if (length(article) > 1) {
 		html <- sapply(article, FUN=getHtml)
@@ -227,6 +234,14 @@ remove_section_ref <- function(article) {
 # external download tool does not store the file with the name in the utf-8
 # encoding.
 getWikiMarkup <- function(article, lang="en", refresh=FALSE) {
+	# Get rid of mount fuji character
+	if (any(article == "\U0001f5fb")) {
+		article[article == "\U0001f5fb"] <- "Unicode Character MOUNT FUJI"
+	}
+	
+	# Make article and lang vectors of same length
+	lang <- rep(lang, len = length(article))
+	
 	# Create data folders if they don't exit
 	check_data_folders(DATA_DIR_STR)
 	
@@ -389,7 +404,7 @@ get_redirect_final_target <- function(wiki_markup, lang) {
 	# Get immediate redirects
 	final_target[sel] <- get_redirect_target(wiki_markup[sel])
 
-	# If targets are themselves redirects, iterate function
+	# Get wiki markup of the target articles
 	wm <- character(length(final_target))
 	wm[sel] <- getWikiMarkup(final_target[sel], lang[sel])
 
@@ -445,7 +460,7 @@ getLangVersion <- function(article, lang="") {
 		articleWikiMarkup <- getWikiMarkup(article)
 		
 		# If wiki page is redirected then get reference
-		if (isRedirect(articleWikiMarkup)) {
+		if (is_redirect(articleWikiMarkup)) {
 			articleName <- getRedirect(articleWikiMarkup)
 		} else {
 			articleName <- article
@@ -485,6 +500,9 @@ getLangVersion <- function(article, lang="") {
 # This function is vectorised.
 # NOTE: One language at a time
 get_redirect <- function(article, lang="en") {
+	# Make article and lang vectors of same length
+	lang <- rep(lang, len = length(article))
+	
 	# Vectorised function
 	if (length(article) > 1) {
 		result <- mapply(get_redirect, article, lang)
@@ -514,6 +532,83 @@ get_redirect <- function(article, lang="en") {
 	return(result)
 }
 
+get_redirect_origins <- function(article, lang="en", refresh=FALSE) {
+	# Get rid of mount fuji character
+	if (any(article == "\U0001f5fb")) {
+		article[article == "\U0001f5fb"] <- "Unicode Character MOUNT FUJI"
+	}
+	
+	# Create data folders if they don't exit
+	check_data_folders(DATA_DIR_STR)
+	
+	# Make article and lang vectors of same length
+	lang <- rep(lang, len = length(article))
+	
+	# Remove possible references to sections in the articles
+	article <- remove_section_ref(article)
+	
+	# Replace spaces for underscores
+	article_name <- gsub(" ", "_", article)
+	
+	# Compose file name of stored json file with API reply
+	valid_article_name <- gsub("[:*?<>|/\"]", "_", article_name)
+	file_name <- paste0(REDIRECTS_DIR, "/", lang, "_",  
+			    valid_article_name, "_redir.json")
+	
+	# Find out which files need to be downloaded
+	to_download <- !file_exists(file_name) | refresh
+	
+	# Download files not in the cache
+	if (any(to_download)) {
+		
+		# Compose url's from where to get the files
+		url <- character(length(file_name))
+		for (one_lang in unique(lang[to_download])) {
+			api_url <- gsub("<lang>", one_lang, API_URL_WP)
+			sel <- (lang == one_lang) & (to_download)
+			url[sel] <- paste0(api_url,
+					   "?format=json&action=query&titles=",
+					   article_name[sel],
+					   "&prop=redirects")
+		}
+		
+		# Download json files with API replies
+		download_file(url[to_download], file_name[to_download])
+	}	
+	
+	# Read json files and extract wiki markup
+	res <- vector("list", length = length(article))
+	counter <- 0
+	for (one_file in file_name) {
+		text <- read_lines(one_file, collapse = TRUE)
+		if (jsonlite::validate(text)) {
+			json <- jsonlite::fromJSON(text)
+			if ("missing" %in% names(json$query$pages[[1]])) {
+				redirects <- "ERROR: redirect origins missing"
+				warning(paste("redirect origins missing in "), one_file)
+			} else {
+				redirects <- json$query$pages[[1]]$redirects$title
+			}
+		} else {
+			redirects <- "ERROR: not valid json text"
+			warning(paste("json text not valid in "), one_file)
+		}
+		if (is.null(redirects)) {
+			redirects <- NA
+		}
+		counter <- counter + 1
+		attr(redirects, "lang") <- lang[counter]
+		res[[counter]] <- redirects
+	}
+	names(res) <- article
+	#attr(res, "lang") <- lang
+	
+	# Return wiki markup of articles
+	return(res)
+}
+
+# This function is currently only used in script 'whs_make_extract_config.R' and
+# it is commented out.
 encode_article_name <- function(article_name) {
 	# Replace spaces by underscore
 	article_name <- gsub(" ", "_", article_name)
