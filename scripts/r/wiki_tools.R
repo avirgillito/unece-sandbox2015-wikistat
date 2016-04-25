@@ -178,6 +178,9 @@ get_articles_in_cat <- function(categories, combination="subset", language="en",
 
 # This function returns the html output of a wikipedia article.
 getHtml <- function(article, lang="en", refresh=FALSE) {
+	# Make article and lang vectors of same length
+	lang <- rep(lang, len = length(article))
+	
 	# Vectorised function
 	if (length(article) > 1) {
 		html <- sapply(article, FUN=getHtml)
@@ -235,6 +238,9 @@ getWikiMarkup <- function(article, lang="en", refresh=FALSE) {
 	if (any(article == "\U0001f5fb")) {
 		article[article == "\U0001f5fb"] <- "Unicode Character MOUNT FUJI"
 	}
+	
+	# Make article and lang vectors of same length
+	lang <- rep(lang, len = length(article))
 	
 	# Create data folders if they don't exit
 	check_data_folders(DATA_DIR_STR)
@@ -494,6 +500,9 @@ getLangVersion <- function(article, lang="") {
 # This function is vectorised.
 # NOTE: One language at a time
 get_redirect <- function(article, lang="en") {
+	# Make article and lang vectors of same length
+	lang <- rep(lang, len = length(article))
+	
 	# Vectorised function
 	if (length(article) > 1) {
 		result <- mapply(get_redirect, article, lang)
