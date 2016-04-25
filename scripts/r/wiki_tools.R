@@ -117,9 +117,13 @@ getPlainText <- function(html) {
 }
 
 # This function returns the list of articles categorised in the categories passed as parameter.
-# language=en&project=wikipedia&depth=0&categories=World+Heritage+Sites+in+Algeria&negcats=&comb%5Bsubset%5D=1&atleast_count=0&ns%5B0%5D=1&show_redirects=both&templates_yes=&templates_any=&templates_no=&outlinks_yes=&outlinks_any=&outlinks_no=&edits%5Bbots%5D=both&edits%5Banons%5D=both&edits%5Bflagged%5D=both&before=&after=&max_age=&larger=&smaller=&minlinks=&maxlinks=&min_redlink_count=1&min_topcat_count=1&sortby=none&sortorder=ascending&format=csv&ext_image_data=1&file_usage_data=1&doit=Do+it%21&interface_language=en
-catScan <- function(categories, combination="subset", language="en", 
 		    project="wikipedia", depth=0, namespaces="article") {
+catScan <- function(...) {
+	warning("Function 'catScan' is deprecated. Please use function 'get_articles_in_cat'.")
+	get_articles_in_cat(...)
+}
+
+get_articles_in_cat <- function(categories, combination="subset", language="en", 
 	# Process categories parameter
 	categories <- gsub(" ", "+", categories)
 	categories <- paste(categories, collapse = "%0D%0A")
