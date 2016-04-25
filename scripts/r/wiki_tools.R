@@ -4,7 +4,7 @@ WP_URL <- "https://<lang>.wikipedia.org/wiki/"
 WIKISTATS_URL <- "http://dumps.wikimedia.org/other/pagecounts-ez/merged/"
 API_URL_WP <- "https://<lang>.wikipedia.org/w/api.php"
 API_URL_WPM <- "http://wikipedia-miner.cms.waikato.ac.nz/services/"
-API_URL_CATSCAN <- "http://tools.wmflabs.org/catscan2/catscan2.php"
+API_URL_CATSCAN <- "https://petscan.wmflabs.org/"
 API_URL_MEDIAWIKI_EN <- "http://en.wikipedia.org/w/api.php"
 
 AMPERSAND_CODES <- setNames(
@@ -117,13 +117,13 @@ getPlainText <- function(html) {
 }
 
 # This function returns the list of articles categorised in the categories passed as parameter.
-		    project="wikipedia", depth=0, namespaces="article") {
 catScan <- function(...) {
 	warning("Function 'catScan' is deprecated. Please use function 'get_articles_in_cat'.")
 	get_articles_in_cat(...)
 }
 
 get_articles_in_cat <- function(categories, combination="subset", language="en", 
+		    project="wikipedia", depth=1, namespaces="article") {
 	# Process categories parameter
 	categories <- gsub(" ", "+", categories)
 	categories <- paste(categories, collapse = "%0D%0A")
@@ -132,8 +132,8 @@ get_articles_in_cat <- function(categories, combination="subset", language="en",
 	# TODO: prepare code for several combinations
 	# TODO: prepare error message for vectorised 'combination' parameter
 	comb <- ""
-	if ("subset" %in% combination) comb <- paste0(comb, "&comb[subset]=1")
-	else if ("union" %in% combination) comb <- paste0(comb, "&comb[union]=1")
+	if ("subset" %in% combination) comb <- paste0(comb, "&combination=subset")
+	else if ("union" %in% combination) comb <- paste0(comb, "&combination=union")
 	if (comb == "")
 		stop(paste0("Invalid categories combination specified: '", 
 			    combination,
@@ -157,17 +157,17 @@ get_articles_in_cat <- function(categories, combination="subset", language="en",
 			"&categories=", categories,
 			comb,
 			ns,
-			"&format=csv&doit=1")
+			"&format=tsv&doit=1")
 	
 	# Download to temporary file
 	temp_file <- tempfile("catscan_", fileext = ".csv")
 	download.file(query, temp_file, quiet = TRUE)
 	
 	# Load temporary file
-	data <- read.csv(temp_file, skip=1, encoding="UTF-8")
+	data <- read.csv(temp_file, sep = "\t", encoding="UTF-8")
 	
 	# Correct quotation marks escaped in CSV file
-	levels(data$title) <- gsub("\\\\" , "\"", levels(data$title))
+	levels(data$Title) <- gsub("\\\\" , "\"", levels(data$Title))
 	
 	# Delete temporary file
 	file.remove(temp_file)
