@@ -1,3 +1,5 @@
+options(scipen = 999)
+
 # Attach packages used
 library(dplyr)
 library(reshape2)
@@ -13,6 +15,7 @@ ARTICLES_FILE <- paste0(WHS_DIR, "/whs_redirect_targets_origins.csv")
 WIKISTATS_FILE <- paste0(WHS_DIR, "/whs_wikistats_month.csv")
 COUNTRY_CODES_FILE <- paste0(WHS_DIR, "/country_codes.csv")
 MAIN_PAGE_WIKISTATS_FILE <- "main_page_wikistats_month.csv"
+WIKIPEDIA_TS_FILE <- paste0(WHS_DIR, "/wikipedia_ts_file.csv")
   
 WHS_CULTURE_DATASET <- "reports/culture/whs_culture.csv"
 WHS_CULTURE_MAP_DATA <- "reports/culture/whs_culture_map.csv"
@@ -199,6 +202,18 @@ main_page_ts <- main_page_wikistats %>%
   group_by(time) %>%
   summarise(value = sum(value))
   
+##### WARNING! We do not consider Main Page anymore, we consider pageviews of the entire Wikipedia
+
+# Time series of entire Wikipedia
+wikipedia_ts <- read_csv(WIKIPEDIA_TS_FILE) %>%
+  melt(variable.name = "time")
+
+names(wikipedia_ts) <- c("time", "lang", "value")
+
+wikipedia_ts <- wikipedia_ts %>%
+  group_by(time) %>%
+  summarise(value = sum(value))
+
 # Time series of WHS
 
 # Add data for continents
@@ -218,34 +233,34 @@ whs_culture_ts <- whs_culture_ts %>%
 # Create one dataset for each continent and add column with index
 whs_culture_ts_africa <- whs_culture_ts %>%
   filter(continent == "Africa")
-whs_culture_ts_africa$index <- whs_culture_ts_africa$value/main_page_ts$value
+whs_culture_ts_africa$index <- whs_culture_ts_africa$value/wikipedia_ts$value
 whs_culture_ts_africa <- select(whs_culture_ts_africa, time, index) 
 names(whs_culture_ts_africa)[2] <- "africa"
 
 whs_culture_ts_america <- whs_culture_ts %>%
   filter(continent == "America")
 whs_culture_ts_america <- whs_culture_ts_america[-49,]
-whs_culture_ts_america$index <- whs_culture_ts_america$value/main_page_ts$value
+whs_culture_ts_america$index <- whs_culture_ts_america$value/wikipedia_ts$value
 whs_culture_ts_america <- select(whs_culture_ts_america, time, index) 
 names(whs_culture_ts_america)[2] <- "america"
 
 whs_culture_ts_asia <- whs_culture_ts %>%
   filter(continent == "Asia")
 whs_culture_ts_asia <- whs_culture_ts_asia[-49,]
-whs_culture_ts_asia$index <- whs_culture_ts_asia$value/main_page_ts$value
+whs_culture_ts_asia$index <- whs_culture_ts_asia$value/wikipedia_ts$value
 whs_culture_ts_asia <- select(whs_culture_ts_asia, time, index) 
 names(whs_culture_ts_asia)[2] <- "asia"
 
 whs_culture_ts_europe <- whs_culture_ts %>%
   filter(continent == "Europe")
 whs_culture_ts_europe <- whs_culture_ts_europe[-49,]
-whs_culture_ts_europe$index <- whs_culture_ts_europe$value/main_page_ts$value
+whs_culture_ts_europe$index <- whs_culture_ts_europe$value/wikipedia_ts$value
 whs_culture_ts_europe <- select(whs_culture_ts_europe, time, index) 
 names(whs_culture_ts_europe)[2] <- "europe"
 
 whs_culture_ts_oceania <- whs_culture_ts %>%
   filter(continent == "Oceania")
-whs_culture_ts_oceania$index <- whs_culture_ts_oceania$value/main_page_ts$value
+whs_culture_ts_oceania$index <- whs_culture_ts_oceania$value/wikipedia_ts$value
 whs_culture_ts_oceania <- select(whs_culture_ts_oceania, time, index) 
 names(whs_culture_ts_oceania)[2] <- "oceania"
 
@@ -259,7 +274,7 @@ whs_culture_ts <- whs_culture_ts %>%
 
 # Create index for global variable
 whs_culture_ts <- whs_culture_ts[-49,]
-whs_culture_ts$index <- whs_culture_ts$value/main_page_ts$value
+whs_culture_ts$index <- whs_culture_ts$value/wikipedia_ts$value
 whs_culture_ts <- select(whs_culture_ts, time, index) 
 names(whs_culture_ts)[2] <- "global"
 
@@ -284,10 +299,12 @@ whs_culture_ts_plot <- ggplot(whs_culture_ts, aes(x = time, y = value, group = v
                               ggtitle("Index of page views of Wikipedia articles related to World Heritage Sites") +
                               xlab("") +
                               ylab("index") +
+                              theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
                               scale_x_discrete(breaks = c("2012 03", "2012 07", "2012 11", 
                                                           "2013 03", "2013 07", "2013 11",
                                                           "2014 03", "2014 07", "2014 11",
-                                                          "2015 03", "2015 07", "2015 11"))
+                                                          "2015 03", "2015 07", "2015 11")) 
+
 
 # Save the chart
 ggsave(WHS_CULTURE_TS_PLOT, whs_culture_ts_plot)
