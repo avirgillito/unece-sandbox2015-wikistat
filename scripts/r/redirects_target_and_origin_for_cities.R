@@ -15,7 +15,7 @@ add_redirect_targets <- function(articles) {
   # Get targets
   targets <- articles %>%
     filter(is_redirect(wm), target == "") %>%
-    mutate(id = '1', 
+    mutate(id = 1L, 
            target = get_redirect_target(wm),
            article = target,
            target = "",
@@ -98,7 +98,7 @@ add_redirect_origins <- function(articles) {
     filter(!is.na(origin)) %>%
     left_join(articles, by = c("article", "lang")) %>%
     select(lang, article, origin) %>%
-    mutate(id = '1', 
+    mutate(id = 1L, 
            target = article,
            article = as.character(origin),
            wm = getWikiMarkup(article, lang),
