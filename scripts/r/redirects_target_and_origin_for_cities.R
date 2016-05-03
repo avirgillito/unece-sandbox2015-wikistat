@@ -194,3 +194,8 @@ get_redirect_origins <- function(article, lang="en", refresh=FALSE) {
   # Return wiki markup of articles
   return(res)
 }
+
+# This function converts a vector to data frame including its attributes as fields
+as.data.frame.attr <- function(v) {
+  return(data.frame(origin = as.character(v), lang = attr(v, "lang")))
+}
