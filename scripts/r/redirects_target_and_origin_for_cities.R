@@ -87,8 +87,8 @@ add_redirect_origins <- function(articles) {
   articles$origins_checked <- TRUE
   
   # Get redirect origins
-  origins <- get_redirect_origins(articles[to_check, "article"], articles[to_check, "lang"]) %>%
-    plyr::ldply(.fun = as.data.frame.attr, .id = "article")
+  origins <- get_redirect_origins(articles[to_check, "article"], articles[to_check, "lang"]) 
+    plyr::ldply(.data = origins, .fun = as.data.frame.attr, .id = "article")
   
   # Check if there are redirect origins
   if (all(is.na(origins$origin))) return (articles)
