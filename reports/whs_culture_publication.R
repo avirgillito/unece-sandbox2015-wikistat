@@ -28,11 +28,14 @@ WHS_CULTURE_TS_DATA_EUROPA <- "reports/culture/whs_culture_ts_europa.csv"
 WHS_CULTURE_TS_DATA_OCEANIA <- "reports/culture/whs_culture_ts_oceania.csv"
 WHS_CULTURE_TS_PLOT <- "reports/culture/whs_culture_ts_plot.png"
 WHS_TOP_20 <- "reports/culture/whs_top_20.csv"
-WHS_TOP_20_PLOT <- "reports/culture/whs_top_20_plot.png"
+WHS_TOP_20_PLOT_LONG <- "reports/culture/whs_top_20_plot_LONG.png"
+WHS_TOP_20_PLOT_MEDIUM <- "reports/culture/whs_top_20_plot_MEDIUM.png"
+WHS_TOP_20_PLOT_SHORT <- "reports/culture/whs_top_20_plot_SHORT.png"
 WHS_TOP_5_EN <- "reports/culture/whs_top_5_en.csv"
 WHS_TOP_5_EN_PLOT <- "reports/culture/whs_top_5_en_plot.png"
 WHS_TOP_5_ES <- "reports/culture/whs_top_5_es.csv"
-WHS_TOP_5_ES_PLOT <- "reports/culture/whs_top_5_es_plot.png"
+WHS_TOP_5_ES_PLOT_LONG <- "reports/culture/whs_top_5_es_plot_LONG.png"
+WHS_TOP_5_ES_PLOT_SHORT <- "reports/culture/whs_top_5_es_plot_SHORT.png"
 WHS_TOP_5_DE <- "reports/culture/whs_top_5_de.csv"
 WHS_TOP_5_DE_PLOT <- "reports/culture/whs_top_5_de_plot.png"
 WHS_TOP_5_FR <- "reports/culture/whs_top_5_fr.csv"
@@ -342,19 +345,52 @@ whs_top_20 <-
 write.csv(whs_top_20, WHS_TOP_20, row.names=FALSE, fileEncoding="utf-8")
 
 ## Create chart
+
+###First version: long names
 whs_top_20_plot <- ggplot(whs_top_20, aes(reorder(site,value), value, fill=factor(EU))) + 
   geom_bar(stat="identity") +
   coord_flip() +
-  ggtitle("Top 20 World Heritage Sites in number of \n views of related Wikipedia articles in 2015") +
+  ggtitle("Top 20 World Heritage Sites in number of \n views of related Wikipedia articles in 2015 (*)") +
   scale_fill_discrete(name="", labels=c("non EU", "EU")) +
   scale_y_continuous(breaks = waiver()) +
   theme(legend.position="bottom") +
   theme(axis.title.x = element_blank()) +
   theme(axis.title.y = element_blank()) +
-  scale_x_discrete(labels=c("Archaeological Site of Troy", "Stonehenge, Avebury and Associated Sites", "Rio de Janeiro: Carioca Landscapes between the Mountain and the Sea", "Historic Centre of Warsaw", "Kremlin and Red Square, Moscow", "Historic Sanctuary of Machu Picchu", "Venice and its Lagoon", "Archaeological Areas of Pompei, Herculaneum and Torre Annunziata", "Historic Centre of Prague", "Historic Centre of Mexico City and Xochimilco", "Vatican City", "Budapest, Banks of the Danube, Buda Castle Quarter and Andrássy Avenue", "Historic Centre of Vienna", "Taj Mahal", "The Great Wall", "Statue of Liberty", "Auschwitz Birkenau", "Historic Areas of Istanbul", "Historic Centre of Rome", "Paris, Banks of the Seine"))
+  scale_x_discrete(labels=c("Archaeological Site of Troy [Ref:849]", "Stonehenge, Avebury and Associated Sites [Ref:373]", "Rio de Janeiro: Carioca Landscapes between the Mountain and the Sea [Ref:1100]", "Historic Centre of Warsaw [Ref:30]", "Kremlin and Red Square, Moscow [Ref:545]", "Historic Sanctuary of Machu Picchu [Ref:274]", "Venice and its Lagoon [Ref:394]", "Archaeological Areas of Pompei, Herculaneum and Torre Annunziata [Ref:829]", "Historic Centre of Prague [Ref:616]", "Historic Centre of Mexico City and Xochimilco [Ref:412]", "Vatican City [Ref:286]", "Budapest, Banks of the Danube, Buda Castle Quarter and Andrássy Avenue [Ref:400]", "Historic Centre of Vienna [Ref:1033]", "Taj Mahal [Ref:252]", "The Great Wall [Ref:438]", "Statue of Liberty [Ref:307]", "Auschwitz Birkenau [Ref:31]", "Historic Areas of Istanbul [Ref:356]", "Historic Centre of Rome [Ref:91]", "Paris, Banks of the Seine [Ref:600]"))
                             
 # Save the chart
-ggsave(WHS_TOP_20_PLOT, whs_top_20_plot)
+ggsave(WHS_TOP_20_PLOT_LONG, whs_top_20_plot)
+
+###Second version: medium names
+whs_top_20_plot <- ggplot(whs_top_20, aes(reorder(site,value), value, fill=factor(EU))) + 
+  geom_bar(stat="identity") +
+  coord_flip() +
+  ggtitle("Top 20 World Heritage Sites in number of \n views of related Wikipedia articles in 2015 (*)") +
+  scale_fill_discrete(name="", labels=c("non EU", "EU")) +
+  scale_y_continuous(breaks = waiver()) +
+  theme(legend.position="bottom") +
+  theme(axis.title.x = element_blank()) +
+  theme(axis.title.y = element_blank()) +
+  scale_x_discrete(labels=c("Archaeological Site of Troy [Ref:849]", "Stonehenge, Avebury and Associated Sites [Ref:373]", "Rio de Janeiro [Ref:1100]", "Historic Centre of Warsaw [Ref:30]", "Kremlin and Red Square, Moscow [Ref:545]", "Historic Sanctuary of Machu Picchu [Ref:274]", "Venice and its Lagoon [Ref:394]", "Archaeological Areas of Pompei [Ref:829]", "Historic Centre of Prague [Ref:616]", "Historic Centre of Mexico City and Xochimilco [Ref:412]", "Vatican City [Ref:286]", "Budapest [Ref:400]", "Historic Centre of Vienna [Ref:1033]", "Taj Mahal [Ref:252]", "The Great Wall [Ref:438]", "Statue of Liberty [Ref:307]", "Auschwitz Birkenau [Ref:31]", "Historic Areas of Istanbul [Ref:356]", "Historic Centre of Rome [Ref:91]", "Paris, Banks of the Seine [Ref:600]"))
+
+# Save the chart
+ggsave(WHS_TOP_20_PLOT_MEDIUM, whs_top_20_plot)
+
+###Third version: short names
+whs_top_20_plot <- ggplot(whs_top_20, aes(reorder(site,value), value, fill=factor(EU))) + 
+  geom_bar(stat="identity") +
+  coord_flip() +
+  ggtitle("Top 20 World Heritage Sites in number of \n views of related Wikipedia articles in 2015 (*)") +
+  scale_fill_discrete(name="", labels=c("non EU", "EU")) +
+  scale_y_continuous(breaks = waiver()) +
+  theme(legend.position="bottom") +
+  theme(axis.title.x = element_blank()) +
+  theme(axis.title.y = element_blank()) +
+  scale_x_discrete(labels=c("Archaeological Site of Troy [Ref:849]", "Stonehenge [Ref:373]", "Rio de Janeiro [Ref:1100]", "Historic Centre of Warsaw [Ref:30]", "Kremlin and Red Square, Moscow [Ref:545]", "Historic Sanctuary of Machu Picchu [Ref:274]", "Venice and its Lagoon [Ref:394]", "Archaeological Areas of Pompei [Ref:829]", "Historic Centre of Prague [Ref:616]", "Historic Centre of Mexico City [Ref:412]", "Vatican City [Ref:286]", "Budapest [Ref:400]", "Historic Centre of Vienna [Ref:1033]", "Taj Mahal [Ref:252]", "The Great Wall [Ref:438]", "Statue of Liberty [Ref:307]", "Auschwitz Birkenau [Ref:31]", "Historic Areas of Istanbul [Ref:356]", "Historic Centre of Rome [Ref:91]", "Paris, Banks of the Seine [Ref:600]"))
+
+# Save the chart
+ggsave(WHS_TOP_20_PLOT_SHORT, whs_top_20_plot)
+
 
 # 4. Top 5 by language
 
@@ -394,13 +430,13 @@ write.csv(whs_top_5_en, WHS_TOP_5_EN, row.names=FALSE, fileEncoding="utf-8")
 whs_top_5_en_plot <- ggplot(whs_top_5_en, aes(reorder(site, value), value, fill=factor(spoken))) + 
   geom_bar(stat="identity") + 
   coord_flip() +
-  ggtitle("Top 5 World Heritage Sites in number of views \n of related English Wikipedia articles") +
+  ggtitle("Top 5 World Heritage Sites in number of views \n of related English Wikipedia articles (*)") +
   scale_fill_discrete(name="", labels=c("non spoken language", "spoken language")) +
   scale_y_continuous(breaks = waiver()) +
   theme(axis.title.x = element_blank()) +
   theme(axis.title.y = element_blank()) +
   theme(legend.position="bottom") +
-  scale_x_discrete(labels=c("Statue of Liberty", "Historic Centre of Rome", "The Great Wall", "Paris, Banks of the Seine", "Taj Mahal")) 
+  scale_x_discrete(labels=c("Statue of Liberty [Ref:307]", "Historic Centre of Rome [Ref:91]", "The Great Wall [Ref:438]", "Paris, Banks of the Seine [Ref:600]", "Taj Mahal [Ref:252]")) 
 
 # Save the chart
 ggsave(WHS_TOP_5_EN_PLOT, whs_top_5_en_plot)
@@ -424,19 +460,36 @@ whs_top_5_es$spoken <- ifelse(whs_top_5_es$country == "Mexico" | whs_top_5_es$co
 write.csv(whs_top_5_es, WHS_TOP_5_ES, row.names=FALSE, fileEncoding="utf-8")
 
 # Create chart
+
+### Long version
 whs_top_5_es_plot <- ggplot(whs_top_5_es, aes(reorder(site, value), value, fill=factor(spoken))) + 
   geom_bar(stat="identity") + 
   coord_flip() +
-  ggtitle("Top 5 World Heritage Sites in number of views \n of related Spanish Wikipedia articles") +
+  ggtitle("Top 5 World Heritage Sites in number of views \n of related Spanish Wikipedia articles (*)") +
   scale_fill_discrete(name="", labels=c("non spoken language", "spoken language")) +
   scale_y_continuous(breaks = waiver()) +
   theme(axis.title.x = element_blank()) +
   theme(axis.title.y = element_blank()) +
   theme(legend.position="bottom") +
-  scale_x_discrete(labels=c("Paris, Banks of the Seine", "Historic Centre of Rome", "Pre-Hispanic City of Teotihuacan", "Historic Sanctuary of Machu Picchu", "Historic Centre of Mexico City and Xochimilco")) 
+  scale_x_discrete(labels=c("Paris, Banks of the Seine [Ref:600]", "Historic Centre of Rome [Ref:91]", "Pre-Hispanic City of Teotihuacan [Ref:414]", "Historic Sanctuary of Machu Picchu [Ref:274]", "Historic Centre of Mexico City and Xochimilco [Ref:412]")) 
 
 # Save the chart
-ggsave(WHS_TOP_5_ES_PLOT, whs_top_5_es_plot)
+ggsave(WHS_TOP_5_ES_PLOT_LONG, whs_top_5_es_plot)
+
+### Short version
+whs_top_5_es_plot <- ggplot(whs_top_5_es, aes(reorder(site, value), value, fill=factor(spoken))) + 
+  geom_bar(stat="identity") + 
+  coord_flip() +
+  ggtitle("Top 5 World Heritage Sites in number of views \n of related Spanish Wikipedia articles (*)") +
+  scale_fill_discrete(name="", labels=c("non spoken language", "spoken language")) +
+  scale_y_continuous(breaks = waiver()) +
+  theme(axis.title.x = element_blank()) +
+  theme(axis.title.y = element_blank()) +
+  theme(legend.position="bottom") +
+  scale_x_discrete(labels=c("Paris, Banks of the Seine [Ref:600]", "Historic Centre of Rome [Ref:91]", "Pre-Hispanic City of Teotihuacan [Ref:414]", "Historic Sanctuary of Machu Picchu [Ref:274]", "Historic Centre of Mexico City [Ref:412]")) 
+
+# Save the chart
+ggsave(WHS_TOP_5_ES_PLOT_SHORT, whs_top_5_es_plot)
 
 ## German
 whs_top_5_de <- whs_top_5_lang %>%
@@ -459,13 +512,13 @@ write.csv(whs_top_5_de, WHS_TOP_5_DE, row.names=FALSE, fileEncoding="utf-8")
 whs_top_5_de_plot <- ggplot(whs_top_5_de, aes(reorder(site, value), value, fill=factor(spoken))) + 
   geom_bar(stat="identity") + 
   coord_flip() +
-  ggtitle("Top 5 World Heritage Sites in number of views \n of related German Wikipedia articles") +
+  ggtitle("Top 5 World Heritage Sites in number of views \n of related German Wikipedia articles (*)") +
   scale_fill_discrete(name="", labels=c("non spoken language", "spoken language")) +
   scale_y_continuous(breaks = waiver()) +
   theme(axis.title.x = element_blank()) +
   theme(axis.title.y = element_blank()) +
   theme(legend.position="bottom") +
-  scale_x_discrete(labels=c("Historic Centre of Prague", "Historic Areas of Istanbul", "Historic Centre of Rome", "Paris, Banks of the Seine", "Historic Centre of Vienna")) 
+  scale_x_discrete(labels=c("Historic Centre of Prague [Ref:616]", "Historic Areas of Istanbul [Ref:356]", "Historic Centre of Rome [Ref:91]", "Paris, Banks of the Seine [Ref:600]", "Historic Centre of Vienna [Ref:1033]")) 
 
 # Save the chart
 ggsave(WHS_TOP_5_DE_PLOT, whs_top_5_de_plot)
@@ -491,13 +544,13 @@ write.csv(whs_top_5_fr, WHS_TOP_5_FR, row.names=FALSE, fileEncoding="utf-8")
 whs_top_5_fr_plot <- ggplot(whs_top_5_fr, aes(reorder(site, value), value, fill=factor(spoken))) + 
   geom_bar(stat="identity") + 
   coord_flip() +
-  ggtitle("Top 5 World Heritage Sites in number of views \n of related French Wikipedia articles") +
+  ggtitle("Top 5 World Heritage Sites in number of views \n of related French Wikipedia articles (*)") +
   scale_fill_discrete(name="", labels=c("non spoken language", "spoken language")) +
   scale_y_continuous(breaks = waiver()) +
   theme(axis.title.x = element_blank()) +
   theme(axis.title.y = element_blank()) +
   theme(legend.position="bottom") +
-  scale_x_discrete(labels=c("Bordeaux, Port of the Moon", "Historic Centre of Rome", "Historic Site of Lyons", "Statue of Liberty", "Paris, Banks of the Seine")) 
+  scale_x_discrete(labels=c("Bordeaux, Port of the Moon [Ref:1256]", "Historic Centre of Rome [Ref:91]", "Historic Site of Lyons [Ref:872]", "Statue of Liberty [Ref:307]", "Paris, Banks of the Seine [Ref:600]")) 
 
 # Save the chart
 ggsave(WHS_TOP_5_FR_PLOT, whs_top_5_fr_plot)
@@ -523,13 +576,13 @@ write.csv(whs_top_5_ru, WHS_TOP_5_RU, row.names=FALSE, fileEncoding="utf-8")
 whs_top_5_ru_plot <- ggplot(whs_top_5_ru, aes(reorder(site, value), value, fill=factor(spoken))) + 
   geom_bar(stat="identity") + 
   coord_flip() +
-  ggtitle("Top 5 World Heritage Sites in number of views \n of related Russian Wikipedia articles") +
+  ggtitle("Top 5 World Heritage Sites in number of views \n of related Russian Wikipedia articles (*)") +
   scale_fill_discrete(name="", labels=c("non spoken language", "spoken language")) +
   scale_y_continuous(breaks = waiver()) +
   theme(axis.title.x = element_blank()) +
   theme(axis.title.y = element_blank()) +
   theme(legend.position="bottom") +
-  scale_x_discrete(labels=c("Historic Centre of Rome", "Auschwitz Birkenau", "Historic Areas of Istanbul", "Paris, Banks of the Seine","Kremlin and Red Square, Moscow")) 
+  scale_x_discrete(labels=c("Historic Centre of Rome [Ref:91]", "Auschwitz Birkenau [Ref:31]", "Historic Areas of Istanbul [Ref:356]", "Paris, Banks of the Seine [Ref:600]","Kremlin and Red Square, Moscow [Ref:545]")) 
 
 # Save the chart
 ggsave(WHS_TOP_5_RU_PLOT, whs_top_5_ru_plot)
@@ -555,13 +608,13 @@ write.csv(whs_top_5_it, WHS_TOP_5_IT, row.names=FALSE, fileEncoding="utf-8")
 whs_top_5_it_plot <- ggplot(whs_top_5_it, aes(reorder(site, value), value, fill=factor(spoken))) + 
   geom_bar(stat="identity") + 
   coord_flip() +
-  ggtitle("Top 5 World Heritage Sites in number of views \n of related Italian Wikipedia articles") +
+  ggtitle("Top 5 World Heritage Sites in number of views \n of related Italian Wikipedia articles (*)") +
   scale_fill_discrete(name="", labels=c("non spoken language", "spoken language")) +
   scale_y_continuous(breaks = waiver()) +
   theme(axis.title.x = element_blank()) +
   theme(axis.title.y = element_blank()) +
   theme(legend.position = "bottom") +
-  scale_x_discrete(labels=c("Auschwitz Birkenau", "Venice and its Lagoon", "Paris, Banks of the Seine", "Historic Centre of Naples","Historic Centre of Rome")) 
+  scale_x_discrete(labels=c("Auschwitz Birkenau [Ref:31]", "Venice and its Lagoon [Ref:394]", "Paris, Banks of the Seine [Ref:600]", "Historic Centre of Naples [Ref:726]","Historic Centre of Rome [Ref:91]")) 
 
 # Save the chart
 ggsave(WHS_TOP_5_IT_PLOT, whs_top_5_it_plot)
