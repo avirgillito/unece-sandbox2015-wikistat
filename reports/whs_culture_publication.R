@@ -485,7 +485,7 @@ ggsave(WHS_TOP_5_ES_PLOT_LONG, whs_top_5_es_plot)
 whs_top_5_es_plot <- ggplot(whs_top_5_es, aes(reorder(site, value), value, fill=factor(spoken))) + 
   geom_bar(stat="identity") + 
   coord_flip() +
-  ggtitle("Top 5 World Heritage Sites in number of views \n of related Spanish Wikipedia articles (*)") +
+  ggtitle("Top 5 World Heritage Sites in number of views \n of related Spanish Wikipedia articles*") +
   scale_fill_discrete(name="", labels=c("non spoken language", "spoken language")) +
   scale_y_continuous(breaks = waiver()) +
   theme(axis.title.x = element_blank()) +
