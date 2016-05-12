@@ -31,6 +31,9 @@ WHS_TOP_20 <- "reports/culture/whs_top_20.csv"
 WHS_TOP_20_PLOT_LONG <- "reports/culture/whs_top_20_plot_LONG.png"
 WHS_TOP_20_PLOT_MEDIUM <- "reports/culture/whs_top_20_plot_MEDIUM.png"
 WHS_TOP_20_PLOT_SHORT <- "reports/culture/whs_top_20_plot_SHORT.png"
+WHS_TOP_20_PLOT_LONG_MIXED <- "reports/culture/whs_top_20_plot_LONG_MIXED.png"
+WHS_TOP_20_PLOT_MEDIUM_MIXED <- "reports/culture/whs_top_20_plot_MEDIUM_MIXED.png"
+WHS_TOP_20_PLOT_SHORT_MIXED <- "reports/culture/whs_top_20_plot_SHORT_MIXED.png"
 WHS_TOP_5_EN <- "reports/culture/whs_top_5_en.csv"
 WHS_TOP_5_EN_PLOT <- "reports/culture/whs_top_5_en_plot.png"
 WHS_TOP_5_ES <- "reports/culture/whs_top_5_es.csv"
@@ -347,7 +350,7 @@ whs_top_20 <-
 # Save data to disk
 write.csv(whs_top_20, WHS_TOP_20, row.names=FALSE, fileEncoding="utf-8")
 
-## Create chart
+## Create chart ONLY EU/NON EU
 
 ###First version: long names
 whs_top_20_plot <- ggplot(whs_top_20, aes(reorder(site,value), value, fill=factor(EU))) + 
@@ -394,6 +397,55 @@ whs_top_20_plot <- ggplot(whs_top_20, aes(reorder(site,value), value, fill=facto
 # Save the chart
 ggsave(WHS_TOP_20_PLOT_SHORT, whs_top_20_plot)
 
+## Create chart EU/NON EU AND MIXED
+
+#Modify code for Rome 
+whs_top_20[2,3] <- 2
+
+###First version: long names
+whs_top_20_plot <- ggplot(whs_top_20, aes(reorder(site,value), value, fill=factor(EU))) + 
+  geom_bar(stat="identity") +
+  coord_flip() +
+  ggtitle("Top 20 World Heritage Sites in number of \n views of related Wikipedia articles in 2015*") +
+  scale_fill_discrete(name="", labels=c("non EU", "EU", "mixed")) +
+  scale_y_continuous(breaks = waiver()) +
+  theme(legend.position="bottom") +
+  theme(axis.title.x = element_blank()) +
+  theme(axis.title.y = element_blank()) +
+  scale_x_discrete(labels=c("Archaeological Site of Troy [Ref:849]", "Stonehenge, Avebury and Associated Sites [Ref:373]", "Rio de Janeiro: Carioca Landscapes between the Mountain and the Sea [Ref:1100]", "Historic Centre of Warsaw [Ref:30]", "Kremlin and Red Square, Moscow [Ref:545]", "Historic Sanctuary of Machu Picchu [Ref:274]", "Venice and its Lagoon [Ref:394]", "Archaeological Areas of Pompei, Herculaneum and Torre Annunziata [Ref:829]", "Historic Centre of Prague [Ref:616]", "Historic Centre of Mexico City and Xochimilco [Ref:412]", "Vatican City [Ref:286]", "Budapest, Banks of the Danube, Buda Castle Quarter and Andrássy Avenue [Ref:400]", "Historic Centre of Vienna [Ref:1033]", "Taj Mahal [Ref:252]", "The Great Wall [Ref:438]", "Statue of Liberty [Ref:307]", "Auschwitz Birkenau [Ref:31]", "Historic Areas of Istanbul [Ref:356]", "Historic Centre of Rome [Ref:91]", "Paris, Banks of the Seine [Ref:600]"))
+
+# Save the chart
+ggsave(WHS_TOP_20_PLOT_LONG_MIXED, whs_top_20_plot)
+
+###Second version: medium names
+whs_top_20_plot <- ggplot(whs_top_20, aes(reorder(site,value), value, fill=factor(EU))) + 
+  geom_bar(stat="identity") +
+  coord_flip() +
+  ggtitle("Top 20 World Heritage Sites in number of \n views of related Wikipedia articles in 2015*") +
+  scale_fill_discrete(name="", labels=c("non EU", "EU", "mixed")) +
+  scale_y_continuous(breaks = waiver()) +
+  theme(legend.position="bottom") +
+  theme(axis.title.x = element_blank()) +
+  theme(axis.title.y = element_blank()) +
+  scale_x_discrete(labels=c("Archaeological Site of Troy [Ref:849]", "Stonehenge, Avebury and Associated Sites [Ref:373]", "Rio de Janeiro [Ref:1100]", "Historic Centre of Warsaw [Ref:30]", "Kremlin and Red Square, Moscow [Ref:545]", "Historic Sanctuary of Machu Picchu [Ref:274]", "Venice and its Lagoon [Ref:394]", "Archaeological Areas of Pompei [Ref:829]", "Historic Centre of Prague [Ref:616]", "Historic Centre of Mexico City and Xochimilco [Ref:412]", "Vatican City [Ref:286]", "Budapest [Ref:400]", "Historic Centre of Vienna [Ref:1033]", "Taj Mahal [Ref:252]", "The Great Wall [Ref:438]", "Statue of Liberty [Ref:307]", "Auschwitz Birkenau [Ref:31]", "Historic Areas of Istanbul [Ref:356]", "Historic Centre of Rome [Ref:91]", "Paris, Banks of the Seine [Ref:600]"))
+
+# Save the chart
+ggsave(WHS_TOP_20_PLOT_MEDIUM_MIXED, whs_top_20_plot)
+
+###Third version: short names
+whs_top_20_plot <- ggplot(whs_top_20, aes(reorder(site,value), value, fill=factor(EU))) + 
+  geom_bar(stat="identity") +
+  coord_flip() +
+  ggtitle("Top 20 World Heritage Sites in number of \n views of related Wikipedia articles in 2015*") +
+  scale_fill_discrete(name="", labels=c("non EU", "EU", "mixed")) +
+  scale_y_continuous(breaks = waiver()) +
+  theme(legend.position="bottom") +
+  theme(axis.title.x = element_blank()) +
+  theme(axis.title.y = element_blank()) +
+  scale_x_discrete(labels=c("Archaeological Site of Troy [Ref:849]", "Stonehenge [Ref:373]", "Rio de Janeiro [Ref:1100]", "Historic Centre of Warsaw [Ref:30]", "Kremlin and Red Square, Moscow [Ref:545]", "Historic Sanctuary of Machu Picchu [Ref:274]", "Venice and its Lagoon [Ref:394]", "Archaeological Areas of Pompei [Ref:829]", "Historic Centre of Prague [Ref:616]", "Historic Centre of Mexico City [Ref:412]", "Vatican City [Ref:286]", "Budapest [Ref:400]", "Historic Centre of Vienna [Ref:1033]", "Taj Mahal [Ref:252]", "The Great Wall [Ref:438]", "Statue of Liberty [Ref:307]", "Auschwitz Birkenau [Ref:31]", "Historic Areas of Istanbul [Ref:356]", "Historic Centre of Rome [Ref:91]", "Paris, Banks of the Seine [Ref:600]"))
+
+# Save the chart
+ggsave(WHS_TOP_20_PLOT_SHORT_MIXED, whs_top_20_plot)
 
 # 4. Top 5 by language
 
