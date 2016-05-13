@@ -233,41 +233,17 @@ remove_section_ref <- function(article) {
 # NOTE: It might be needed to create temporary file name, because on Windows the
 # external download tool does not store the file with the name in the utf-8
 # encoding.
-getWikiMarkup <- function(article, lang="en", refresh=FALSE) {
+getWikiMarkup <- function(article, lang ="en", refresh=FALSE) {
+  
+  # Get rid of character that start with \U000
+  if (any(substring(article, 2, 5) == "")) {
+    article[substring(article, 2, 5) == ""] <- "Unprocessable character"
+  }
+  
   # Get rid of mount fuji character
-	if (any(article == "\U0001f5fb")) {
-		article[article == "\U0001f5fb"] <- "Unicode Character MOUNT FUJI"
-	}
-  
-  # Get rid of parenthesized latin capital letter character
-  if (any(article == "\U0001f110" | article == "\U0001f111" | article == "\U0001f112" | article == "\U0001f113" | article == "\U0001f114" | article == "\U0001f115" | article == "\U0001f116" | article == "\U0001f117" | article == "\U0001f118" | article == "\U0001f119" | article == "\U0001f120" | article == "\U0001f121" | article == "\U0001f122" | article == "\U0001f123" | article == "\U0001f124" | article == "\U0001f125" | article == "\U0001f126" | article == "\U0001f127" | article == "\U0001f128" | article == "\U0001f129")) {
-    article[article == "\U0001f110" | article == "\U0001f111" | article == "\U0001f112" | article == "\U0001f113" | article == "\U0001f114" | article == "\U0001f115" | article == "\U0001f116" | article == "\U0001f117" | article == "\U0001f118" | article == "\U0001f119" | article == "\U0001f120" | article == "\U0001f121" | article == "\U0001f122" | article == "\U0001f123" | article == "\U0001f124" | article == "\U0001f125" | article == "\U0001f126" | article == "\U0001f127" | article == "\U0001f128" | article == "\U0001f129"] <- "Unicode Character PARENTHESIZED LATIN CAPITAL LETTER"
-  }
-  
-  # Get rid of squared latin capital letter character 
-  if (any(article == "\U0001f130" | article == "\U0001f131" | article == "\U0001f132" | article == "\U0001f133" | article == "\U0001f134" | article == "\U0001f135" | article == "\U0001f136" | article == "\U0001f137" | article == "\U0001f138" | article == "\U0001f139" | article == "\U0001f140" | article == "\U0001f141" | article == "\U0001f142" | article == "\U0001f143" | article == "\U0001f144" | article == "\U0001f145" | article == "\U0001f146" | article == "\U0001f147" | article == "\U0001f148" | article == "\U0001f149")) {
-    article[article == "\U0001f130" | article == "\U0001f131" | article == "\U0001f132" | article == "\U0001f133" | article == "\U0001f134" | article == "\U0001f135" | article == "\U0001f136" | article == "\U0001f137" | article == "\U0001f138" | article == "\U0001f139" | article == "\U0001f140" | article == "\U0001f141" | article == "\U0001f142" | article == "\U0001f143" | article == "\U0001f144" | article == "\U0001f145" | article == "\U0001f146" | article == "\U0001f147" | article == "\U0001f148" | article == "\U0001f149"] <- "Unicode Character SQUARED LATIN CAPITAL LETTER"
-  }
-  
-  # Get rid of negative circled capital letter character 
-  if (any(article == "\U0001f150" | article == "\U0001f151" | article == "\U0001f152" | article == "\U0001f153" | article == "\U0001f154" | article == "\U0001f155" | article == "\U0001f156" | article == "\U0001f157" | article == "\U0001f158" | article == "\U0001f159" | article == "\U0001f160" | article == "\U0001f161" | article == "\U0001f162" | article == "\U0001f163" | article == "\U0001f164" | article == "\U0001f165" | article == "\U0001f166" | article == "\U0001f167" | article == "\U0001f168" | article == "\U0001f169")) {
-    article[article == "\U0001f150" | article == "\U0001f151" | article == "\U0001f152" | article == "\U0001f153" | article == "\U0001f154" | article == "\U0001f155" | article == "\U0001f156" | article == "\U0001f157" | article == "\U0001f158" | article == "\U0001f159" | article == "\U0001f160" | article == "\U0001f161" | article == "\U0001f162" | article == "\U0001f163" | article == "\U0001f164" | article == "\U0001f165" | article == "\U0001f166" | article == "\U0001f167" | article == "\U0001f168" | article == "\U0001f169"] <- "Unicode Character NEGATIVE CIRCLED LATIN CAPITAL LETTER"
-  }
-	
-  # Get rid of train character 
-  if (any(article == "\U0001f686")) {
-    article[article == "\U0001f686"] <- "Unicode Character TRAIN"
-  }
-  
-  # Get rid of metro character 
-  if (any(article == "\U0001f687")) {
-    article[article == "\U0001f687"] <- "Unicode Character METRO"
-  }
-  
-  # Get rid of bus character 
-  if (any(article == "\U0001f68c")) {
-    article[article == "\U0001f68c"] <- "Unicode Character BUS"
-  }
+	#if (any(article == "\U0001f5fb")) {
+	#	article[article == "\U0001f5fb"] <- "Unicode Character MOUNT FUJI"
+	#}
   
 	# Make article and lang vectors of same length
 	lang <- rep(lang, len = length(article))
@@ -285,9 +261,14 @@ getWikiMarkup <- function(article, lang="en", refresh=FALSE) {
 	valid_article_name <- gsub("[:*?<>|/\"]", "_", article_name)
 	file_name <- paste0(WIKI_MARKUP_DIR, "/", lang, "_",  
 			   valid_article_name, ".json")
-	
+
 	# Find out which files need to be downloaded
 	to_download <- !file_exists(file_name) | refresh
+	
+	# Get rid of character that start with \U000
+	if (any(substring(to_download, 2, 5) == "")) {
+	  article[substring(to_download, 2, 5) == ""] <- NULL
+	}
 	
 	print(paste0("Files to download:", sum(to_download)))
 	
@@ -566,10 +547,16 @@ get_redirect <- function(article, lang="en") {
 }
 
 get_redirect_origins <- function(article, lang="en", refresh=FALSE) {
-	# Get rid of mount fuji character
-	if (any(article == "\U0001f5fb")) {
-		article[article == "\U0001f5fb"] <- "Unicode Character MOUNT FUJI"
-	}
+	
+  # Get rid of character that start with \U000
+  if (any(substring(article, 2, 5) == "")) {
+    article[substring(article, 2, 5) == ""] <- "Unprocessable character"
+  }
+  
+  # Get rid of mount fuji character
+	#if (any(article == "\U0001f5fb")) {
+	#	article[article == "\U0001f5fb"] <- "Unicode Character MOUNT FUJI"
+	#}
 	
 	# Create data folders if they don't exit
 	check_data_folders(DATA_DIR_STR)
