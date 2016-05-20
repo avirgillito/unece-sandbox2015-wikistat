@@ -34,6 +34,7 @@ get_wikidata <- function(items, refresh = F) {
       url <- paste0(wikidata_url, items_list[i], '.json')
       download.file(url[to_download], file_name[to_download])
     }
+  }  
     # Read json files and extract wikidata
     res <- vector("list", length = length(items_list))
     counter <- 0
@@ -55,7 +56,6 @@ get_wikidata <- function(items, refresh = F) {
     }
     # Return wiki markup of articles
     return(res)
-  }
 }
 
 # This function adds the articles and languages found in wikidata files to the original items df.
