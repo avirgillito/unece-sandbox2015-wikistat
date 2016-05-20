@@ -14,6 +14,7 @@
 
 library(dplyr)
 library(jsonlite)
+source("./scripts/r/data_man.R")
 
 # Set the url to get the single item files
 
