@@ -34,7 +34,7 @@ get_wikidata <- function(items, refresh = F) {
       url <- paste0(wikidata_url, items_list[i], '.json')
       download.file(url[to_download], file_name[to_download])
     }
-  }  
+  }
     # Read json files and extract wikidata
     res <- vector("list", length = length(items_list))
     counter <- 0
@@ -56,7 +56,8 @@ get_wikidata <- function(items, refresh = F) {
     }
     # Return wiki markup of articles
     return(res)
-}
+  }
+
 
 # This function adds the articles and languages found in wikidata files to the original items df.
 # It is set to work considering TWO CHARACTERS languages and WIKIPEDIA only articles. 
@@ -80,7 +81,7 @@ add_wikidata_sitelinks <- function(items) {
   # prepare datasets with articles and urls
   title <- wikidata %>%
     filter(delete == "title ") %>%
-    mutate(article = gsub("[[:punct:]]", "", keep)) %>%
+    mutate(article = stringr::str_trim(keep, side = c("left"))) %>%
     select(-delete, -keep)
   url <- wikidata %>%
     filter(delete == "url ") %>%
@@ -123,7 +124,7 @@ wikidata_sitelinks_df <- function(items) {
   # prepare datasets with articles and urls
   title <- wikidata %>%
     filter(delete == "title ") %>%
-    mutate(article = gsub("[[:punct:]]", "", keep)) %>%
+    mutate(article = stringr::str_trim(keep, side = c("left"))) %>%
     select(-delete, -keep)
   url <- wikidata %>%
     filter(delete == "url ") %>%
