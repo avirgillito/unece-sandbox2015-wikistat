@@ -10,6 +10,7 @@
 
 ## wikidata_sitelinks_df  gets the wikidata items and create a df with artices, language and items 
 
+
 ## NOTE: all functions work from the df 'items' that has item, lat and long
 
 library(dplyr)
