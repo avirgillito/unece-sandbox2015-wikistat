@@ -1,5 +1,4 @@
-
-### GUIDE TO QUERY QIKIDATA ###
+### GUIDE TO QUERY WIKIDATA 
 
 ## From https://query.wikidata.org/ you can query for wikidata items. 
 ## Clicking on 'Examples' you'll see hou the query works. 
