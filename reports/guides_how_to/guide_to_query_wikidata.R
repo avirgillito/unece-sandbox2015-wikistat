@@ -64,7 +64,6 @@ WHERE {
 # Get the ordered output
 ORDER BY ASC (?name)
 
-
 2. USE THE RADIUS AROUND THE CITY
 
 # Select the ItemId, label and coordinate location that we want as output
@@ -108,8 +107,8 @@ WHERE {
     # Looking for items with coordinate locations(P625)
     ?item wdt:P625 ?coord .
     # That have Knokke-Heist(Q12988) as South-West corner and Zedelgem(Q184287) as North-East corner
-    bd:serviceParam wikibase:cornerSouthWest ?Firstloc .
-    bd:serviceParam wikibase:cornerNorthEast ?Secondloc .
+    bd:serviceParam wikibase:cornerNorthEast ?Firstloc .
+    bd:serviceParam wikibase:cornerSouthWest ?Secondloc .
   }
   # Use the label service to get the label of the item in our 31 chosen languages
   SERVICE wikibase:label {
@@ -122,7 +121,6 @@ WHERE {
 }
 # Get the ordered output
 ORDER BY ASC (?name)
-
 
 #### Queries to work on RStudio
 
