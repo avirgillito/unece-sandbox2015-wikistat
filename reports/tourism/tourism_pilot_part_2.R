@@ -256,9 +256,9 @@ write.csv(cities_wikistats, CITIES_DATASET, row.names=FALSE, fileEncoding="utf-8
 
 # Divide the dataset based on city
 Barcelona_reads_in_C <- Barcelona_in_C %>%
-  select(item, lat, long_) %>%
+  select(item, long, lat) %>%
   left_join(cities_wikistats, by = 'item') %>%
-  group_by(lang, item, time, lat, long_) %>%
+  group_by(lang, item, time, long, lat) %>%
   summarise(value = sum(value)) %>%
   group_by() %>%
   filter(time != 'article2') %.%
@@ -270,7 +270,7 @@ write.csv(Barcelona_reads_in_C, './reports/cities/Barcelona_C.csv')
 Barcelona_reads_in_K <- Barcelona_in_K %>%
   select(item, lat, long_) %>%
   left_join(cities_wikistats, by = 'item') %>%
-  group_by(lang, item, time, lat, long_) %>%
+  group_by(lang, item, time, long, lat) %>%
   summarise(value = sum(value)) %>%
   group_by() %>%
   filter(time != 'article2') %.%
@@ -282,7 +282,7 @@ write.csv(Barcelona_reads_in_K, './reports/cities/Barcelona_K.csv')
 Bruges_reads_in_C <- Bruges_in_C %>%
   select(item, lat, long_) %>%
   left_join(cities_wikistats, by = 'item') %>%
-  group_by(lang, item, time, lat, long_) %>%
+  group_by(lang, item, time, long, lat) %>%
   summarise(value = sum(value)) %>%
   group_by() %>%
   filter(time != 'article2') %.%
@@ -294,7 +294,7 @@ write.csv(Bruges_reads_in_C, './reports/cities/Bruges_C.csv')
 Bruges_reads_in_F <- Bruges_in_F %>%
   select(item, lat, long_) %>%
   left_join(cities_wikistats, by = 'item') %>%
-  group_by(lang, item, time, lat, long_) %>%
+  group_by(lang, item, time, long, lat) %>%
   summarise(value = sum(value)) %>%
   group_by() %>%
   filter(time != 'article2') %.%
@@ -306,7 +306,7 @@ write.csv(Bruges_reads_in_F, './reports/cities/Bruges_F.csv')
 Vienna_reads_in_C <- Vienna_in_C %>%
   select(item, lat, long_) %>%
   left_join(cities_wikistats, by = 'item') %>%
-  group_by(lang, item, time, lat, long_) %>%
+  group_by(lang, item, time, long, lat) %>%
   summarise(value = sum(value)) %>%
   group_by() %>%
   filter(time != 'article2') %.%
@@ -326,7 +326,7 @@ write.csv(Barcelona_pageviews_C, './reports/cities/Barcelona_pageviews_C.csv')
 
 Barcelona_C <- Barcelona_pageviews_C %>%
   left_join(Barcelona_in_C, by = 'item') %>%
-  select(item, lat, long_, value) %>%
+  select(item, long, lat, value) %>%
   distinct(item)
 
 write.csv(Barcelona_C, './reports/cities/Barcelona_pw_coord_C.csv')
@@ -340,7 +340,7 @@ write.csv(Barcelona_pageviews_K, './reports/cities/Barcelona_pageviews_K.csv')
 
 Barcelona_K <- Barcelona_pageviews_K %>%
   left_join(Barcelona_in_K, by = 'item') %>%
-  select(item, lat, long_, value) %>%
+  select(item, long, lat, value) %>%
   distinct(item)
 
 write.csv(Barcelona_K, './reports/cities/Barcelona_pw_coord_K.csv')
@@ -354,7 +354,7 @@ write.csv(Bruges_pageviews_C, './reports/cities/Bruges_pageviews_C.csv')
 
 Bruges_C <- Bruges_pageviews_C %>%
   left_join(Bruges_in_C, by = 'item') %>%
-  select(item, lat, long_, value) %>%
+  select(item, long, lat, value) %>%
   distinct(item)
 
 write.csv(Bruges_C, './reports/cities/Bruges_pw_coord_C.csv')
@@ -368,7 +368,7 @@ write.csv(Bruges_pageviews_F, './reports/cities/Bruges_pageviews_F.csv')
 
 Bruges_F <- Bruges_pageviews_F %>%
   left_join(Bruges_in_F, by = 'item') %>%
-  select(item, lat, long_, value) %>%
+  select(item, long, lat, value) %>%
   distinct(item)
 
 write.csv(Bruges_F, './reports/cities/Bruges_pw_coord_F.csv')
@@ -382,7 +382,7 @@ write.csv(Vienna_pageviews_C, './reports/cities/Vienna_pageviews_C.csv')
 
 Vienna_C <- Vienna_pageviews_C %>%
   left_join(Vienna_in_C, by = 'item') %>%
-  select(item, lat, long_, value) %>%
+  select(item, long, lat, value) %>%
   distinct(item)
 
 write.csv(Vienna_C, './reports/cities/Vienna_pw_coord_C.csv')
@@ -406,7 +406,7 @@ Barcelona_C <-read.csv("C:/Users/signose/Desktop/Cities/Pageviews/Barcelona_pw_c
   select(-X)
 names(Barcelona_C) = c("item", "lng", "lat", "value")
 
-Barcelona_articles_in_C <-read.csv("C:/Users/signose/Desktop/Cities/Pageviews/Barcelona_articles_C.csv") %>%
+Barcelona_articles_in_C <-read.csv("./data_using_wikidata/pageviews/Barcelona_articles_C.csv") %>%
   select(-X) %>%
   distinct(item) %>%
   arrange(item, lang == 'en')
@@ -418,8 +418,8 @@ pal <- colorQuantile("Reds", NULL, n = 8)
 
 m <- leaflet(Barcelona_C_final) %>%
   addProviderTiles("CartoDB.Positron")%>%
-  addCircleMarkers(~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~pal(value), fillOpacity = 0.6) %>%
-  addMarkers(~lng, ~lat, popup = ~article, options =markerOptions(opacity = 0)) %>%
+  addCircleMarkers(~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~pal(value), fillOpacity = 0.6) %>%
+  addMarkers(~long, ~lat, popup = ~article, options =markerOptions(opacity = 0)) %>%
   addLegend(position = c("bottomright"), colorNumeric("Reds", NULL, n=7), values = ~value)
 m
 
@@ -443,8 +443,8 @@ pal <- colorQuantile("Reds", NULL, n = 8)
 
 m <- leaflet(Barcelona_K_final) %>%
   addProviderTiles("CartoDB.Positron")%>%
-  addCircleMarkers(~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~pal(value), fillOpacity = 0.6) %>%
-  addMarkers(~lng, ~lat, popup = ~article, options =markerOptions(opacity = 0)) %>%
+  addCircleMarkers(~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~pal(value), fillOpacity = 0.6) %>%
+  addMarkers(~long, ~lat, popup = ~article, options =markerOptions(opacity = 0)) %>%
   addLegend(position = c("bottomright"), colorNumeric("Reds", NULL, n=7), values = ~value)
 m
 
@@ -468,8 +468,8 @@ pal <- colorQuantile("Reds", NULL, n = 8)
 
 m <- leaflet(Bruges_C_final) %>%
   addProviderTiles("CartoDB.Positron")%>%
-  addCircleMarkers(~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~pal(value), fillOpacity = 0.6) %>%
-  addMarkers(~lng, ~lat, popup = ~article, options =markerOptions(opacity = 0)) %>%
+  addCircleMarkers(~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~pal(value), fillOpacity = 0.6) %>%
+  addMarkers(~long, ~lat, popup = ~article, options =markerOptions(opacity = 0)) %>%
   addLegend(position = c("bottomright"), colorNumeric("Reds", NULL, n=7), values = ~value)
 m
 
@@ -493,8 +493,8 @@ pal <- colorQuantile("Reds", NULL, n = 8)
 
 m <- leaflet(Bruges_F_final) %>%
   addProviderTiles("CartoDB.Positron")%>%
-  addCircleMarkers(~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~pal(value), fillOpacity = 0.6) %>%
-  addMarkers(~lng, ~lat, popup = ~article, options =markerOptions(opacity = 0)) %>%
+  addCircleMarkers(~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~pal(value), fillOpacity = 0.6) %>%
+  addMarkers(~long, ~lat, popup = ~article, options =markerOptions(opacity = 0)) %>%
   addLegend(position = c("bottomright"), colorNumeric("Reds", NULL, n=7), values = ~value)
 m
 
@@ -518,8 +518,8 @@ pal <- colorQuantile("Reds", NULL, n = 8)
 
 m <- leaflet(Vienna_C_final) %>%
   addProviderTiles("CartoDB.Positron")%>%
-  addCircleMarkers(~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~pal(value), fillOpacity = 0.6) %>%
-  addMarkers(~lng, ~lat, popup = ~article, options =markerOptions(opacity = 0)) %>%
+  addCircleMarkers(~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~pal(value), fillOpacity = 0.6) %>%
+  addMarkers(~long, ~lat, popup = ~article, options =markerOptions(opacity = 0)) %>%
   addLegend(position = c("bottomright"), colorNumeric("Reds", NULL, n=7), values = ~value)
 m
 
@@ -614,7 +614,7 @@ write.csv(Barcelona_top_10_lang_ts_C, './reports/cities/Barcelona_top_10_lang_ts
 ### Single ts
 
 Barcelona_ts_reads_in_C <- Barcelona_reads_in_C %>%
-  select(-lat, -long_) %>%
+  select(-long, -lat) %>%
   group_by(time) %>%
   summarise(value = sum(value))
 
