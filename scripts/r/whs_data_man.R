@@ -109,3 +109,11 @@ filter_european_sites <- function (whs_csv_full, target_path) {
   europe <- europe[europe$latitude > 0,]
   write_csv(europe, target_path)  
 }
+
+# This function extracts wiki articles pertaining to European sites.
+filter_european_articles <- function(all_articles_path, whs_europe_path, target_path) {
+  articles <- read_csv(all_articles_path)
+  europe <- read_csv(whs_europe_path)
+  euro_articles <- articles[articles$whs_id %in% europe$id_number,]
+  write_csv(euro_articles, target_path) 
+}
