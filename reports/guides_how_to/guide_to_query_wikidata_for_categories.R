@@ -79,51 +79,35 @@ WHERE {
 ORDER BY ASC (?name)
 
 #### Queries to work on RStudio
+source("scripts/r/wikidata_functions.R")
 
 # 1. Use the administrative entity 
 
 city_code <- 'Q1492'
-
-query <- paste0('SELECT%20DISTINCT%20%3Fitem%20%3Fname%20%3Fcoord%20%3FpropertyLabel%20%0AWHERE%20%7B%0A%20%20%3Fitem%20wdt%3AP131*%20wd%3A', city_code, '%20.%0A%20%20%3Fitem%20wdt%3AP625%20%3Fcoord%20.%20%0A%20%20%3Fitem%20wdt%3AP31%20%3Fproperty%20.%0A%20%20SERVICE%20wikibase%3Alabel%20%7B%0A%20%20%20%20bd%3AserviceParam%20wikibase%3Alanguage%20%22bg%22%2C%20%22cs%22%2C%20%22da%22%2C%20%22de%22%2C%20%22el%22%2C%20%0A%20%20%20%20%22en%22%2C%20%22es%22%2C%20%22et%22%2C%20%22fi%22%2C%20%22fr%22%2C%20%22ga%22%2C%20%22hr%22%2C%20%22hu%22%2C%20%22is%22%2C%20%22it%22%2C%20%22lt%22%2C%20%22lv%22%2C%20%0A%20%20%20%20%22mk%22%2C%20%22mt%22%2C%20%22nl%22%2C%20%22no%22%2C%20%22pl%22%2C%20%22pt%22%2C%20%22ro%22%2C%20%22ru%22%2C%20%22sk%22%2C%20%22sl%22%2C%20%22sq%22%2C%20%22sr%22%2C%20%0A%20%20%20%20%22sv%22%2C%20%22tr%22.%0A%20%20%20%20%3Fitem%20rdfs%3Alabel%20%3Fname%0A%20%20%7D%0A%20%20SERVICE%20wikibase%3Alabel%20%7B%20bd%3AserviceParam%20wikibase%3Alanguage%20%22en%22%20%7D%0A%7D%0AORDER%20BY%20ASC%20(%3Fname)')
+query_location_category_1(city_code)
 
 # 2. Use a radius around the city
 
 city_code <- 'Q1492'
 radius <- '30'
 
-query <- paste0('SELECT%20%3Fitem%20%3Fname%20%3Fcoord%20%3FpropertyLabel%20%0AWHERE%20%7B%0A%20%20wd%3A', city_code, '%20wdt%3AP625%20%3FmainLoc%20.%0A%20%20SERVICE%20wikibase%3Aaround%20%7B%20%0A%20%20%20%20%3Fitem%20wdt%3AP625%20%3Fcoord%20.%20%0A%20%20%20%20bd%3AserviceParam%20wikibase%3Acenter%20%3FmainLoc%20.%20%0A%20%20%20%20bd%3AserviceParam%20wikibase%3Aradius%20%22', radius, '%22%20.%20%0A%20%20%7D%0A%20%20SERVICE%20wikibase%3Alabel%20%7B%0A%20%20%20%20bd%3AserviceParam%20wikibase%3Alanguage%20%22bg%22%2C%20%22cs%22%2C%20%22da%22%2C%20%22de%22%2C%20%22el%22%2C%20%0A%20%20%20%20%22en%22%2C%20%22es%22%2C%20%22et%22%2C%20%22fi%22%2C%20%22fr%22%2C%20%22ga%22%2C%20%22hr%22%2C%20%22hu%22%2C%20%22is%22%2C%20%22it%22%2C%20%22lt%22%2C%20%22lv%22%2C%20%0A%20%20%20%20%22mk%22%2C%20%22mt%22%2C%20%22nl%22%2C%20%22no%22%2C%20%22pl%22%2C%20%22pt%22%2C%20%22ro%22%2C%20%22ru%22%2C%20%22sk%22%2C%20%22sl%22%2C%20%22sq%22%2C%20%22sr%22%2C%20%0A%20%20%20%20%22sv%22%2C%20%22tr%22.%0A%20%20%20%20%3Fitem%20rdfs%3Alabel%20%3Fname%0A%20%20%7D%0A%20%20%3Fitem%20wdt%3AP31%20%3Fproperty%20.%0A%20%20SERVICE%20wikibase%3Alabel%20%7B%20bd%3AserviceParam%20wikibase%3Alanguage%20%22en%22%20%7D%0A%7D%0AORDER%20BY%20ASC%20(%3Fname)'
-                
+query_location_category_2(city_code, radius)
+
 # 3. Use a box around the city
 
 # You have to specify two cities that represent two opposite corners around your target city; than you have to specify 
 # at which corner they are, in the format: SouthWest, SouthEast, NorthWest, NorthEast
+
 city_code <- 'Q12994'
 first_city_code <- 'Q12988'
 second_city_code <- 'Q184287'
 first_city_corner <- 'NorthEast'
 second_city_corner <- 'SouthWest'
 
-query <- paste0('SELECT%20%3Fitem%20%3Fname%20%3Fcoord%20%3FpropertyLabel%0AWHERE%20%7B%0A%20%20wd%3A', first_city_code, '%20wdt%3AP625%20%3FFirstloc%20.%0A%20%20wd%3A', second_city_code, '%20wdt%3AP625%20%3FSecondloc%20.%0A%20%20SERVICE%20wikibase%3Abox%20%7B%0A%20%20%20%20%3Fitem%20wdt%3AP625%20%3Fcoord%20.%0A%20%20%20%20bd%3AserviceParam%20wikibase%3Acorner',first_city_corner,  '%20%3FFirstloc%20.%0A%20%20%20%20bd%3AserviceParam%20wikibase%3Acorner', second_city_corner, '%20%3FSecondloc%20.%0A%20%20%7D%0A%20%20SERVICE%20wikibase%3Alabel%20%7B%0A%20%20%20%20bd%3AserviceParam%20wikibase%3Alanguage%20%22bg%22%2C%20%22cs%22%2C%20%22da%22%2C%20%22de%22%2C%20%22el%22%2C%20%0A%20%20%20%20%22en%22%2C%20%22es%22%2C%20%22et%22%2C%20%22fi%22%2C%20%22fr%22%2C%20%22ga%22%2C%20%22hr%22%2C%20%22hu%22%2C%20%22is%22%2C%20%22it%22%2C%20%22lt%22%2C%20%22lv%22%2C%20%0A%20%20%20%20%22mk%22%2C%20%22mt%22%2C%20%22nl%22%2C%20%22no%22%2C%20%22pl%22%2C%20%22pt%22%2C%20%22ro%22%2C%20%22ru%22%2C%20%22sk%22%2C%20%22sl%22%2C%20%22sq%22%2C%20%22sr%22%2C%20%0A%20%20%20%20%22sv%22%2C%20%22tr%22.%0A%20%20%20%20%3Fitem%20rdfs%3Alabel%20%3Fname%0A%20%20%7D%0A%20%20%3Fitem%20wdt%3AP31%20%3Fproperty%20.%0A%20%20SERVICE%20wikibase%3Alabel%20%7B%20bd%3AserviceParam%20wikibase%3Alanguage%20%22en%22%20%7D%0A%7D%0AORDER%20BY%20ASC%20(%3Fname)')
-
-## After having chosen the kind of query, you just need to specify the api:
-api_url <- "https://query.wikidata.org/bigdata/namespace/wdq/sparql?query="
-
-# and download the file (I created a folder to collect all the queries that I made, named as the item which represents my target):
-download.file(paste0(api_url, query, "&format=json"), paste0('/ichec/home/users/signose/wikistats/wikidata_lists/', city_code, '.txt'))
+query_location_category_3(city_code, first_corner_city_code, first_city_corner, second_corner_city_code, second_city_corner)
 
 ### Once you have downloaded the file, you can just:
 
 # Read the downloaded file
 
-json <- jsonlite::fromJSON(paste0('/ichec/home/users/signose/wikistats/wikidata_lists/category', city_code, '.txt'), simplifyDataFrame = TRUE)
-
-# Arrange the file in a dataframe with only three variables: item, latitute, longitude
-
-json_item <-json$results$bindings$item
-json_property <- json$results$bindings$propertyLabel
-
-category <- json_item %>%
-  mutate(item = gsub('http://www.wikidata.org/entity/', '', value)) %>%
-  select (-type, -value) %>%
-  mutate(property = gsub('http://www.wikidata.org/entity/', '', json_property$value)) %>%
-  distinct()
+read_category_list(city_code)
