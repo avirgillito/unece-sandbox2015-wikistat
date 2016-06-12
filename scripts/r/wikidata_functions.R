@@ -30,6 +30,9 @@
 
 library(dplyr)
 library(jsonlite)
+library(stringr)
+library(splitstackshape)
+library(tidyr)
 
 api_url <- "https://query.wikidata.org/bigdata/namespace/wdq/sparql?query="
 wikidata_url <- 'https://www.wikidata.org/wiki/Special:EntityData/'
