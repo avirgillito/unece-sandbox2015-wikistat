@@ -99,3 +99,21 @@ get_whs <- function(version_date) {
 	whs$id_number <- as.numeric(as.character(whs$id_number)) 
 	return(whs)
 }
+
+# This function extracts European WHS sites based on region and latitude and longitude
+# then it saves the result as a new csv in the specified path. 
+filter_european_sites <- function (whs_csv_full, target_path) {
+  whs_full <- read_csv(whs_csv_full)
+  europe_na <- whs_full[whs_full$region=="Europe and North America",]
+  europe <- europe_na[europe_na$longitude>-49.6,]
+  europe <- europe[europe$latitude > 0,]
+  write_csv(europe, target_path)  
+}
+
+# This function extracts wiki articles pertaining to European sites.
+filter_european_articles <- function(all_articles_path, whs_europe_path, target_path) {
+  articles <- read_csv(all_articles_path)
+  europe <- read_csv(whs_europe_path)
+  euro_articles <- articles[articles$whs_id %in% europe$id_number,]
+  write_csv(euro_articles, target_path) 
+}
