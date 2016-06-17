@@ -1,11 +1,11 @@
-### GUIDE TO QUERY WIKIDATA FOR CATEGORIES
+### GUIDE TO QUERY WIKIDATA FOR PROPERTIES
 
 ## This is a step further of the script 'guide_to_query_wikidata.R'.
-## Following these instructions you'll be able to get the categories related to the items
+## Following these instructions you'll be able to get the properties related to the items
 ## that you got from the previous script.
 
 ## NOTE: with these queries you'll get fewer items than the previous script. This because some items
-## does not have categories. So just keep this file separated from the other one. You'll be able
+## does not have properties. So just keep this file separated from the other one. You'll be able
 ## to left join the two when you need for your analysis.
 
 ## The queries are the same as before, we just added a part of code to get the labels.
@@ -79,14 +79,14 @@ source("scripts/r/wikidata_functions.R")
 # 1. Use the administrative entity
 
 city_code <- 'Q1492'
-query_location_category_1(city_code)
+query_location_property_1(city_code)
 
 # 2. Use a radius around the city
 
 city_code <- 'Q1492'
 radius <- '30'
 
-query_location_category_2(city_code, radius)
+query_location_property_2(city_code, radius)
 
 # 3. Use a box around the city
 
@@ -99,10 +99,10 @@ second_city_code <- 'Q184287'
 first_city_corner <- 'NorthEast'
 second_city_corner <- 'SouthWest'
 
-query_location_category_3(city_code, first_corner_city_code, first_city_corner, second_corner_city_code, second_city_corner)
+query_location_property_3(city_code, first_corner_city_code, first_city_corner, second_corner_city_code, second_city_corner)
 
 ### Once you have downloaded the file, you can just:
 
 # Read the downloaded file
 
-read_category_list(city_code)
+read_property_list(city_code)
