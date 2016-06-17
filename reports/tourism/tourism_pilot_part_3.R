@@ -1,6 +1,8 @@
 library(dplyr)
 library(jsonlite)
 library(stringr)
+library(leaflet)
+library(htmlwidgets)
 source("scripts/r/wikidata_functions.R")
 
 api_url <- "https://query.wikidata.org/bigdata/namespace/wdq/sparql?query="
@@ -219,9 +221,93 @@ Barcelona_C_all_category <- Barcelona_C %>%
 
 write.csv(Barcelona_C_all_category, 'Barcelona_C_all_category.csv')
 
-library(dplyr)
-library(leaflet)
-library(htmlwidgets)
+### Starting analyzing properties/classes
+
+### First, get the classes
+
+# Barcelona
+
+Barcelona_prop_id <- read_property_identifier('Q1492')
+Barcelona_classes <- read_property_class(Barcelona_prop_id)
+Barcelona_properties_classes <- link_property_class(Barcelona_prop_id, Barcelona_classes, category_Barcelona)
+
+# Barcelona C
+
+Barcelona_C_prop_class <- read.csv('./data_using_wikidata/pageviews/Barcelona_pw_coord_C.csv') %>%
+  select(item) %>%
+  left_join(Barcelona_properties_classes, by = 'item') %>%
+  distinct() %>%
+  mutate(item = as.factor(item),
+         property = as.factor(property),
+         class = as.factor(class))
+
+write.csv(category_Barcelona_C, './data_using_wikidata/properties_classes/properties_classes_Q1492_C.csv')
+
+# Barcelona K
+
+Barcelona_K_prop_class <- read.csv('./data_using_wikidata/pageviews/Barcelona_pw_coord_K.csv') %>%
+  select(item) %>%
+  left_join(Barcelona_properties_classes, by = 'item') %>%
+  distinct() %>%
+  mutate(item = as.factor(item),
+         property = as.factor(property),
+         class = as.factor(class))
+
+write.csv(category_Barcelona_K, './data_using_wikidata/properties_classes/properties_classes_Q1492_K.csv')
+
+# Bruges
+
+Bruges_prop_id <- read_property_identifier('Q12994')
+query_property_class(Bruges_prop_id)
+Bruges_classes <- read_property_class(Bruges_prop_id)
+Bruges_properties_classes <- link_property_class(Bruges_prop_id, Bruges_classes, category_Bruges)
+
+# Bruges C
+
+Bruges_C_prop_class <- read.csv('./data_using_wikidata/pageviews/Bruges_pw_coord_C.csv') %>%
+  select(item) %>%
+  left_join(Bruges_properties_classes, by = 'item') %>%
+  distinct() %>%
+  mutate(item = as.factor(item),
+         property = as.factor(property),
+         class = as.factor(class))
+
+write.csv(category_Bruges_C, './data_using_wikidata/properties_classes/properties_classes_Q12994_C.csv')
+
+# Bruges F
+
+Bruges_F_prop_class <- read.csv('./data_using_wikidata/pageviews/Bruges_pw_coord_F.csv') %>%
+  select(item) %>%
+  left_join(Bruges_properties_classes, by = 'item') %>%
+  distinct() %>%
+  mutate(item = as.factor(item),
+         property = as.factor(property),
+         class = as.factor(class))
+write.csv(category_Bruges_F, './data_using_wikidata/properties_classes/properties_classes_Q12994_F.csv')
+
+# Vienna
+
+Vienna_prop_id <- read_property_identifier('Q1741')
+query_property_class(Vienna_prop_id)
+Vienna_classes <- read_property_class(Vienna_prop_id)
+Vienna_properties_classes <- link_property_class(Vienna_prop_id, Vienna_classes, category_Vienna)
+
+# Vienna C
+
+Vienna_C_prop_class <- read.csv('./data_using_wikidata/pageviews/Vienna_pw_coord_C.csv') %>%
+  select(item) %>%
+  left_join(Vienna_properties_classes, by = 'item') %>%
+  distinct() %>%
+  mutate(item = as.factor(item),
+         property = as.factor(property),
+         class = as.factor(class))
+
+write.csv(category_Vienna_C, './data_using_wikidata/properties_classes/properties_classes_Q1741_C.csv')
+
+### Then, group by classes
+
+
+
 
 ### Maps with layer per category
 
