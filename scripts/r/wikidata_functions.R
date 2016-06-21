@@ -104,7 +104,7 @@ get_wikidata <- function(items) {
   for (i in 1:length(items_list)) {
     file_name <- paste0('./wikidata_items/item_', items_list[i], '.txt')
     # Find out which files need to be downloaded
-    to_download <- !file_exists(file_name) | refresh
+    to_download <- !file_exists(file_name)
     print(paste0("Files to download:", sum(to_download)))
     # Download files not in the cache
     if (any(to_download)) {
@@ -158,11 +158,11 @@ get_wikipedia_articles <- function(items) {
   # prepare datasets with articles and urls
   title <- wikidata %>%
     filter(delete == "title ") %>%
-    mutate(article = stringr::str_trim(keep, side = c("left"))) %>%
+    mutate(article = gsub("\"", "", stringr::str_trim(keep, side = c("left")))) %>%
     select(-delete, -keep)
   url <- wikidata %>%
     filter(delete == "url ") %>%
-    mutate(lang = substr(keep, 9, regexpr("wiki", keep)-2)) %>%
+    mutate(lang = substr(keep, regexpr("https://", keep)+8, regexpr("wiki", keep)-2)) %>%
     select(-delete, -keep)
   # unify datasets
   wikidata <- cbind(title,url) %>%

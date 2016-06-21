@@ -8,6 +8,7 @@ library(dplyr)
 library(jsonlite)
 library(stringr)
 source("scripts/r/wikidata_functions.R")
+source("scripts/r/data_man.R")
 
 api_url <- "https://query.wikidata.org/bigdata/namespace/wdq/sparql?query="
 
@@ -43,7 +44,7 @@ items_Barcelona <- json_item %>%
 
 # Keep the df with the articles, languages and items
 
-df <- wikidata_sitelinks_df(items_Barcelona)
+df <- get_wikipedia_articles(items_Barcelona)
 
 # Filter considering only the 31 languages
 
@@ -110,7 +111,7 @@ items_Vienna <- json_item %>%
 
 # Keep the df with the articles, languages and items
 
-df <- wikidata_sitelinks_df(items_Vienna)
+df <- get_wikipedia_articles(items_Vienna)
 
 # Filter considering only the 31 languages
 
@@ -177,7 +178,7 @@ items_Bruges <- json_item %>%
 
 # Keep the df with the articles, languages and items
 
-df <- wikidata_sitelinks_df(items_Bruges)
+df <- get_wikipedia_articles(items_Bruges)
 
 # Filter considering only the 31 languages
 
