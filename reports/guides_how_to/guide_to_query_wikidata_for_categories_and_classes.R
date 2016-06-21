@@ -40,5 +40,5 @@ WHERE {
 ## 4. link_property_class, that has three parameters:
 ##      a. the dataframe that comes out from point 1
 ##      b. the dataframe that comes out from point 3
-##      c. the dataframe that comes out from function read_property_link (last function in guide on property)
+##      c. the dataframe that comes out from function read_property_list (last function in guide on property)
 
