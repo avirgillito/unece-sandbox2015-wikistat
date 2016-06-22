@@ -241,7 +241,7 @@ Barcelona_C_prop_class <- read.csv('./data_using_wikidata/pageviews/Barcelona_pw
          property = as.factor(property),
          class = as.factor(class))
 
-write.csv(category_Barcelona_C, './data_using_wikidata/properties_classes/properties_classes_Q1492_C.csv')
+write.csv(Barcelona_C_prop_class, './data_using_wikidata/properties_classes/properties_classes_Q1492_C.csv')
 
 # Barcelona K
 
@@ -253,7 +253,7 @@ Barcelona_K_prop_class <- read.csv('./data_using_wikidata/pageviews/Barcelona_pw
          property = as.factor(property),
          class = as.factor(class))
 
-write.csv(category_Barcelona_K, './data_using_wikidata/properties_classes/properties_classes_Q1492_K.csv')
+write.csv(Barcelona_K_prop_class, './data_using_wikidata/properties_classes/properties_classes_Q1492_K.csv')
 
 # Bruges
 
@@ -272,7 +272,7 @@ Bruges_C_prop_class <- read.csv('./data_using_wikidata/pageviews/Bruges_pw_coord
          property = as.factor(property),
          class = as.factor(class))
 
-write.csv(category_Bruges_C, './data_using_wikidata/properties_classes/properties_classes_Q12994_C.csv')
+write.csv(Bruges_C_prop_class, './data_using_wikidata/properties_classes/properties_classes_Q12994_C.csv')
 
 # Bruges F
 
@@ -283,7 +283,8 @@ Bruges_F_prop_class <- read.csv('./data_using_wikidata/pageviews/Bruges_pw_coord
   mutate(item = as.factor(item),
          property = as.factor(property),
          class = as.factor(class))
-write.csv(category_Bruges_F, './data_using_wikidata/properties_classes/properties_classes_Q12994_F.csv')
+
+write.csv(Bruges_F_prop_class, './data_using_wikidata/properties_classes/properties_classes_Q12994_F.csv')
 
 # Vienna
 
@@ -302,29 +303,266 @@ Vienna_C_prop_class <- read.csv('./data_using_wikidata/pageviews/Vienna_pw_coord
          property = as.factor(property),
          class = as.factor(class))
 
-write.csv(category_Vienna_C, './data_using_wikidata/properties_classes/properties_classes_Q1741_C.csv')
+write.csv(Vienna_C_prop_class, './data_using_wikidata/properties_classes/properties_classes_Q1741_C.csv')
 
-### Then, group by classes
-
-
-
-
-### Maps with layer per category
+### Then, join with pageviews and group by classes 
+### Note that here we will take the first property and the first class that appear in the dataframe
 
 # Barcelona C
 
-Barcelona_C_category <- read.csv("C:/Users/signose/Desktop/Cities/Categories/Barcelona_C_category.csv") %>%
-  select(-X)
+Barcelona_C_group_classes <- Barcelona_C %>%
+  left_join(Barcelona_C_prop_class, by = 'item') %>%
+  distinct(item) %>%
+  filter(!is.na(class))%>%
+  group_by(class)%>%
+  summarise(value = sum(value)) %>%
+  arrange(desc(value))
+  
+Barcelona_C_group_classes[1:10,]
 
-Barcelona_C_all_category <- read.csv("C:/Users/signose/Desktop/Cities/Categories/Barcelona_C_all_category.csv") %>%
-  select(-X)
+# Barcelona K
 
-m <- leaflet(Barcelona_C_all_category) %>%
-  addProviderTiles("CartoDB.Positron")%>%
-  addCircleMarkers(~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~colorFactor(topo.colors(133), Barcelona_C_all_category$category)(category), fillOpacity = 0.6) %>%
-  addMarkers(~long, ~lat, popup = ~category, options =markerOptions(opacity = 0)) %>%
-  addLegend(position = c("bottomright"), colorFactor(topo.colors(133), Barcelona_C_all_category$category), values = ~category)
-m
+Barcelona_K_group_classes <- Barcelona_K %>%
+  left_join(Barcelona_K_prop_class, by = 'item') %>%
+  distinct(item) %>%
+  filter(!is.na(class))%>%
+  group_by(class)%>%
+  summarise(value = sum(value)) %>%
+  arrange(desc(value))
+
+Barcelona_K_group_classes[1:10,]
+  
+# Bruges C
+
+Bruges_C_group_classes <- Bruges_C %>%
+  left_join(Bruges_C_prop_class, by = 'item') %>%
+  distinct(item) %>%
+  filter(!is.na(class))%>%
+  group_by(class)%>%
+  summarise(value = sum(value)) %>%
+  arrange(desc(value))
+
+Bruges_C_group_classes[1:10,]
+
+# Bruges F
+
+Bruges_F_group_classes <- Bruges_F %>%
+  left_join(Bruges_F_prop_class, by = 'item') %>%
+  distinct(item) %>%
+  filter(!is.na(class))%>%
+  group_by(class)%>%
+  summarise(value = sum(value)) %>%
+  arrange(desc(value))
+
+Bruges_F_group_classes[1:10,]
+
+# Vienna C
+
+Vienna_C_group_classes <- Vienna_C %>%
+  left_join(Vienna_C_prop_class, by = 'item') %>%
+  distinct(item) %>%
+  filter(!is.na(class))%>%
+  group_by(class)%>%
+  summarise(value = sum(value)) %>%
+  arrange(desc(value))
+
+Vienna_C_group_classes[1:10,]
+
+### Test to link equal properties and classes
+
+# Barcelona C
+
+prop <- data.frame(item = Barcelona_C_prop_class$item, cat = Barcelona_C_prop_class$property)
+class <- data.frame(item = Barcelona_C_prop_class$item, cat = Barcelona_C_prop_class$class)
+
+test1 <- class%>%
+  semi_join(prop, by = 'cat') %>%
+  distinct(item) %>%
+  filter(!is.na(cat))
+
+test <- class%>%
+  left_join(test1, by = 'item')
+
+Barcelona_C_cat <- data.frame(item = character(), cat = character())
+for (i in 1:nrow(test)) {
+  item <- data.frame(item = test$item[i])
+  if (is.na(test$cat.y[i])) {
+    cat <- test$cat.x[i]
+    } else {
+    cat <- test$cat.y[i]
+    }
+  temp <- item %>%
+    mutate(cat = cat) 
+  Barcelona_C_cat <- rbind(Barcelona_C_cat, temp)
+}
+
+Barcelona_C_cat <- Barcelona_C_cat%>%
+  distinct(item)
+
+# Compute top ten categories
+
+Barcelona_C_link <- Barcelona_C %>%
+  left_join(Barcelona_C_cat, by = 'item') %>%
+  distinct(item) %>%
+  filter(!is.na(cat))%>%
+  group_by(cat)%>%
+  summarise(value = sum(value)) %>%
+  arrange(desc(value))
+
+# Barcelona K
+
+prop <- data.frame(item = Barcelona_K_prop_class$item, cat = Barcelona_K_prop_class$property)
+class <- data.frame(item = Barcelona_K_prop_class$item, cat = Barcelona_K_prop_class$class)
+
+test1 <- class%>%
+  semi_join(prop, by = 'cat') %>%
+  distinct(item) %>%
+  filter(!is.na(cat))
+
+test <- class%>%
+  left_join(test1, by = 'item')
+
+Barcelona_K_cat <- data.frame(item = character(), cat = character())
+for (i in 1:nrow(test)) {
+  item <- data.frame(item = test$item[i])
+  if (is.na(test$cat.y[i])) {
+    cat <- test$cat.x[i]
+  } else {
+    cat <- test$cat.y[i]
+  }
+  temp <- item %>%
+    mutate(cat = cat) 
+  Barcelona_K_cat <- rbind(Barcelona_K_cat, temp)
+}
+
+Barcelona_K_cat <- Barcelona_K_cat%>%
+  distinct(item)
+
+# Compute top ten categories
+
+Barcelona_K_link <- Barcelona_K %>%
+  left_join(Barcelona_K_cat, by = 'item') %>%
+  distinct(item) %>%
+  filter(!is.na(cat))%>%
+  group_by(cat)%>%
+  summarise(value = sum(value)) %>%
+  arrange(desc(value))
 
 
+# Bruges C
 
+prop <- data.frame(item = Bruges_C_prop_class$item, cat = Bruges_C_prop_class$property)
+class <- data.frame(item = Bruges_C_prop_class$item, cat = Bruges_C_prop_class$class)
+
+test1 <- class%>%
+  semi_join(prop, by = 'cat') %>%
+  distinct(item) %>%
+  filter(!is.na(cat))
+
+test <- class%>%
+  left_join(test1, by = 'item')
+
+Bruges_C_cat <- data.frame(item = character(), cat = character())
+for (i in 1:nrow(test)) {
+  item <- data.frame(item = test$item[i])
+  if (is.na(test$cat.y[i])) {
+    cat <- test$cat.x[i]
+  } else {
+    cat <- test$cat.y[i]
+  }
+  temp <- item %>%
+    mutate(cat = cat) 
+  Bruges_C_cat <- rbind(Bruges_C_cat, temp)
+}
+
+Bruges_C_cat <- Bruges_C_cat%>%
+  distinct(item)
+
+# Compute top ten categories
+
+Bruges_C_link <- Bruges_C %>%
+  left_join(Bruges_C_cat, by = 'item') %>%
+  distinct(item) %>%
+  filter(!is.na(cat))%>%
+  group_by(cat)%>%
+  summarise(value = sum(value)) %>%
+  arrange(desc(value))
+
+
+# Bruges F
+
+prop <- data.frame(item = Bruges_F_prop_class$item, cat = Bruges_F_prop_class$property)
+class <- data.frame(item = Bruges_F_prop_class$item, cat = Bruges_F_prop_class$class)
+
+test1 <- class%>%
+  semi_join(prop, by = 'cat') %>%
+  distinct(item) %>%
+  filter(!is.na(cat))
+
+test <- class%>%
+  left_join(test1, by = 'item')
+
+Bruges_F_cat <- data.frame(item = character(), cat = character())
+for (i in 1:nrow(test)) {
+  item <- data.frame(item = test$item[i])
+  if (is.na(test$cat.y[i])) {
+    cat <- test$cat.x[i]
+  } else {
+    cat <- test$cat.y[i]
+  }
+  temp <- item %>%
+    mutate(cat = cat) 
+  Bruges_F_cat <- rbind(Bruges_F_cat, temp)
+}
+
+Bruges_F_cat <- Bruges_F_cat%>%
+  distinct(item)
+
+# Compute top ten categories
+
+Bruges_F_link <- Bruges_F %>%
+  left_join(Bruges_F_cat, by = 'item') %>%
+  distinct(item) %>%
+  filter(!is.na(cat))%>%
+  group_by(cat)%>%
+  summarise(value = sum(value)) %>%
+  arrange(desc(value))
+
+# Vienna C
+
+prop <- data.frame(item = Vienna_C_prop_class$item, cat = Vienna_C_prop_class$property)
+class <- data.frame(item = Vienna_C_prop_class$item, cat = Vienna_C_prop_class$class)
+
+test1 <- class%>%
+  semi_join(prop, by = 'cat') %>%
+  distinct(item) %>%
+  filter(!is.na(cat))
+
+test <- class%>%
+  left_join(test1, by = 'item')
+
+Vienna_C_cat <- data.frame(item = character(), cat = character())
+for (i in 1:nrow(test)) {
+  item <- data.frame(item = test$item[i])
+  if (is.na(test$cat.y[i])) {
+    cat <- test$cat.x[i]
+  } else {
+    cat <- test$cat.y[i]
+  }
+  temp <- item %>%
+    mutate(cat = cat) 
+  Vienna_C_cat <- rbind(Vienna_C_cat, temp)
+}
+
+Vienna_C_cat <- Vienna_C_cat%>%
+  distinct(item)
+
+# Compute top ten categories
+
+Vienna_C_link <- Vienna_C %>%
+  left_join(Vienna_C_cat, by = 'item') %>%
+  distinct(item) %>%
+  filter(!is.na(cat))%>%
+  group_by(cat)%>%
+  summarise(value = sum(value)) %>%
+  arrange(desc(value))
