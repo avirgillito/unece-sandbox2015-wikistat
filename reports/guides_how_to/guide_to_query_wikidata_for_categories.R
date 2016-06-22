@@ -41,10 +41,7 @@ WHERE {
     bd:serviceParam wikibase:radius "30" .
   }
   SERVICE wikibase:label {
-    bd:serviceParam wikibase:language "bg", "cs", "da", "de", "el",
-    "en", "es", "et", "fi", "fr", "ga", "hr", "hu", "is", "it", "lt", "lv",
-    "mk", "mt", "nl", "no", "pl", "pt", "ro", "ru", "sk", "sl", "sq", "sr",
-    "sv", "tr".
+    bd:serviceParam wikibase:language "en".
     ?item rdfs:label ?name
   }
   ?item wdt:P31 ?property .

@@ -54,8 +54,8 @@ WHERE {
   ?item wdt:P625 ?coord .
   # Use the label service to get the label of the item in our 31 chosen languages
   SERVICE wikibase:label {
-    bd:serviceParam wikibase:language "bg", "cs", "da", "de", "el", 
-    "en", "es", "et", "fi", "fr", "ga", "hr", "hu", "is", "it", "lt", "lv", 
+    bd:serviceParam wikibase:language "en", "cs", "da", "de", "el", 
+    "bg", "es", "et", "fi", "fr", "ga", "hr", "hu", "is", "it", "lt", "lv", 
     "mk", "mt", "nl", "no", "pl", "pt", "ro", "ru", "sk", "sl", "sq", "sr", 
     "sv", "tr".
     ?item rdfs:label ?name
@@ -82,8 +82,8 @@ WHERE {
   }
   # Use the label service to get the label of the item in our 31 chosen languages
   SERVICE wikibase:label {
-    bd:serviceParam wikibase:language "bg", "cs", "da", "de", "el", 
-    "en", "es", "et", "fi", "fr", "ga", "hr", "hu", "is", "it", "lt", "lv", 
+    bd:serviceParam wikibase:language "en", "cs", "da", "de", "el", 
+    "bg", "es", "et", "fi", "fr", "ga", "hr", "hu", "is", "it", "lt", "lv", 
     "mk", "mt", "nl", "no", "pl", "pt", "ro", "ru", "sk", "sl", "sq", "sr", 
     "sv", "tr".
     ?item rdfs:label ?name
@@ -112,8 +112,8 @@ WHERE {
   }
   # Use the label service to get the label of the item in our 31 chosen languages
   SERVICE wikibase:label {
-    bd:serviceParam wikibase:language "bg", "cs", "da", "de", "el", 
-    "en", "es", "et", "fi", "fr", "ga", "hr", "hu", "is", "it", "lt", "lv", 
+    bd:serviceParam wikibase:language "en", "cs", "da", "de", "el", 
+    "bg", "es", "et", "fi", "fr", "ga", "hr", "hu", "is", "it", "lt", "lv", 
     "mk", "mt", "nl", "no", "pl", "pt", "ro", "ru", "sk", "sl", "sq", "sr", 
     "sv", "tr".
     ?item rdfs:label ?name
