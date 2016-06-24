@@ -17,30 +17,11 @@ api_url <- "https://query.wikidata.org/bigdata/namespace/wdq/sparql?query="
 ## Barcelona
 city_code <- 'Q1492'
 radius <- '30'
-query <- paste0('SELECT%20%3Fitem%20%3Fname%20%3Fcoord%20%0AWHERE%20%7B%0A%20wd%3A', city_code, '%20wdt%3AP625%20%3FmainLoc%20.%20%0A%20SERVICE%20wikibase%3Aaround%20%7B%20%0A%20%3Fitem%20wdt%3AP625%20%3Fcoord%20.%20%0A%20bd%3AserviceParam%20wikibase%3Acenter%20%3FmainLoc%20.%20%0A%20bd%3AserviceParam%20wikibase%3Aradius%20%22', radius, '%22%20.%20%0A%20%7D%0A%20SERVICE%20wikibase%3Alabel%20%7B%0A%20%20%20%20%20%20bd%3AserviceParam%20wikibase%3Alanguage%20%22bg%22%2C%20%22cs%22%2C%20%22da%22%2C%20%22de%22%2C%20%22el%22%2C%20%0A%22en%22%2C%20%22es%22%2C%20%22et%22%2C%20%22fi%22%2C%20%22fr%22%2C%20%22ga%22%2C%20%22hr%22%2C%20%22hu%22%2C%20%22is%22%2C%20%22it%22%2C%20%22lt%22%2C%20%22lv%22%2C%20%0A%22mk%22%2C%20%22mt%22%2C%20%22nl%22%2C%20%22no%22%2C%20%22pl%22%2C%20%22pt%22%2C%20%22ro%22%2C%20%22ru%22%2C%20%22sk%22%2C%20%22sl%22%2C%20%22sq%22%2C%20%22sr%22%2C%20%0A%22sv%22%2C%20%22tr%22.%0A%20%20%20%20%20%3Fitem%20rdfs%3Alabel%20%3Fname%0A%20%7D%0A%7D%0AORDER%20BY%20ASC%20(%3Fname)%0A')
-
-# Download the file with list of wikidata items
-
-download.file(paste0(api_url, query, "&format=json"), paste0('/ichec/home/users/signose/wikistats/wikidata_lists/', city_code, '.txt'))
+query_location_2(city_code, radius)
 
 # Read the downloaded file
 
-json <- jsonlite::fromJSON(paste0('/ichec/home/users/signose/wikistats/wikidata_lists/', city_code, '.txt'), simplifyDataFrame = TRUE)
-
-# Arrange the file in a dataframe with only three variables: item, latitute, longitude
-
-json_item <-json$results$bindings$item
-json_name <-json$results$bindings$name
-json_coord <-json$results$bindings$coord
-
-items_Barcelona <- json_item %>%
-  mutate(item = gsub('http://www.wikidata.org/entity/', '', value)) %>%
-  select (-type, -value) %>%
-  mutate(point = json_coord$value, 
-         lat = substr(point, 7, regexpr(" ", point)-1),
-         long = substr(point, regexpr(" ", point), regexpr(")", point)-1)) %>%
-  select(-point) %>%
-  distinct()
+items_Barcelona <- read_items_list(city_code)
 
 # Keep the df with the articles, languages and items
 
@@ -84,30 +65,9 @@ write.csv(Barcelona_points, 'Barcelona_points.csv')
 ## Vienna
 city_code <- 'Q1741'
 radius <- '30'
-query <- paste0('SELECT%20%3Fitem%20%3Fname%20%3Fcoord%20%0AWHERE%20%7B%0A%20wd%3A', city_code, '%20wdt%3AP625%20%3FmainLoc%20.%20%0A%20SERVICE%20wikibase%3Aaround%20%7B%20%0A%20%3Fitem%20wdt%3AP625%20%3Fcoord%20.%20%0A%20bd%3AserviceParam%20wikibase%3Acenter%20%3FmainLoc%20.%20%0A%20bd%3AserviceParam%20wikibase%3Aradius%20%22', radius, '%22%20.%20%0A%20%7D%0A%20SERVICE%20wikibase%3Alabel%20%7B%0A%20%20%20%20%20%20bd%3AserviceParam%20wikibase%3Alanguage%20%22bg%22%2C%20%22cs%22%2C%20%22da%22%2C%20%22de%22%2C%20%22el%22%2C%20%0A%22en%22%2C%20%22es%22%2C%20%22et%22%2C%20%22fi%22%2C%20%22fr%22%2C%20%22ga%22%2C%20%22hr%22%2C%20%22hu%22%2C%20%22is%22%2C%20%22it%22%2C%20%22lt%22%2C%20%22lv%22%2C%20%0A%22mk%22%2C%20%22mt%22%2C%20%22nl%22%2C%20%22no%22%2C%20%22pl%22%2C%20%22pt%22%2C%20%22ro%22%2C%20%22ru%22%2C%20%22sk%22%2C%20%22sl%22%2C%20%22sq%22%2C%20%22sr%22%2C%20%0A%22sv%22%2C%20%22tr%22.%0A%20%20%20%20%20%3Fitem%20rdfs%3Alabel%20%3Fname%0A%20%7D%0A%7D%0AORDER%20BY%20ASC%20(%3Fname)%0A')
+query_location_2(city_code, radius)
 
-# Download the file with list of wikidata items
-
-download.file(paste0(api_url, query, "&format=json"), paste0('/ichec/home/users/signose/wikistats/wikidata_lists/', city_code, '.txt'))
-
-# Read the downloaded file
-
-json <- jsonlite::fromJSON(paste0('/ichec/home/users/signose/wikistats/wikidata_lists/', city_code, '.txt'), simplifyDataFrame = TRUE)
-
-# Arrange the file in a dataframe with only three variables: item, latitute, longitude
-
-json_item <-json$results$bindings$item
-json_name <-json$results$bindings$name
-json_coord <-json$results$bindings$coord
-
-items_Vienna <- json_item %>%
-  mutate(item = gsub('http://www.wikidata.org/entity/', '', value)) %>%
-  select (-type, -value) %>%
-  mutate(point = json_coord$value, 
-         lat = substr(point, 7, regexpr(" ", point)-1),
-         long = substr(point, regexpr(" ", point), regexpr(")", point)-1)) %>%
-  select(-point) %>%
-  distinct()
+items_Vienna <- read_items_list(city_code)
 
 # Keep the df with the articles, languages and items
 
@@ -151,30 +111,11 @@ write.csv(Vienna_points, 'Vienna_points.csv')
 ## Bruges
 city_code <- 'Q12994'
 radius <- '30'
-query <- paste0('SELECT%20%3Fitem%20%3Fname%20%3Fcoord%20%0AWHERE%20%7B%0A%20wd%3A', city_code, '%20wdt%3AP625%20%3FmainLoc%20.%20%0A%20SERVICE%20wikibase%3Aaround%20%7B%20%0A%20%3Fitem%20wdt%3AP625%20%3Fcoord%20.%20%0A%20bd%3AserviceParam%20wikibase%3Acenter%20%3FmainLoc%20.%20%0A%20bd%3AserviceParam%20wikibase%3Aradius%20%22', radius, '%22%20.%20%0A%20%7D%0A%20SERVICE%20wikibase%3Alabel%20%7B%0A%20%20%20%20%20%20bd%3AserviceParam%20wikibase%3Alanguage%20%22bg%22%2C%20%22cs%22%2C%20%22da%22%2C%20%22de%22%2C%20%22el%22%2C%20%0A%22en%22%2C%20%22es%22%2C%20%22et%22%2C%20%22fi%22%2C%20%22fr%22%2C%20%22ga%22%2C%20%22hr%22%2C%20%22hu%22%2C%20%22is%22%2C%20%22it%22%2C%20%22lt%22%2C%20%22lv%22%2C%20%0A%22mk%22%2C%20%22mt%22%2C%20%22nl%22%2C%20%22no%22%2C%20%22pl%22%2C%20%22pt%22%2C%20%22ro%22%2C%20%22ru%22%2C%20%22sk%22%2C%20%22sl%22%2C%20%22sq%22%2C%20%22sr%22%2C%20%0A%22sv%22%2C%20%22tr%22.%0A%20%20%20%20%20%3Fitem%20rdfs%3Alabel%20%3Fname%0A%20%7D%0A%7D%0AORDER%20BY%20ASC%20(%3Fname)%0A')
-
-# Download the file with list of wikidata items
-
-download.file(paste0(api_url, query, "&format=json"), paste0('/ichec/home/users/signose/wikistats/wikidata_lists/', city_code, '.txt'))
+query_location_2(city_code, radius)
 
 # Read the downloaded file
 
-json <- jsonlite::fromJSON(paste0('/ichec/home/users/signose/wikistats/wikidata_lists/', city_code, '.txt'), simplifyDataFrame = TRUE)
-
-# Arrange the file in a dataframe with only three variables: item, longitude, latitute
-
-json_item <-json$results$bindings$item
-json_name <-json$results$bindings$name
-json_coord <-json$results$bindings$coord
-
-items_Bruges <- json_item %>%
-  mutate(item = gsub('http://www.wikidata.org/entity/', '', value)) %>%
-  select (-type, -value) %>%
-  mutate(point = json_coord$value, 
-         long = substr(point, 7, regexpr(" ", point)-1),
-         lat = substr(point, regexpr(" ", point), regexpr(")", point)-1)) %>%
-  select(-point) %>%
-  distinct()
+items_Bruges <- read_items_list(city_code)
 
 # Keep the df with the articles, languages and items
 
@@ -252,13 +193,13 @@ Barcelona_points <- Barcelona_points[output, ]
 ### After having filtered the points in ArcGIS, I load the new datasets
 # (don't need to do this if you worked in RStudio)
 
-Barcelona_in_C <- read.csv("Barcelona_in_C.csv")
-Barcelona_in_K <- read.csv("Barcelona_in_K.csv")
+Barcelona_in_C <- read.csv("./data_using_wikidata/points/Barcelona_in_C.csv")
+Barcelona_in_K <- read.csv("./data_using_wikidata/points/Barcelona_in_K.csv")
 
-Bruges_in_C <- read.csv("Bruges_in_C.csv")
-Bruges_in_F <- read.csv("Bruges_in_F.csv")
+Bruges_in_C <- read.csv("./data_using_wikidata/points/Bruges_in_C.csv")
+Bruges_in_F <- read.csv("./data_using_wikidata/points/Bruges_in_F.csv")
 
-Vienna_in_C <- read.csv("Vienna_in_C.csv")
+Vienna_in_C <- read.csv("./data_using_wikidata/points/Vienna_in_C.csv")
 
 # Then, I have to join these new datasets with the articles df
 
@@ -300,6 +241,7 @@ write.csv(Vienna_articles_in_C, './reports/cities/Vienna_articles_C.csv')
 
 ### Get the final list of articles 
 
-Articles_to_download <- rbind(Barcelona_articles_in_K, Bruges_articles_in_F, Vienna_articles_in_C) 
+Articles_to_download <- rbind(Barcelona_articles_in_K, Bruges_articles_in_F, Vienna_articles_in_C)%>%
+  filter(!is.na(article))
           
 write.csv(Articles_to_download, 'Articles_to_download.csv')

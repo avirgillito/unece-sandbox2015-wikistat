@@ -197,6 +197,8 @@ g <- read.csv('./splitted_files/g.csv', stringsAsFactors = F) %>%
   select(-X)
 h <- read.csv('./splitted_files/h.csv', stringsAsFactors = F) %>%
   select(-X)
+hh <- read.csv('./splitted_files/hh.csv', stringsAsFactors = F) %>%
+  select(-X)
 i <- read.csv('./splitted_files/i.csv', stringsAsFactors = F) %>%
   select(-X)
 j <- read.csv('./splitted_files/j.csv', stringsAsFactors = F) %>%
@@ -207,10 +209,8 @@ l <- read.csv('./splitted_files/l.csv', stringsAsFactors = F) %>%
   select(-X)
 m <- read.csv('./splitted_files/m.csv', stringsAsFactors = F) %>%
   select(-X)
-n <- read.csv('./splitted_files/n.csv', stringsAsFactors = F) %>%
-  select(-X)
 
-Articles_to_download_redirects <- rbind(a,b,c,d,e,g,h,i,j,k,l,m,n)
+Articles_to_download_redirects <- rbind(a,b,c,d,e,g,h,hh,i,j,k,l,m)
 
 # Save as a csv
 write.csv(Articles_to_download_redirects, 'Articles_to_download_redirects_SPLITTED.csv')
@@ -261,55 +261,55 @@ Barcelona_reads_in_C <- Barcelona_in_C %>%
   group_by(lang, item, time, long, lat) %>%
   summarise(value = sum(value)) %>%
   group_by() %>%
-  filter(time != 'article2') %.%
+  filter(time != 'article2') %>%
   mutate(item = as.factor(item),
          lang = as.factor(lang))
 
 write.csv(Barcelona_reads_in_C, './reports/cities/Barcelona_C.csv')
 
 Barcelona_reads_in_K <- Barcelona_in_K %>%
-  select(item, lat, long_) %>%
+  select(item, lat, long) %>%
   left_join(cities_wikistats, by = 'item') %>%
   group_by(lang, item, time, long, lat) %>%
   summarise(value = sum(value)) %>%
   group_by() %>%
-  filter(time != 'article2') %.%
+  filter(time != 'article2') %>%
   mutate(item = as.factor(item),
          lang = as.factor(lang))
 
 write.csv(Barcelona_reads_in_K, './reports/cities/Barcelona_K.csv')
 
 Bruges_reads_in_C <- Bruges_in_C %>%
-  select(item, lat, long_) %>%
+  select(item, lat, long) %>%
   left_join(cities_wikistats, by = 'item') %>%
   group_by(lang, item, time, long, lat) %>%
   summarise(value = sum(value)) %>%
   group_by() %>%
-  filter(time != 'article2') %.%
+  filter(time != 'article2') %>%
   mutate(item = as.factor(item),
          lang = as.factor(lang))
 
 write.csv(Bruges_reads_in_C, './reports/cities/Bruges_C.csv')
 
 Bruges_reads_in_F <- Bruges_in_F %>%
-  select(item, lat, long_) %>%
+  select(item, lat, long) %>%
   left_join(cities_wikistats, by = 'item') %>%
   group_by(lang, item, time, long, lat) %>%
   summarise(value = sum(value)) %>%
   group_by() %>%
-  filter(time != 'article2') %.%
+  filter(time != 'article2') %>%
   mutate(item = as.factor(item),
          lang = as.factor(lang))
 
 write.csv(Bruges_reads_in_F, './reports/cities/Bruges_F.csv')
 
 Vienna_reads_in_C <- Vienna_in_C %>%
-  select(item, lat, long_) %>%
+  select(item, lat, long) %>%
   left_join(cities_wikistats, by = 'item') %>%
   group_by(lang, item, time, long, lat) %>%
   summarise(value = sum(value)) %>%
   group_by() %>%
-  filter(time != 'article2') %.%
+  filter(time != 'article2') %>%
   mutate(item = as.factor(item),
          lang = as.factor(lang))
 
@@ -320,7 +320,7 @@ write.csv(Vienna_reads_in_C, './reports/cities/Vienna_C.csv')
 # Barcelona C
 Barcelona_pageviews_C <- Barcelona_reads_in_C %>%
   group_by(item) %>%
-  summarise(value = sum(value))
+  summarise(value = sum(as.numeric(value)))
 
 write.csv(Barcelona_pageviews_C, './reports/cities/Barcelona_pageviews_C.csv')
 
@@ -334,7 +334,7 @@ write.csv(Barcelona_C, './reports/cities/Barcelona_pw_coord_C.csv')
 # Barcelona K
 Barcelona_pageviews_K <- Barcelona_reads_in_K %>%
   group_by(item) %>%
-  summarise(value = sum(value))
+  summarise(value = sum(as.numeric(value)))
 
 write.csv(Barcelona_pageviews_K, './reports/cities/Barcelona_pageviews_K.csv')
 
@@ -348,7 +348,7 @@ write.csv(Barcelona_K, './reports/cities/Barcelona_pw_coord_K.csv')
 # Bruges C
 Bruges_pageviews_C <- Bruges_reads_in_C %>%
   group_by(item) %>%
-  summarise(value = sum(value))
+  summarise(value = sum(as.numeric(value)))
 
 write.csv(Bruges_pageviews_C, './reports/cities/Bruges_pageviews_C.csv')
 
@@ -362,7 +362,7 @@ write.csv(Bruges_C, './reports/cities/Bruges_pw_coord_C.csv')
 # Bruges F
 Bruges_pageviews_F <- Bruges_reads_in_F %>%
   group_by(item) %>%
-  summarise(value = sum(value))
+  summarise(value = sum(as.numeric(value)))
 
 write.csv(Bruges_pageviews_F, './reports/cities/Bruges_pageviews_F.csv')
 
@@ -376,7 +376,7 @@ write.csv(Bruges_F, './reports/cities/Bruges_pw_coord_F.csv')
 # Vienna C
 Vienna_pageviews_C <- Vienna_reads_in_C %>%
   group_by(item) %>%
-  summarise(value = sum(value))
+  summarise(value = sum(as.numeric(value)))
 
 write.csv(Vienna_pageviews_C, './reports/cities/Vienna_pageviews_C.csv')
 
@@ -404,7 +404,6 @@ library(htmlwidgets)
 
 Barcelona_C <-read.csv("C:/Users/signose/Desktop/Cities/Pageviews/Barcelona_pw_coord_C.csv") %>%
   select(-X)
-names(Barcelona_C) = c("item", "lng", "lat", "value")
 
 Barcelona_articles_in_C <-read.csv("./data_using_wikidata/pageviews/Barcelona_articles_C.csv") %>%
   select(-X) %>%
@@ -429,7 +428,6 @@ saveWidget(widget = m, file="Barcelona_C.html", selfcontained = FALSE)
 
 Barcelona_K <-read.csv("C:/Users/signose/Desktop/Cities/Pageviews/Barcelona_pw_coord_K.csv") %>%
   select(-X)
-names(Barcelona_K) = c("item", "lng", "lat", "value")
 
 Barcelona_articles_in_K <-read.csv("C:/Users/signose/Desktop/Cities/Pageviews/Barcelona_articles_K.csv") %>%
   select(-X) %>%
@@ -454,7 +452,6 @@ saveWidget(widget = m, file="Barcelona_K.html", selfcontained = FALSE)
 
 Bruges_C <-read.csv("C:/Users/signose/Desktop/Cities/Pageviews/Bruges_pw_coord_C.csv") %>%
   select(-X)
-names(Bruges_C) = c("item", "lng", "lat", "value")
 
 Bruges_articles_in_C <-read.csv("C:/Users/signose/Desktop/Cities/Pageviews/Bruges_articles_C.csv") %>%
   select(-X) %>%
@@ -479,7 +476,6 @@ saveWidget(widget = m, file="Bruges_C.html", selfcontained = FALSE)
 
 Bruges_F <-read.csv("C:/Users/signose/Desktop/Cities/Pageviews/Bruges_pw_coord_F.csv") %>%
   select(-X)
-names(Bruges_F) = c("item", "lng", "lat", "value")
 
 Bruges_articles_in_F <-read.csv("C:/Users/signose/Desktop/Cities/Pageviews/Bruges_articles_F.csv") %>%
   select(-X) %>%
@@ -504,7 +500,6 @@ saveWidget(widget = m, file="Bruges_F.html", selfcontained = FALSE)
 
 Vienna_C <-read.csv("C:/Users/signose/Desktop/Cities/Pageviews/Vienna_pw_coord_C.csv") %>%
   select(-X)
-names(Vienna_C) = c("item", "lng", "lat", "value")
 
 Vienna_articles_in_C <-read.csv("C:/Users/signose/Desktop/Cities/Pageviews/Vienna_articles_C.csv") %>%
   select(-X) %>%
@@ -526,6 +521,7 @@ m
 saveWidget(widget = m, file="Vienna_C.html", selfcontained = FALSE)
 
 ### Plot time series using dygraphs
+############## RIFARE GRAFICI TIME SERIES!!!!!!! #################################
 
 # Barcelona C
 
@@ -540,7 +536,7 @@ Barcelona_lang_ts_C <- Barcelona_reads_in_C %>%
   summarise(value = sum(value)) %>%
   arrange(desc(value))
 
-# Top 10 languages: en, es, de, ru, pt, it, pl, tr, fr, nl
+# Top 10 languages: en, es, fr, ru, de, it, pl, pt, nl, tr
 
 # Create ts for each of the top 10 languages
 Barcelona_en_ts_C <- Barcelona_reads_in_C %>%
@@ -660,7 +656,7 @@ Barcelona_lang_ts_K <- Barcelona_reads_in_K %>%
   summarise(value = sum(value)) %>%
   arrange(desc(value))
 
-# Top 6 languages: en, es, de, ru, pt, it
+# Top 6 languages: en, es, fr, de, ru, it
 
 # Create ts for each of the top 10 languages
 Barcelona_en_ts_K <- Barcelona_reads_in_K %>%
@@ -687,11 +683,11 @@ Barcelona_ru_ts_K <- Barcelona_reads_in_K %>%
   summarise(value = sum(value)) 
 names(Barcelona_ru_ts_K)[2] <- "ru"
 
-Barcelona_pt_ts_K <- Barcelona_reads_in_K %>%
-  filter(lang == "pt") %>%
+Barcelona_fr_ts_K <- Barcelona_reads_in_K %>%
+  filter(lang == "fr") %>%
   group_by(time)%>%
   summarise(value = sum(value)) 
-names(Barcelona_pt_ts_K)[2] <- "pt"
+names(Barcelona_pt_ts_K)[2] <- "fr"
 
 Barcelona_it_ts_K <- Barcelona_reads_in_K %>%
   filter(lang == "it") %>%
@@ -701,8 +697,8 @@ names(Barcelona_it_ts_K)[2] <- "it"
 
 library(xts)
 
-Barcelona_top_6_lang_ts_K <- data.frame(Barcelona_en_ts_K, Barcelona_es_ts_K$es, Barcelona_de_ts_K$de, Barcelona_ru_ts_K$ru, Barcelona_pt_ts_K$pt, Barcelona_it_ts_K$it)
-names(Barcelona_top_6_lang_ts_K) <- c("time", "en", "es", "de", "ru", "pt", "it")
+Barcelona_top_6_lang_ts_K <- data.frame(Barcelona_en_ts_K, Barcelona_es_ts_K$es, Barcelona_de_ts_K$de, Barcelona_ru_ts_K$ru, Barcelona_fr_ts_K$fr, Barcelona_it_ts_K$it)
+names(Barcelona_top_6_lang_ts_K) <- c("time", "en", "es", "de", "ru", "fr", "it")
 Barcelona_top_6_lang_ts_K$time <- as.Date(ts(1:48, frequency = 12, start = c(2012, 01)))
 Barcelona_top_6_lang_ts_K <- xts(Barcelona_top_6_lang_ts_K[,-1], order.by = as.POSIXct(Barcelona_top_6_lang_ts_K$time))
 
@@ -940,6 +936,7 @@ g
 saveWidget(widget = g, file="Vienna_C_top_6_lang_ts.html", selfcontained = FALSE)
 
 ### Maps with layer per language
+################ RIFARE MAPPE PER LANGUAGE!!!!!!!!!!!!!##############################
 
 # Barcelona C
 
