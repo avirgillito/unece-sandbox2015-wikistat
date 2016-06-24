@@ -88,8 +88,8 @@ read_items_list <- function(city_code){
     select (-type, -value) %>%
     mutate(name = json_name$value,
            point = json_coord$value,
-           lat = substr(point, 7, regexpr(" ", point)-1),
-           long = substr(point, regexpr(" ", point), regexpr(")", point)-1)) %>%
+           long = substr(point, 7, regexpr(" ", point)-1),
+           lat = substr(point, regexpr(" ", point), regexpr(")", point)-1)) %>%
     select(-point) %>%
     distinct()
   return(items_list)
@@ -147,13 +147,12 @@ get_wikipedia_articles <- function(items) {
   wikidata <- t(wikidata)
   # create dataframe and filter considering only wikipedia items
   wikidata <- as.data.frame(wikidata)%>%
-    select(-pageid, -ns, -title, -lastrevid, -modified, -type, -labels, -descriptions, -aliases, -claims) %>%
-    filter(grepl("wikipedia", sitelinks))
+    select(-pageid, -ns, -title, -lastrevid, -modified, -type, -labels, -descriptions, -aliases, -claims) 
   # split column sitelinks
   wikidata <- splitstackshape::concat.split.multiple(wikidata, "sitelinks", seps=",", "long")
   # consider only rows with title and url
   wikidata <- wikidata %>%
-    filter(grepl("title =", sitelinks) | grepl("url =", sitelinks)) %>%
+    filter(grepl("title =", sitelinks) | grepl("url =", sitelinks))%>%
     tidyr::separate(sitelinks, sep = "=", c('delete', 'keep'))
   # prepare datasets with articles and urls
   title <- wikidata %>%
@@ -162,17 +161,20 @@ get_wikipedia_articles <- function(items) {
     select(-delete, -keep)
   url <- wikidata %>%
     filter(delete == "url ") %>%
-    mutate(lang = substr(keep, regexpr("https://", keep)+8, regexpr("wikipedia", keep)-2)) %>%
+    mutate(lang = substr(keep, regexpr("https://", keep)+8, regexpr("wikipedia", keep)-2),
+           site = substr(keep, regexpr("https://", keep)+8+nchar(lang)+1, regexpr(".org", keep)-1)) %>%
     select(-delete, -keep)
   # unify datasets
-  wikidata <- cbind(title,url) %>%
-    mutate(id = as.character(id)) %>%
-    select(-id) %>%
+  wikidata2 <- cbind(title, url) %>%
     mutate(item = id) %>%
-    select(-id)
-  wikidata <- as.data.frame(wikidata)
+    select(-id) %>%
+    mutate(site = gsub(lang, "", site)) %>%
+    filter(site == "wikipedia") %>%
+    select(-id, -site)%>%
+    mutate(item = unlist(item))
+  wikidata2 <- as.data.frame(wikidata2)
   #return output
-  return(wikidata)
+  return(wikidata2)
 }
 
 # This functions query for Wikidata items' property ('Instance of' statement, P31) using the administrative entity. You have to look first for the wikidata location identifier on wikidata.org ('Q_____')
