@@ -538,3 +538,26 @@ Vienna_C_link <- Vienna_C %>%
   group_by(cat)%>%
   summarise(value = sum(value)) %>%
   arrange(desc(value))
+
+# Compute a sample to check the quality of the categories
+
+sample_Barcelona_C <- sample_n(Barcelona_C_prop_class %>%
+                                 left_join(Barcelona_articles_in_C, by = 'item') %>%
+                                 distinct(item, .keep_all = T), 109)
+
+sample_Barcelona_K <- sample_n(Barcelona_K_prop_class %>%
+                                 left_join(Barcelona_articles_in_K, by = 'item') %>%
+                                 distinct(item, .keep_all = T), 145)
+
+sample_Bruges_C <- sample_n(Bruges_C_prop_class %>%
+                                 left_join(Bruges_articles_in_C, by = 'item') %>%
+                                 distinct(item, .keep_all = T), 56)
+
+sample_Bruges_F <- sample_n(Bruges_F_prop_class %>%
+                              left_join(Bruges_articles_in_F, by = 'item') %>%
+                              distinct(item, .keep_all = T), 65)
+
+sample_Vienna_C <- sample_n(Vienna_C_prop_class %>%
+                              left_join(Vienna_articles_in_C, by = 'item') %>%
+                              distinct(item, .keep_all = T), 266)
+

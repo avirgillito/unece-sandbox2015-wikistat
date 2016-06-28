@@ -521,7 +521,8 @@ m
 saveWidget(widget = m, file="Vienna_C.html", selfcontained = FALSE)
 
 ### Plot time series using dygraphs
-############## RIFARE GRAFICI TIME SERIES!!!!!!! #################################
+
+library(xts)
 
 # Barcelona C
 
@@ -605,7 +606,7 @@ Barcelona_top_10_lang_ts_C$time <- as.Date(ts(1:48, frequency = 12, start = c(20
 Barcelona_top_10_lang_ts_C <- xts(Barcelona_top_10_lang_ts_C[,-1], order.by = as.POSIXct(Barcelona_top_10_lang_ts_C$time))
 
 # Save data to disk
-write.csv(Barcelona_top_10_lang_ts_C, './reports/cities/Barcelona_top_10_lang_ts_C.csv', row.names=FALSE, fileEncoding="utf-8")
+write.csv(Barcelona_top_10_lang_ts_C, './data_using_wikidata/pageviews/Barcelona_top_10_lang_ts_C.csv', row.names=FALSE, fileEncoding="utf-8")
 
 ### Single ts
 
@@ -623,7 +624,7 @@ Barcelona_ts_reads_in_C$time <- as.Date(ts(1:48, frequency = 12, start = c(2012,
 Barcelona_ts_reads_in_C <- xts(Barcelona_ts_reads_in_C[,-1], order.by = as.POSIXct(Barcelona_ts_reads_in_C$time))
 
 # Save data to disk
-write.csv(Barcelona_ts_reads_in_C, './reports/cities/Barcelona_ts_C.csv', row.names=FALSE, fileEncoding="utf-8")
+write.csv(Barcelona_ts_reads_in_C, './data_using_wikidata/pageviews/Barcelona_ts_C.csv', row.names=FALSE, fileEncoding="utf-8")
 
 # Consider only top 6 languages
 Barcelona_top_6_lang_ts_C <- Barcelona_top_10_lang_ts_C[ ,1:6]
@@ -687,7 +688,7 @@ Barcelona_fr_ts_K <- Barcelona_reads_in_K %>%
   filter(lang == "fr") %>%
   group_by(time)%>%
   summarise(value = sum(value)) 
-names(Barcelona_pt_ts_K)[2] <- "fr"
+names(Barcelona_fr_ts_K)[2] <- "fr"
 
 Barcelona_it_ts_K <- Barcelona_reads_in_K %>%
   filter(lang == "it") %>%
@@ -703,7 +704,7 @@ Barcelona_top_6_lang_ts_K$time <- as.Date(ts(1:48, frequency = 12, start = c(201
 Barcelona_top_6_lang_ts_K <- xts(Barcelona_top_6_lang_ts_K[,-1], order.by = as.POSIXct(Barcelona_top_6_lang_ts_K$time))
 
 # Save data to disk
-write.csv(Barcelona_top_6_lang_ts_K, './reports/cities/Barcelona_top_6_lang_ts_K.csv', row.names=FALSE, fileEncoding="utf-8")
+write.csv(Barcelona_top_6_lang_ts_K, './data_using_wikidata/pageviews/Barcelona_top_6_lang_ts_K.csv', row.names=FALSE, fileEncoding="utf-8")
 
 # Create ts plot
 
@@ -729,7 +730,7 @@ Bruges_lang_ts_C <- Bruges_reads_in_C %>%
   summarise(value = sum(value)) %>%
   arrange(desc(value))
 
-# Top 6 languages: en, de, fr, nl, it, pt
+# Top 6 languages: en, es, fr, nl, de, it
 
 # Create ts for each of the top 6 languages
 Bruges_en_ts_C <- Bruges_reads_in_C %>%
@@ -762,16 +763,16 @@ Bruges_it_ts_C <- Bruges_reads_in_C %>%
   summarise(value = sum(value)) 
 names(Bruges_it_ts_C)[2] <- "it"
 
-Bruges_pt_ts_C <- Bruges_reads_in_C %>%
-  filter(lang == "pt") %>%
+Bruges_es_ts_C <- Bruges_reads_in_C %>%
+  filter(lang == "es") %>%
   group_by(time)%>%
   summarise(value = sum(value)) 
-names(Bruges_pt_ts_C)[2] <- "pt"
+names(Bruges_es_ts_C)[2] <- "es"
 
 library(xts)
 
-Bruges_top_6_lang_ts_C <- data.frame(Bruges_en_ts_C, Bruges_de_ts_C$de, Bruges_fr_ts_C$fr, Bruges_nl_ts_C$nl, Bruges_it_ts_C$it, Bruges_pt_ts_C$pt)
-names(Bruges_top_6_lang_ts_C) <- c("time", "en", "de", "fr", "nl", "it", "pt")
+Bruges_top_6_lang_ts_C <- data.frame(Bruges_en_ts_C, Bruges_es_ts_C$es, Bruges_fr_ts_C$fr, Bruges_nl_ts_C$nl, Bruges_de_ts_C$de, Bruges_it_ts_C$it)
+names(Bruges_top_6_lang_ts_C) <- c("time", "en", "es", "fr", "nl", "de", "it")
 Bruges_top_6_lang_ts_C$time <- as.Date(ts(1:48, frequency = 12, start = c(2012, 01)))
 Bruges_top_6_lang_ts_C <- xts(Bruges_top_6_lang_ts_C[,-1], order.by = as.POSIXct(Bruges_top_6_lang_ts_C$time))
 
@@ -802,7 +803,7 @@ Bruges_lang_ts_F <- Bruges_reads_in_F %>%
   summarise(value = sum(value)) %>%
   arrange(desc(value))
 
-# Top 6 languages: en, de, fr, nl, it, pt
+# Top 6 languages: en, es, nl, fr, de, it
 
 # Create ts for each of the top 6 languages
 Bruges_en_ts_F <- Bruges_reads_in_F %>%
@@ -835,16 +836,16 @@ Bruges_it_ts_F <- Bruges_reads_in_F %>%
   summarise(value = sum(value)) 
 names(Bruges_it_ts_F)[2] <- "it"
 
-Bruges_pt_ts_F <- Bruges_reads_in_F %>%
-  filter(lang == "pt") %>%
+Bruges_es_ts_F <- Bruges_reads_in_F %>%
+  filter(lang == "es") %>%
   group_by(time)%>%
   summarise(value = sum(value)) 
-names(Bruges_pt_ts_F)[2] <- "pt"
+names(Bruges_es_ts_F)[2] <- "es"
 
 library(xts)
 
-Bruges_top_6_lang_ts_F <- data.frame(Bruges_en_ts_F, Bruges_de_ts_F$de, Bruges_fr_ts_F$fr, Bruges_nl_ts_F$nl, Bruges_it_ts_F$it, Bruges_pt_ts_F$pt)
-names(Bruges_top_6_lang_ts_F) <- c("time", "en", "de", "fr", "nl", "it", "pt")
+Bruges_top_6_lang_ts_F <- data.frame(Bruges_en_ts_F, Bruges_es_ts_F$es, Bruges_nl_ts_F$nl, Bruges_fr_ts_F$fr, Bruges_de_ts_F$de, Bruges_it_ts_F$it)
+names(Bruges_top_6_lang_ts_F) <- c("time", "en", "es", "nl", "fr", "de", "it")
 Bruges_top_6_lang_ts_F$time <- as.Date(ts(1:48, frequency = 12, start = c(2012, 01)))
 Bruges_top_6_lang_ts_F <- xts(Bruges_top_6_lang_ts_F[,-1], order.by = as.POSIXct(Bruges_top_6_lang_ts_F$time))
 
@@ -875,7 +876,7 @@ Vienna_lang_ts_C <- Vienna_reads_in_C %>%
   summarise(value = sum(value)) %>%
   arrange(desc(value))
 
-# Top 6 languages: en, de, ru, it, pl, pt
+# Top 6 languages: en, de, es, ru, pl, fr
 
 # Create ts for each of the top 6 languages
 Vienna_en_ts_C <- Vienna_reads_in_C %>%
@@ -896,11 +897,11 @@ Vienna_ru_ts_C <- Vienna_reads_in_C %>%
   summarise(value = sum(value)) 
 names(Vienna_ru_ts_C)[2] <- "ru"
 
-Vienna_it_ts_C <- Vienna_reads_in_C %>%
-  filter(lang == "it") %>%
+Vienna_es_ts_C <- Vienna_reads_in_C %>%
+  filter(lang == "es") %>%
   group_by(time)%>%
   summarise(value = sum(value)) 
-names(Vienna_it_ts_C)[2] <- "it"
+names(Vienna_es_ts_C)[2] <- "es"
 
 Vienna_pl_ts_C <- Vienna_reads_in_C %>%
   filter(lang == "pl") %>%
@@ -908,16 +909,16 @@ Vienna_pl_ts_C <- Vienna_reads_in_C %>%
   summarise(value = sum(value)) 
 names(Vienna_pl_ts_C)[2] <- "pl"
 
-Vienna_pt_ts_C <- Vienna_reads_in_C %>%
-  filter(lang == "pt") %>%
+Vienna_fr_ts_C <- Vienna_reads_in_C %>%
+  filter(lang == "fr") %>%
   group_by(time)%>%
   summarise(value = sum(value)) 
-names(Vienna_pt_ts_C)[2] <- "pt"
+names(Vienna_fr_ts_C)[2] <- "fr"
 
 library(xts)
 
-Vienna_top_6_lang_ts_C <- data.frame(Vienna_en_ts_C, Vienna_de_ts_C$de, Vienna_ru_ts_C$ru, Vienna_it_ts_C$it, Vienna_pl_ts_C$pl, Vienna_pt_ts_C$pt)
-names(Vienna_top_6_lang_ts_C) <- c("time", "en", "de", "ru", "it", "pl", "pt")
+Vienna_top_6_lang_ts_C <- data.frame(Vienna_en_ts_C, Vienna_de_ts_C$de, Vienna_es_ts_C$es, Vienna_ru_ts_C$ru,  Vienna_pl_ts_C$pl, Vienna_fr_ts_C$fr)
+names(Vienna_top_6_lang_ts_C) <- c("time", "en", "de", "es", "ru", "pl", "fr")
 Vienna_top_6_lang_ts_C$time <- as.Date(ts(1:48, frequency = 12, start = c(2012, 01)))
 Vienna_top_6_lang_ts_C <- xts(Vienna_top_6_lang_ts_C[,-1], order.by = as.POSIXct(Vienna_top_6_lang_ts_C$time))
 
@@ -936,20 +937,18 @@ g
 saveWidget(widget = g, file="Vienna_C_top_6_lang_ts.html", selfcontained = FALSE)
 
 ### Maps with layer per language
-################ RIFARE MAPPE PER LANGUAGE!!!!!!!!!!!!!##############################
 
 # Barcelona C
 
-Barcelona_reads_C <- read.csv("C:/Users/signose/Desktop/Cities/Pageviews/Barcelona_C.csv") %>%
+Barcelona_reads_in_C <- read.csv("C:/Users/signose/Desktop/Cities/Pageviews/Barcelona_C.csv") %>%
   select(-X)
-names(Barcelona_reads_C) = c("lang", "item", "time", "lng", "lat", "value")
 
 # top 6 languages: en es de ru pt it
 
 # Create one df for each of top 6 languages
 
 # en
-Barcelona_C_en <- Barcelona_reads_C %>%
+Barcelona_C_en <- Barcelona_reads_in_C %>%
   filter(lang == 'en') %>%
   group_by(item) %>%
   summarise(value = sum(value)) %>%
@@ -959,7 +958,7 @@ Barcelona_C_en <- Barcelona_reads_C %>%
 
 
 # es
-Barcelona_C_es <- Barcelona_reads_C %>%
+Barcelona_C_es <- Barcelona_reads_in_C %>%
   filter(lang == 'es') %>%
   group_by(item) %>%
   summarise(value = sum(value)) %>%
@@ -968,7 +967,7 @@ Barcelona_C_es <- Barcelona_reads_C %>%
   select(-value.y, -value.x) 
 
 # de
-Barcelona_C_de <- Barcelona_reads_C %>%
+Barcelona_C_de <- Barcelona_reads_in_C %>%
   filter(lang == 'de') %>%
   group_by(item) %>%
   summarise(value = sum(value)) %>%
@@ -977,7 +976,7 @@ Barcelona_C_de <- Barcelona_reads_C %>%
   select(-value.y, -value.x) 
 
 # ru
-Barcelona_C_ru <- Barcelona_reads_C %>%
+Barcelona_C_ru <- Barcelona_reads_in_C %>%
   filter(lang == 'ru') %>%
   group_by(item) %>%
   summarise(value = sum(value)) %>%
@@ -986,7 +985,7 @@ Barcelona_C_ru <- Barcelona_reads_C %>%
   select(-value.y, -value.x) 
 
 # pt
-Barcelona_C_pt <- Barcelona_reads_C %>%
+Barcelona_C_pt <- Barcelona_reads_in_C %>%
   filter(lang == 'pt') %>%
   group_by(item) %>%
   summarise(value = sum(value)) %>%
@@ -995,7 +994,7 @@ Barcelona_C_pt <- Barcelona_reads_C %>%
   select(-value.y, -value.x) 
 
 # it
-Barcelona_C_it <- Barcelona_reads_C %>%
+Barcelona_C_it <- Barcelona_reads_in_C %>%
   filter(lang == 'it') %>%
   group_by(item) %>%
   summarise(value = sum(value)) %>%
@@ -1021,13 +1020,13 @@ Orange <- colorQuantile("Oranges", NULL, n = 8)
 
 m <- leaflet(Barcelona_C_final) %>%
   addProviderTiles("CartoDB.Positron")%>%
-  addCircleMarkers(data = Barcelona_C_en, ~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~Red(value), fillOpacity = 0.6, group = "English") %>%
-  addCircleMarkers(data = Barcelona_C_es, ~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~Green(value), fillOpacity = 0.6, group = "Spanish") %>%
-  addCircleMarkers(data = Barcelona_C_de, ~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~Blue(value), fillOpacity = 0.6, group = "German") %>%
-  addCircleMarkers(data = Barcelona_C_ru, ~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~Purple(value), fillOpacity = 0.6, group = "Russian") %>%
-  addCircleMarkers(data = Barcelona_C_pt, ~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~Grey(value), fillOpacity = 0.6, group = "Portuguese") %>%
-  addCircleMarkers(data = Barcelona_C_it, ~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~Orange(value), fillOpacity = 0.6, group = "Italian") %>%
-  addMarkers(data = Barcelona_top6_C, ~lng, ~lat, popup = ~article, options =markerOptions(opacity = 0)) %>%
+  addCircleMarkers(data = Barcelona_C_en, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~Red(value), fillOpacity = 0.6, group = "English") %>%
+  addCircleMarkers(data = Barcelona_C_es, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~Green(value), fillOpacity = 0.6, group = "Spanish") %>%
+  addCircleMarkers(data = Barcelona_C_de, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~Blue(value), fillOpacity = 0.6, group = "German") %>%
+  addCircleMarkers(data = Barcelona_C_ru, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~Purple(value), fillOpacity = 0.6, group = "Russian") %>%
+  addCircleMarkers(data = Barcelona_C_pt, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~Grey(value), fillOpacity = 0.6, group = "Portuguese") %>%
+  addCircleMarkers(data = Barcelona_C_it, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~Orange(value), fillOpacity = 0.6, group = "Italian") %>%
+  addMarkers(data = Barcelona_top6_C, ~long, ~lat, popup = ~article, options =markerOptions(opacity = 0)) %>%
   addLegend(position = c("bottomright"), colorNumeric("Reds", NULL, n=8),  values = ~value) %>%
   addLayersControl(overlayGroups = c("English", "Spanish", "German", "Russian", "Portuguese", "Italian"), options = layersControlOptions(collapsed = FALSE))
 m
@@ -1038,9 +1037,8 @@ saveWidget(widget = m, file="Barcelona_C_top6.html", selfcontained = FALSE)
 
 Barcelona_reads_K <- read.csv("C:/Users/signose/Desktop/Cities/Pageviews/Barcelona_K.csv") %>%
   select(-X)
-names(Barcelona_reads_K) = c("lang", "item", "time", "lng", "lat", "value")
 
-# top 6 languages: en es de ru pt it
+# top 6 languages: en es fr de ru it
 
 # Create one df for each of top 6 languages
 
@@ -1057,6 +1055,15 @@ Barcelona_K_en <- Barcelona_reads_K %>%
 # es
 Barcelona_K_es <- Barcelona_reads_K %>%
   filter(lang == 'es') %>%
+  group_by(item) %>%
+  summarise(value = sum(value)) %>%
+  left_join(Barcelona_K, by = "item") %>%
+  mutate(value = value.x) %>%
+  select(-value.y, -value.x) 
+
+# fr
+Barcelona_K_fr <- Barcelona_reads_K %>%
+  filter(lang == 'fr') %>%
   group_by(item) %>%
   summarise(value = sum(value)) %>%
   left_join(Barcelona_K, by = "item") %>%
@@ -1081,15 +1088,6 @@ Barcelona_K_ru <- Barcelona_reads_K %>%
   mutate(value = value.x) %>%
   select(-value.y, -value.x) 
 
-# pt
-Barcelona_K_pt <- Barcelona_reads_K %>%
-  filter(lang == 'pt') %>%
-  group_by(item) %>%
-  summarise(value = sum(value)) %>%
-  left_join(Barcelona_K, by = "item") %>%
-  mutate(value = value.x) %>%
-  select(-value.y, -value.x) 
-
 # it
 Barcelona_K_it <- Barcelona_reads_K %>%
   filter(lang == 'it') %>%
@@ -1099,7 +1097,7 @@ Barcelona_K_it <- Barcelona_reads_K %>%
   mutate(value = value.x) %>%
   select(-value.y, -value.x) 
 
-Barcelona_top6_K <- rbind(Barcelona_K_en, Barcelona_K_es, Barcelona_K_de, Barcelona_K_ru, Barcelona_K_pt, Barcelona_K_it) %>%
+Barcelona_top6_K <- rbind(Barcelona_K_en, Barcelona_K_es, Barcelona_K_fr, Barcelona_K_de, Barcelona_K_ru, Barcelona_K_it) %>%
   group_by(item)%>%
   summarise(value = sum(value))%>%
   left_join(Barcelona_K_final, by = "item")%>%
@@ -1117,15 +1115,15 @@ Orange <- colorQuantile("Oranges", NULL, n = 8)
 
 m <- leaflet(Barcelona_K_final) %>%
   addProviderTiles("CartoDB.Positron")%>%
-  addCircleMarkers(data = Barcelona_K_en, ~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~Red(value), fillOpacity = 0.6, group = "English") %>%
-  addCircleMarkers(data = Barcelona_K_es, ~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~Green(value), fillOpacity = 0.6, group = "Spanish") %>%
-  addCircleMarkers(data = Barcelona_K_de, ~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~Blue(value), fillOpacity = 0.6, group = "German") %>%
-  addCircleMarkers(data = Barcelona_K_ru, ~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~Purple(value), fillOpacity = 0.6, group = "Russian") %>%
-  addCircleMarkers(data = Barcelona_K_pt, ~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~Grey(value), fillOpacity = 0.6, group = "Portuguese") %>%
-  addCircleMarkers(data = Barcelona_K_it, ~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~Orange(value), fillOpacity = 0.6, group = "Italian") %>%
-  addMarkers(data = Barcelona_top6_K, ~lng, ~lat, popup = ~article, options =markerOptions(opacity = 0)) %>%
+  addCircleMarkers(data = Barcelona_K_en, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~Red(value), fillOpacity = 0.6, group = "English") %>%
+  addCircleMarkers(data = Barcelona_K_es, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~Green(value), fillOpacity = 0.6, group = "Spanish") %>%
+  addCircleMarkers(data = Barcelona_K_fr, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~Grey(value), fillOpacity = 0.6, group = "French") %>%
+  addCircleMarkers(data = Barcelona_K_de, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~Blue(value), fillOpacity = 0.6, group = "German") %>%
+  addCircleMarkers(data = Barcelona_K_ru, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~Purple(value), fillOpacity = 0.6, group = "Russian") %>%
+  addCircleMarkers(data = Barcelona_K_it, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~Orange(value), fillOpacity = 0.6, group = "Italian") %>%
+  addMarkers(data = Barcelona_top6_K, ~long, ~lat, popup = ~article, options =markerOptions(opacity = 0)) %>%
   addLegend(position = c("bottomright"), colorNumeric("Reds", NULL, n=8),  values = ~value) %>%
-  addLayersControl(overlayGroups = c("English", "Spanish", "German", "Russian", "Portuguese", "Italian"), options = layersControlOptions(collapsed = FALSE))
+  addLayersControl(overlayGroups = c("English", "Spanish", "French",  "German", "Russian", "Italian"), options = layersControlOptions(collapsed = FALSE))
 m
 
 saveWidget(widget = m, file="Barcelona_K_top6.html", selfcontained = FALSE)
@@ -1134,9 +1132,8 @@ saveWidget(widget = m, file="Barcelona_K_top6.html", selfcontained = FALSE)
 
 Bruges_reads_C <- read.csv("C:/Users/signose/Desktop/Cities/Pageviews/Bruges_C.csv") %>%
   select(-X)
-names(Bruges_reads_C) = c("lang", "item", "time", "lng", "lat", "value")
 
-# top 6 languages: en es de ru pt it
+# top 6 languages: en es fr nl de it
 
 # Create one df for each of top 6 languages
 
@@ -1149,9 +1146,9 @@ Bruges_C_en <- Bruges_reads_C %>%
   mutate(value = value.x) %>%
   select(-value.y, -value.x) 
 
-# de
-Bruges_C_de <- Bruges_reads_C %>%
-  filter(lang == 'de') %>%
+# es
+Bruges_C_es <- Bruges_reads_C %>%
+  filter(lang == 'es') %>%
   group_by(item) %>%
   summarise(value = sum(value)) %>%
   left_join(Bruges_C, by = "item") %>%
@@ -1176,6 +1173,15 @@ Bruges_C_nl <- Bruges_reads_C %>%
   mutate(value = value.x) %>%
   select(-value.y, -value.x) 
 
+# de
+Bruges_C_de <- Bruges_reads_C %>%
+  filter(lang == 'de') %>%
+  group_by(item) %>%
+  summarise(value = sum(value)) %>%
+  left_join(Bruges_C, by = "item") %>%
+  mutate(value = value.x) %>%
+  select(-value.y, -value.x) 
+
 # it
 Bruges_C_it <- Bruges_reads_C %>%
   filter(lang == 'it') %>%
@@ -1185,16 +1191,7 @@ Bruges_C_it <- Bruges_reads_C %>%
   mutate(value = value.x) %>%
   select(-value.y, -value.x) 
 
-# pt
-Bruges_C_pt <- Bruges_reads_C %>%
-  filter(lang == 'pt') %>%
-  group_by(item) %>%
-  summarise(value = sum(value)) %>%
-  left_join(Bruges_C, by = "item") %>%
-  mutate(value = value.x) %>%
-  select(-value.y, -value.x) 
-
-Bruges_top6_C <- rbind(Bruges_C_en, Bruges_C_de, Bruges_C_fr, Bruges_C_nl, Bruges_C_it, Bruges_C_pt) %>%
+Bruges_top6_C <- rbind(Bruges_C_en, Bruges_C_fr, Bruges_C_fr, Bruges_C_nl, Bruges_C_de, Bruges_C_it) %>%
   group_by(item)%>%
   summarise(value = sum(value))%>%
   left_join(Bruges_C_final, by = "item")%>%
@@ -1212,15 +1209,15 @@ Orange <- colorQuantile("Oranges", NULL, n = 8)
 
 m <- leaflet(Bruges_C_final) %>%
   addProviderTiles("CartoDB.Positron")%>%
-  addCircleMarkers(data = Bruges_C_en, ~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~Red(value), fillOpacity = 0.6, group = "English") %>%
-  addCircleMarkers(data = Bruges_C_de, ~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~Green(value), fillOpacity = 0.6, group = "German") %>%
-  addCircleMarkers(data = Bruges_C_fr, ~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~Blue(value), fillOpacity = 0.6, group = "French") %>%
-  addCircleMarkers(data = Bruges_C_nl, ~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~Purple(value), fillOpacity = 0.6, group = "Dutch") %>%
-  addCircleMarkers(data = Bruges_C_it, ~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~Grey(value), fillOpacity = 0.6, group = "Italian") %>%
-  addCircleMarkers(data = Bruges_C_pt, ~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~Orange(value), fillOpacity = 0.6, group = "Portuguese") %>%
-  addMarkers(data = Bruges_top6_C, ~lng, ~lat, popup = ~article, options =markerOptions(opacity = 0)) %>%
+  addCircleMarkers(data = Bruges_C_en, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~Red(value), fillOpacity = 0.6, group = "English") %>%
+  addCircleMarkers(data = Bruges_C_es, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~Orange(value), fillOpacity = 0.6, group = "Spanish") %>%
+  addCircleMarkers(data = Bruges_C_fr, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~Blue(value), fillOpacity = 0.6, group = "French") %>%
+  addCircleMarkers(data = Bruges_C_nl, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~Purple(value), fillOpacity = 0.6, group = "Dutch") %>%
+  addCircleMarkers(data = Bruges_C_de, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~Green(value), fillOpacity = 0.6, group = "German") %>%
+  addCircleMarkers(data = Bruges_C_it, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~Grey(value), fillOpacity = 0.6, group = "Italian") %>%
+  addMarkers(data = Bruges_top6_C, ~long, ~lat, popup = ~article, options =markerOptions(opacity = 0)) %>%
   addLegend(position = c("bottomright"), colorNumeric("Reds", NULL, n=8),  values = ~value) %>%
-  addLayersControl(overlayGroups = c("English", "German", "French", "Dutch", "Italian", "Portuguese"), options = layersControlOptions(collapsed = FALSE))
+  addLayersControl(overlayGroups = c("English", "Spanish", "French", "Dutch", "German", "Italian"), options = layersControlOptions(collapsed = FALSE))
 m
 
 saveWidget(widget = m, file="Bruges_C_top6.html", selfcontained = FALSE)
@@ -1229,9 +1226,8 @@ saveWidget(widget = m, file="Bruges_C_top6.html", selfcontained = FALSE)
 
 Bruges_reads_F <- read.csv("C:/Users/signose/Desktop/Cities/Pageviews/Bruges_F.csv") %>%
   select(-X)
-names(Bruges_reads_F) = c("lang", "item", "time", "lng", "lat", "value")
 
-# top 6 languages: en es de ru pt it
+# top 6 languages: en es nl fr de it
 
 # Create one df for each of top 6 languages
 
@@ -1244,18 +1240,9 @@ Bruges_F_en <- Bruges_reads_F %>%
   mutate(value = value.x) %>%
   select(-value.y, -value.x) 
 
-# de
-Bruges_F_de <- Bruges_reads_F %>%
-  filter(lang == 'de') %>%
-  group_by(item) %>%
-  summarise(value = sum(value)) %>%
-  left_join(Bruges_F, by = "item") %>%
-  mutate(value = value.x) %>%
-  select(-value.y, -value.x) 
-
-# fr
-Bruges_F_fr <- Bruges_reads_F %>%
-  filter(lang == 'fr') %>%
+# es
+Bruges_F_es <- Bruges_reads_F %>%
+  filter(lang == 'es') %>%
   group_by(item) %>%
   summarise(value = sum(value)) %>%
   left_join(Bruges_F, by = "item") %>%
@@ -1271,6 +1258,24 @@ Bruges_F_nl <- Bruges_reads_F %>%
   mutate(value = value.x) %>%
   select(-value.y, -value.x) 
 
+# fr
+Bruges_F_fr <- Bruges_reads_F %>%
+  filter(lang == 'fr') %>%
+  group_by(item) %>%
+  summarise(value = sum(value)) %>%
+  left_join(Bruges_F, by = "item") %>%
+  mutate(value = value.x) %>%
+  select(-value.y, -value.x) 
+
+# de
+Bruges_F_de <- Bruges_reads_F %>%
+  filter(lang == 'de') %>%
+  group_by(item) %>%
+  summarise(value = sum(value)) %>%
+  left_join(Bruges_F, by = "item") %>%
+  mutate(value = value.x) %>%
+  select(-value.y, -value.x) 
+
 # it
 Bruges_F_it <- Bruges_reads_F %>%
   filter(lang == 'it') %>%
@@ -1280,16 +1285,7 @@ Bruges_F_it <- Bruges_reads_F %>%
   mutate(value = value.x) %>%
   select(-value.y, -value.x) 
 
-# pt
-Bruges_F_pt <- Bruges_reads_F %>%
-  filter(lang == 'pt') %>%
-  group_by(item) %>%
-  summarise(value = sum(value)) %>%
-  left_join(Bruges_F, by = "item") %>%
-  mutate(value = value.x) %>%
-  select(-value.y, -value.x) 
-
-Bruges_top6_F <- rbind(Bruges_F_en, Bruges_F_de, Bruges_F_fr, Bruges_F_nl, Bruges_F_it, Bruges_F_pt) %>%
+Bruges_top6_F <- rbind(Bruges_F_en, Bruges_F_es, Bruges_F_nl, Bruges_F_fr, Bruges_F_de, Bruges_F_it) %>%
   group_by(item)%>%
   summarise(value = sum(value))%>%
   left_join(Bruges_F_final, by = "item")%>%
@@ -1307,15 +1303,15 @@ Orange <- colorQuantile("Oranges", NULL, n = 8)
 
 m <- leaflet(Bruges_F_final) %>%
   addProviderTiles("CartoDB.Positron")%>%
-  addCircleMarkers(data = Bruges_F_en, ~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~Red(value), fillOpacity = 0.6, group = "English") %>%
-  addCircleMarkers(data = Bruges_F_de, ~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~Green(value), fillOpacity = 0.6, group = "German") %>%
-  addCircleMarkers(data = Bruges_F_fr, ~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~Blue(value), fillOpacity = 0.6, group = "French") %>%
-  addCircleMarkers(data = Bruges_F_nl, ~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~Purple(value), fillOpacity = 0.6, group = "Dutch") %>%
-  addCircleMarkers(data = Bruges_F_it, ~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~Grey(value), fillOpacity = 0.6, group = "Italian") %>%
-  addCircleMarkers(data = Bruges_F_pt, ~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~Orange(value), fillOpacity = 0.6, group = "Portuguese") %>%
-  addMarkers(data = Bruges_top6_F, ~lng, ~lat, popup = ~article, options =markerOptions(opacity = 0)) %>%
+  addCircleMarkers(data = Bruges_F_en, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~Red(value), fillOpacity = 0.6, group = "English") %>%
+  addCircleMarkers(data = Bruges_F_es, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~Orange(value), fillOpacity = 0.6, group = "Spanish") %>%
+  addCircleMarkers(data = Bruges_F_nl, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~Purple(value), fillOpacity = 0.6, group = "Dutch") %>%
+  addCircleMarkers(data = Bruges_F_fr, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~Blue(value), fillOpacity = 0.6, group = "French") %>%
+  addCircleMarkers(data = Bruges_F_de, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~Green(value), fillOpacity = 0.6, group = "German") %>%
+  addCircleMarkers(data = Bruges_F_it, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~Grey(value), fillOpacity = 0.6, group = "Italian") %>%
+  addMarkers(data = Bruges_top6_F, ~long, ~lat, popup = ~article, options =markerOptions(opacity = 0)) %>%
   addLegend(position = c("bottomright"), colorNumeric("Reds", NULL, n=8),  values = ~value) %>%
-  addLayersControl(overlayGroups = c("English", "German", "French", "Dutch", "Italian", "Portuguese"), options = layersControlOptions(collapsed = FALSE))
+  addLayersControl(overlayGroups = c("English", "Spanish",  "Dutch", "French", "German", "Italian" ), options = layersControlOptions(collapsed = FALSE))
 m
 
 saveWidget(widget = m, file="Bruges_F_top6.html", selfcontained = FALSE)
@@ -1324,9 +1320,8 @@ saveWidget(widget = m, file="Bruges_F_top6.html", selfcontained = FALSE)
 
 Vienna_reads_C <- read.csv("C:/Users/signose/Desktop/Cities/Pageviews/Vienna_C.csv") %>%
   select(-X)
-names(Vienna_reads_C) = c("lang", "item", "time", "lng", "lat", "value")
 
-# top 6 languages: en es de ru pt it
+# top 6 languages: en, de, es, ru, pl, fr
 
 # Create one df for each of top 6 languages
 
@@ -1348,18 +1343,18 @@ Vienna_C_de <- Vienna_reads_C %>%
   mutate(value = value.x) %>%
   select(-value.y, -value.x) 
 
-# ru
-Vienna_C_ru <- Vienna_reads_C %>%
-  filter(lang == 'ru') %>%
+# es
+Vienna_C_es <- Vienna_reads_C %>%
+  filter(lang == 'es') %>%
   group_by(item) %>%
   summarise(value = sum(value)) %>%
   left_join(Vienna_C, by = "item") %>%
   mutate(value = value.x) %>%
   select(-value.y, -value.x) 
 
-# it
-Vienna_C_it <- Vienna_reads_C %>%
-  filter(lang == 'it') %>%
+# ru
+Vienna_C_ru <- Vienna_reads_C %>%
+  filter(lang == 'ru') %>%
   group_by(item) %>%
   summarise(value = sum(value)) %>%
   left_join(Vienna_C, by = "item") %>%
@@ -1375,16 +1370,16 @@ Vienna_C_pl <- Vienna_reads_C %>%
   mutate(value = value.x) %>%
   select(-value.y, -value.x) 
 
-# pt
-Vienna_C_pt <- Vienna_reads_C %>%
-  filter(lang == 'pt') %>%
+# fr
+Vienna_C_fr <- Vienna_reads_C %>%
+  filter(lang == 'fr') %>%
   group_by(item) %>%
   summarise(value = sum(value)) %>%
   left_join(Vienna_C, by = "item") %>%
   mutate(value = value.x) %>%
   select(-value.y, -value.x) 
 
-Vienna_top6_C <- rbind(Vienna_C_en, Vienna_C_de, Vienna_C_ru, Vienna_C_it, Vienna_C_pl, Vienna_C_pt) %>%
+Vienna_top6_C <- rbind(Vienna_C_en, Vienna_C_de, Vienna_C_es, Vienna_C_ru, Vienna_C_pl, Vienna_C_fr) %>%
   group_by(item)%>%
   summarise(value = sum(value))%>%
   left_join(Vienna_C_final, by = "item")%>%
@@ -1402,15 +1397,15 @@ Orange <- colorQuantile("Oranges", NULL, n = 8)
 
 m <- leaflet(Vienna_C_final) %>%
   addProviderTiles("CartoDB.Positron")%>%
-  addCircleMarkers(data = Vienna_C_en, ~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~Red(value), fillOpacity = 0.6, group = "English") %>%
-  addCircleMarkers(data = Vienna_C_de, ~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~Green(value), fillOpacity = 0.6, group = "German") %>%
-  addCircleMarkers(data = Vienna_C_ru, ~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~Blue(value), fillOpacity = 0.6, group = "Russian") %>%
-  addCircleMarkers(data = Vienna_C_it, ~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~Purple(value), fillOpacity = 0.6, group = "Italian") %>%
-  addCircleMarkers(data = Vienna_C_pl, ~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~Grey(value), fillOpacity = 0.6, group = "Polish") %>%
-  addCircleMarkers(data = Vienna_C_pt, ~lng, ~lat, radius = ~log(value), stroke = F, fillColor = ~Orange(value), fillOpacity = 0.6, group = "Portuguese") %>%
-  addMarkers(data = Vienna_top6_C, ~lng, ~lat, popup = ~article, options =markerOptions(opacity = 0)) %>%
+  addCircleMarkers(data = Vienna_C_en, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~Red(value), fillOpacity = 0.6, group = "English") %>%
+  addCircleMarkers(data = Vienna_C_de, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~Green(value), fillOpacity = 0.6, group = "German") %>%
+  addCircleMarkers(data = Vienna_C_es, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~Purple(value), fillOpacity = 0.6, group = "Spanish") %>%
+  addCircleMarkers(data = Vienna_C_ru, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~Blue(value), fillOpacity = 0.6, group = "Russian") %>%
+  addCircleMarkers(data = Vienna_C_pl, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~Grey(value), fillOpacity = 0.6, group = "Polish") %>%
+  addCircleMarkers(data = Vienna_C_fr, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = ~Orange(value), fillOpacity = 0.6, group = "French") %>%
+  addMarkers(data = Vienna_top6_C, ~long, ~lat, popup = ~article, options =markerOptions(opacity = 0)) %>%
   addLegend(position = c("bottomright"), colorNumeric("Reds", NULL, n=8),  values = ~value) %>%
-  addLayersControl(overlayGroups = c("English", "German", "Russian", "Italian", "Polish", "Portuguese"), options = layersControlOptions(collapsed = FALSE))
+  addLayersControl(overlayGroups = c("English", "German", "Spanish","Russian",  "Polish", "French"), options = layersControlOptions(collapsed = FALSE))
 m
 
 saveWidget(widget = m, file="Vienna_C_top6.html", selfcontained = FALSE)
@@ -1427,7 +1422,7 @@ names(Barcelona_C) = c("item", "lng", "lat", "value")
 # Create one df for each year
 
 # 2012
-Barcelona_C_2012 <- Barcelona_reads_C %>%
+Barcelona_C_2012 <- Barcelona_reads_in_C %>%
   filter(substr(time, 2, 5) == "2012") %>%
   group_by(item) %>%
   summarise(value = sum(value)) %>%
@@ -1436,7 +1431,7 @@ Barcelona_C_2012 <- Barcelona_reads_C %>%
   select(-value.y, -value.x) 
 
 # 2013
-Barcelona_C_2013 <- Barcelona_reads_C %>%
+Barcelona_C_2013 <- Barcelona_reads_in_C %>%
   filter(substr(time, 2, 5) == "2013") %>%
   group_by(item) %>%
   summarise(value = sum(value))%>%
@@ -1445,7 +1440,7 @@ Barcelona_C_2013 <- Barcelona_reads_C %>%
   select(-value.y, -value.x) 
 
 # 2014
-Barcelona_C_2014 <- Barcelona_reads_C %>%
+Barcelona_C_2014 <- Barcelona_reads_in_C %>%
   filter(substr(time, 2, 5) == "2014") %>%
   group_by(item) %>%
   summarise(value = sum(value))%>%
@@ -1454,7 +1449,7 @@ Barcelona_C_2014 <- Barcelona_reads_C %>%
   select(-value.y, -value.x) 
 
 # 2015
-Barcelona_C_2015 <- Barcelona_reads_C %>%
+Barcelona_C_2015 <- Barcelona_reads_in_C %>%
   filter(substr(time, 2, 5) == "2015") %>%
   group_by(item) %>%
   summarise(value = sum(value))%>%
