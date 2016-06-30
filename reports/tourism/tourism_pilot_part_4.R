@@ -1,3 +1,5 @@
+### TOURISM PILOT (PART 4)
+
 library(dplyr)
 library(jsonlite)
 library(stringr)
@@ -109,147 +111,6 @@ Vienna_C_cat_ts_scaled <- scale(Vienna_C_cat_ts)
 # First differences
 Vienna_C_cat_ts_diff <- diff(Vienna_C_cat_ts, differences=1)
 
-############ Build correlogram (too many series yet, cluster before)
-
-library(corrplot)
-
-M <- cor(Barcelona_C_cat_ts_scaled)
-corrplot(M, method="circle", type = "upper", order = "hclust")
-
-M <- cor(Barcelona_K_cat_ts)
-corrplot(M, method="circle", type = "upper", order = "hclust")
-
-M <- cor(Bruges_C_cat_ts)
-corrplot(M, method="circle", type = "upper", order = "hclust")
-
-M <- cor(Bruges_F_cat_ts)
-corrplot(M, method="circle", type = "upper", order = "hclust")
-
-M <- cor(Vienna_C_cat_ts)
-corrplot(M, method="circle", type = "upper", order = "hclust")
-
-
-############ IN STAND-BY, CONTINUO SU TIME SERIES CLUSTERING#######################
-# Cluster
-
-library(NbClust)
-
-# Barcelona C
-
-Barcelona_C_cat_ts_scaled <- t(Barcelona_C_cat_ts_scaled)
-
-# Find optimal number of clusters
-NbClust(Barcelona_C_cat_ts_scaled, distance = "euclidean", min.nc = 2, max.nc = 50, method = "kmeans", index = "kl")
-
-# Run k-means
-kmeans <- lapply(1:74, function(x) kmeans(Barcelona_C_cat_ts_scaled[, 1:48], centers = x))
-
-# Get WSS
-wss <- sapply(1:74, function (x) sum (kmeans[[x]]$withinss))
-
-# Plot WSS
-plot(1:74, wss, type="b", xlab = "Number of clusters", ylab = "Within groups sum of squares")
-
-# Build table with reduction in WSS
-knitr::kable(data.frame(2:74, cumsum(diff(wss)/sum(diff(wss)))*100), col.names = c("Number of clusters", "Cumulative reduction in WSS"), digits = 1)
-
-# Get 35 cluster analysis
-Barcelona_C_cl_35 <- kmeans[[35]]
-
-# Barcelona K
-
-Barcelona_K_cat_ts_scaled <- t(Barcelona_K_cat_ts_scaled)
-
-# Find optimal number of clusters
-NbClust(Barcelona_K_cat_ts_scaled, distance = "euclidean", min.nc = 2, max.nc = 40, method = "kmeans", index = "hubert")
-
-# Run k-means
-kmeans <- lapply(1:40, function(x) kmeans(Barcelona_K_cat_ts_scaled[, 1:48], centers = x))
-
-# Get WSS
-wss <- sapply(1:40, function (x) sum (kmeans[[x]]$withinss))
-
-# Plot WSS
-plot(1:40, wss, type="b", xlab = "Number of clusters", ylab = "Within groups sum of squares")
-
-# Build table with reduction in WSS
-knitr::kable(data.frame(2:40, cumsum(diff(wss)/sum(diff(wss)))*100), col.names = c("Number of clusters", "Cumulative reduction in WSS"), digits = 1)
-
-# Get 29 cluster analysis
-Barcelona_K_cl_29 <- kmeans[[29]]
-
-# Get cluster means ####CONTROLLA
-k_means <- data.frame(cluster = 1:9, Barcelona_K_cl_9$centers)%>%
-  gather(1:83)
-
-# Bruges C
-
-Bruges_C_cat_ts_scaled <- t(Bruges_C_cat_ts_scaled)
-
-# Find optimal number of clusters
-NbClust(Bruges_C_cat_ts_scaled, distance = "euclidean", min.nc = 2, max.nc = 28, method = "kmeans", index = "hubert")
-
-# Run k-means
-kmeans <- lapply(1:20, function(x) kmeans(Bruges_C_cat_ts_scaled[, 1:48], centers = x))
-
-# Get WSS
-wss <- sapply(1:20, function (x) sum (kmeans[[x]]$withinss))
-
-# Plot WSS
-plot(1:20, wss, type="b", xlab = "Number of clusters", ylab = "Within groups sum of squares")
-
-# Build table with reduction in WSS
-knitr::kable(data.frame(2:20, cumsum(diff(wss)/sum(diff(wss)))*100), col.names = c("Number of clusters", "Cumulative reduction in WSS"), digits = 1)
-
-# Get 15 cluster analysis
-Bruges_C_cl_15 <- kmeans[[15]]
-
-# Bruges F
-
-Bruges_F_cat_ts_scaled <- t(Bruges_F_cat_ts_scaled)
-
-# Find optimal number of clusters
-NbClust(Bruges_F_cat_ts_scaled, distance = "euclidean", min.nc = 2, max.nc = 32, method = "kmeans", index = "hubert")
-
-# Run k-means
-kmeans <- lapply(1:25, function(x) kmeans(Bruges_F_cat_ts_scaled[, 1:34], centers = x))
-
-# Get WSS
-wss <- sapply(1:25, function (x) sum (kmeans[[x]]$withinss))
-
-# Plot WSS
-plot(1:25, wss, type="b", xlab = "Number of clusters", ylab = "Within groups sum of squares")
-
-# Build table with reduction in WSS
-knitr::kable(data.frame(2:25, cumsum(diff(wss)/sum(diff(wss)))*100), col.names = c("Number of clusters", "Cumulative reduction in WSS"), digits = 1)
-
-# Get 19 cluster analysis
-Bruges_F_cl_19<- kmeans[[19]]
-
-# Vienna C
-
-Vienna_C_cat_ts_scaled <- t(Vienna_C_cat_ts_scaled)
-
-# Find optimal number of clusters
-NbClust(Vienna_C_cat_ts_scaled, distance = "euclidean", min.nc = 2, max.nc = 40, method = "kmeans", index = "hubert")
-
-# Run k-means
-kmeans <- lapply(1:40, function(x) kmeans(Vienna_C_cat_ts_scaled[, 1:48], centers = x))
-
-# Get WSS
-wss <- sapply(1:40, function (x) sum (kmeans[[x]]$withinss))
-
-# Plot WSS
-plot(1:40, wss, type="b", xlab = "Number of clusters", ylab = "Within groups sum of squares")
-
-# Build table with reduction in WSS
-knitr::kable(data.frame(2:40, cumsum(diff(wss)/sum(diff(wss)))*100), col.names = c("Number of clusters", "Cumulative reduction in WSS"), digits = 1)
-
-# Get 27 cluster analysis
-Vienna_C_cl_27 <- kmeans[[27]]
-
-##########################################################################################
-
 ### Time series clustering
 ### Dynamic time warping
 
@@ -304,12 +165,13 @@ hc <- hclust(distMatrix, method= "average")
 plot(hc, main = "Vienna C")
 
 # Plot time series
+########### CONTROLLA E FAI
 
 library(dygraphs)
 library(htmlwidgets)
 options(scipen=999)
 
-g <- dygraph(Bruges_C_cat_ts, main = "Bruges (C) pageviews by categories") %>%
+g <- dygraph(Bruges_C_cat_ts_scaled, main = "Bruges (C) pageviews by categories") %>%
   dyOptions(colors = RColorBrewer::brewer.pal(8, "Dark2"))
 g
 
