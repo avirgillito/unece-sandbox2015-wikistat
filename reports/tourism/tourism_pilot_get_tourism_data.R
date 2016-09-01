@@ -21,6 +21,8 @@ library(dplyr)
 
 # 2016
 
+# January
+
 url <- "http://www.bcn.cat/estadistica/angles/dades/economia/teoh/actual/r01.htm"
 
 Barcelona_tourism_2016 <- url %>%
@@ -34,6 +36,8 @@ Barcelona_Jan_16 <- Barcelona_tourism_2016[[1]] %>%
   select(-X5) 
 
 Barcelona_Jan_16 <- Barcelona_Jan_16[8:73, ]
+
+# February
 
 url <- "http://www.bcn.cat/estadistica/angles/dades/economia/teoh/actual/r02.htm"
 
@@ -49,6 +53,8 @@ Barcelona_Feb_16 <- Barcelona_tourism_2016[[1]] %>%
 
 Barcelona_Feb_16 <- Barcelona_Feb_16[8:73, ]
 
+# March
+
 url <- "http://www.bcn.cat/estadistica/angles/dades/economia/teoh/actual/r03.htm"
 
 Barcelona_tourism_2016 <- url %>%
@@ -62,6 +68,8 @@ Barcelona_Mar_16 <- Barcelona_tourism_2016[[1]] %>%
   select(-X5) 
 
 Barcelona_Mar_16 <- Barcelona_Mar_16[8:73, ]
+
+# April
 
 url <- "http://www.bcn.cat/estadistica/angles/dades/economia/teoh/actual/r04.htm"
 
@@ -77,6 +85,8 @@ Barcelona_Apr_16 <- Barcelona_tourism_2016[[1]] %>%
 
 Barcelona_Apr_16 <- Barcelona_Apr_16[8:73, ]
 
+# May
+
 url <- "http://www.bcn.cat/estadistica/angles/dades/economia/teoh/actual/r05.htm"
 
 Barcelona_tourism_2016 <- url %>%
@@ -91,10 +101,42 @@ Barcelona_May_16 <- Barcelona_tourism_2016[[1]] %>%
 
 Barcelona_May_16 <- Barcelona_May_16[8:73, ]
 
-Barcelona_2016 <- cbind(Barcelona_Jan_16, Barcelona_Feb_16$Feb_2016, Barcelona_Mar_16$Mar_2016, Barcelona_Apr_16$Apr_2016, 
-                        Barcelona_May_16$May_2016)
+# June
 
-names(Barcelona_2016) <- c("variables", "Jan_2016", "Feb_2016", "Mar_2016", "Apr_2016", "May_2016")
+url <- "http://www.bcn.cat/estadistica/angles/dades/economia/teoh/actual/r06.htm"
+
+Barcelona_tourism_2016 <- url %>%
+  read_html() %>%
+  html_nodes(xpath = '/html/body/table') %>%
+  html_table()
+
+Barcelona_June_16 <- Barcelona_tourism_2016[[1]] %>%
+  select(X4, X5) %>%
+  mutate(June_2016 = X5) %>%
+  select(-X5) 
+
+Barcelona_June_16 <- Barcelona_June_16[8:73, ]
+
+# July
+
+url <- "http://www.bcn.cat/estadistica/angles/dades/economia/teoh/actual/r06.htm"
+
+Barcelona_tourism_2016 <- url %>%
+  read_html() %>%
+  html_nodes(xpath = '/html/body/table') %>%
+  html_table()
+
+Barcelona_July_16 <- Barcelona_tourism_2016[[1]] %>%
+  select(X4, X5) %>%
+  mutate(July_2016 = X5) %>%
+  select(-X5) 
+
+Barcelona_July_16 <- Barcelona_July_16[8:73, ]
+
+Barcelona_2016 <- cbind(Barcelona_Jan_16, Barcelona_Feb_16$Feb_2016, Barcelona_Mar_16$Mar_2016, Barcelona_Apr_16$Apr_2016, 
+                        Barcelona_May_16$May_2016, Barcelona_June_16$June_2016, Barcelona_July_16$July_2016)
+
+names(Barcelona_2016) <- c("variables", "Jan_2016", "Feb_2016", "Mar_2016", "Apr_2016", "May_2016", "Jun_2016", "Jul_2016")
 
 write.csv(Barcelona_2016, "./tourism_data/Barcelona/Barcelona_2016.csv")
 
@@ -705,9 +747,21 @@ names(Bruges_arrivals_2014) <- c("variables", "Jan_2014", "Feb_2014", "Mar_2014"
 Bruges_arrivals_2014 <- Bruges_arrivals_2014 %>%
   select(-total, -empty, -a, -b, -c, -d, -e, -f, -g)
 
+Bruges_arrivals_2015 <- read_excel("./tourism_data/Bruges/Bruges_arrivals_month_2015.xlsx", sheet = "brug")
+
+Bruges_arrivals_2015 <- Bruges_arrivals_2015[6:39,]
+
+names(Bruges_arrivals_2015) <- c("variables", "Jan_2015", "Feb_2015", "Mar_2015", "Apr_2015", "May_2015", "Jun_2015",
+                                 "Jul_2015", "Aug_2015", "Sep_2015", "Oct_2015", "Nov_2015", "Dec_2015", "empty")
+
+Bruges_arrivals_2015 <- Bruges_arrivals_2015 %>%
+  select(-empty)
+
 Bruges_arrivals <- cbind(Bruges_arrivals_2012, Bruges_arrivals_2013) %>%
   select(-variables) %>%
   cbind(Bruges_arrivals_2014) %>%
+  select(-variables) %>%
+  cbind(Bruges_arrivals_2015) %>%
   select(-variables)
   
 write.csv(Bruges_arrivals, "./tourism_data/Bruges/Bruges_arrivals.csv")
@@ -744,9 +798,21 @@ names(Bruges_overnight_stays_2014) <- c("variables", "Jan_2014", "Feb_2014", "Ma
 Bruges_overnight_stays_2014 <- Bruges_overnight_stays_2014 %>%
   select(-total, -empty, -a, -b, -c, -d, -e, -f)
 
+Bruges_overnight_stays_2015 <- read_excel("./tourism_data/Bruges/Bruges_overnight_stays_month_2015.xlsx", sheet = "brug")
+
+Bruges_overnight_stays_2015 <- Bruges_overnight_stays_2015[6:39,]
+
+names(Bruges_overnight_stays_2015) <- c("variables", "Jan_2015", "Feb_2015", "Mar_2015", "Apr_2015", "May_2015", "Jun_2015",
+                                        "Jul_2015", "Aug_2015", "Sep_2015", "Oct_2015", "Nov_2015", "Dec_2015", "empty")
+
+Bruges_overnight_stays_2015 <- Bruges_overnight_stays_2015 %>%
+  select(-empty)
+
 Bruges_overnight_stays <- cbind(Bruges_overnight_stays_2012, Bruges_overnight_stays_2013) %>%
   select(-variables) %>%
   cbind(Bruges_overnight_stays_2014) %>%
+  select(-variables)%>%
+  cbind(Bruges_overnight_stays_2015) %>%
   select(-variables)
 
 write.csv(Bruges_overnight_stays, "./tourism_data/Bruges/Bruges_overnight_stays.csv")
@@ -783,9 +849,22 @@ names(Bruges_region_arrivals_2014) <- c("variables", "Jan_2014", "Feb_2014", "Ma
 Bruges_region_arrivals_2014 <- Bruges_region_arrivals_2014 %>%
   select(-total, -empty, -a, -b, -c, -d, -e, -f)
 
+Bruges_region_arrivals_2015 <- read_excel("./tourism_data/Bruges/Bruges_arrivals_month_2015.xlsx", sheet = "Brugse Ommeland")
+
+Bruges_region_arrivals_2015 <- Bruges_region_arrivals_2015[6:39,]
+
+names(Bruges_region_arrivals_2015) <- c("variables", "Jan_2015", "Feb_2015", "Mar_2015", "Apr_2015", "May_2015", "Jun_2015",
+                                        "Jul_2015", "Aug_2015", "Sep_2015", "Oct_2015", "Nov_2015", "Dec_2015", "empty")
+
+Bruges_region_arrivals_2015 <- Bruges_region_arrivals_2015 %>%
+  select(-empty)
+
+
 Bruges_region_arrivals <- cbind(Bruges_region_arrivals_2012, Bruges_region_arrivals_2013) %>%
   select(-variables) %>%
   cbind(Bruges_region_arrivals_2014) %>%
+  select(-variables) %>%
+  cbind(Bruges_region_arrivals_2015) %>%
   select(-variables)
 
 write.csv(Bruges_region_arrivals, "./tourism_data/Bruges/Bruges_region_arrivals.csv")
@@ -822,9 +901,22 @@ names(Bruges_region_overnight_stays_2014) <- c("variables", "Jan_2014", "Feb_201
 Bruges_region_overnight_stays_2014 <- Bruges_region_overnight_stays_2014 %>%
   select(-total, -empty, -a, -b, -c, -d, -e)
 
+Bruges_region_overnight_stays_2015 <- read_excel("./tourism_data/Bruges/Bruges_overnight_stays_month_2015.xlsx", sheet = "Brugse Ommeland")
+
+Bruges_region_overnight_stays_2015 <- Bruges_region_overnight_stays_2015[6:39,]
+
+names(Bruges_region_overnight_stays_2015) <- c("variables", "Jan_2015", "Feb_2015", "Mar_2015", "Apr_2015", "May_2015", "Jun_2015",
+                                               "Jul_2015", "Aug_2015", "Sep_2015", "Oct_2015", "Nov_2015", "Dec_2015", "empty")
+
+Bruges_region_overnight_stays_2015 <- Bruges_region_overnight_stays_2015 %>%
+  select(-empty)
+
+
 Bruges_region_overnight_stays <- cbind(Bruges_region_overnight_stays_2012, Bruges_region_overnight_stays_2013) %>%
   select(-variables) %>%
   cbind(Bruges_region_overnight_stays_2014) %>%
+  select(-variables) %>%
+  cbind(Bruges_region_overnight_stays_2015) %>%
   select(-variables)
 
 write.csv(Bruges_region_overnight_stays, "./tourism_data/Bruges/Bruges_region_overnight_stays.csv")
