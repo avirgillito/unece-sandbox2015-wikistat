@@ -165,12 +165,12 @@ get_wikipedia_articles <- function(items) {
            site = substr(keep, regexpr("https://", keep)+8+nchar(lang)+1, regexpr(".org", keep)-1)) %>%
     select(-delete, -keep)
   # unify datasets
-  wikidata2 <- cbind(title, url) %>%
+  wikidata2 <- cbind(article = title$article, url) %>%
     mutate(item = id) %>%
     select(-id) %>%
     mutate(site = gsub(lang, "", site)) %>%
     filter(site == "wikipedia") %>%
-    select(-id, -site)%>%
+    select(-site)%>%
     mutate(item = unlist(item))
   wikidata2 <- as.data.frame(wikidata2)
   #return output
