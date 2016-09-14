@@ -453,3 +453,18 @@ confusionMatrix(data = TEST$predicted.response,
 
 Vienna_to_predict$predicted.response <- predict(training_rf, Vienna_to_predict)
 
+write.csv(Vienna_to_predict, "Vienna_to_predict.csv", fileEncoding = "UTF-8")
+write.csv(training_total, "training_total.csv", fileEncoding = "UTF-8")
+write.csv(TEST_post, "TEST_post.csv", fileEncoding = "UTF-8")
+
+### Now I continue working on the Sandbox
+
+Vienna_to_predict <- read.csv("./data_using_wikidata/random_forest/results/Vienna_to_predict.csv", encoding = "UTF-8") %>%
+  select(-X)
+
+training_total <- read.csv("./data_using_wikidata/random_forest/results/training_total.csv", encoding = "UTF-8") %>%
+  select(-X)
+
+TEST_post <- read.csv("./data_using_wikidata/random_forest/results/TEST_post.csv", encoding = "UTF-8") %>%
+  select(-X)
+
