@@ -5,6 +5,7 @@ library(jsonlite)
 library(stringr)
 library(leaflet)
 library(htmlwidgets)
+
 source("scripts/r/wikidata_functions.R")
 
 ### Get time series for this new variable 'cat'
@@ -110,6 +111,75 @@ Vienna_C_cat_ts_scaled <- scale(Vienna_C_cat_ts)
 
 # First differences
 Vienna_C_cat_ts_diff <- diff(Vienna_C_cat_ts, differences=1)
+
+
+### NEW TENTATIVE SEPT 1 WITH PVCLUST
+
+library(pvclust)
+
+# Barcelona C
+
+fit <- pvclust(Barcelona_C_cat_ts_scaled, method.hclust="average",
+               method.dist="euclidean")
+# dendogram with p values
+plot(fit) 
+# add rectangles around groups highly supported by the data
+pvrect(fit, alpha=.95)
+# show list of clusters and their composition
+pvpick(fit, alpha=.95)
+
+# Barcelona K
+
+fit <- pvclust(Barcelona_K_cat_ts_scaled, method.hclust="average",
+               method.dist="euclidean")
+# dendogram with p values
+plot(fit) 
+# add rectangles around groups highly supported by the data
+pvrect(fit, alpha=.95)
+# show list of clusters and their composition
+pvpick(fit, alpha=.95)
+
+# Bruges C
+
+fit <- pvclust(Bruges_C_cat_ts_scaled, method.hclust="average",
+               method.dist="euclidean")
+# dendogram with p values
+plot(fit) 
+# add rectangles around groups highly supported by the data
+pvrect(fit, alpha=.95)
+# show list of clusters and their composition
+pvpick(fit, alpha=.95)
+
+# Bruges F
+
+fit <- pvclust(Bruges_F_cat_ts_scaled, method.hclust="average",
+               method.dist="euclidean")
+# dendogram with p values
+plot(fit) 
+# add rectangles around groups highly supported by the data
+pvrect(fit, alpha=.95)
+# show list of clusters and their composition
+pvpick(fit, alpha=.95)
+
+# Vienna C
+
+fit <- pvclust(Vienna_C_cat_ts_scaled, method.hclust="average",
+               method.dist="euclidean")
+# dendogram with p values
+plot(fit) 
+# add rectangles around groups highly supported by the data
+pvrect(fit, alpha=.95)
+# show list of clusters and their composition
+pvpick(fit, alpha=.95)
+
+### NEW METHOD N. 2
+
+library(cluster)
+
+res.agnes <- agnes(Barcelona_C_cat_ts_scaled_T, method = "average")
+res.agnes$ac
+pltree(res.agnes, main = "Dendrogram of Barcelona C") 
+summary(res.agnes)
 
 ### Time series clustering
 ### Dynamic time warping
@@ -283,6 +353,66 @@ Vienna_C_lang_ts_scaled <- scale(Vienna_C_lang_ts)
 
 # First differences
 Vienna_C_lang_ts_diff <- diff(Vienna_C_lang_ts, differences=1)
+
+
+### NEW TENTATIVE SEPT 1 WITH PVCLUST
+
+library(pvclust)
+
+# Barcelona C
+
+fit <- pvclust(Barcelona_C_lang_ts_scaled, method.hclust="average",
+               method.dist="euclidean")
+# dendogram with p values
+plot(fit) 
+# add rectangles around groups highly supported by the data
+pvrect(fit, alpha=.95)
+# show list of clusters and their composition
+pvpick(fit, alpha=.95)
+
+# Barcelona K
+
+fit <- pvclust(Barcelona_K_lang_ts_scaled, method.hclust="average",
+               method.dist="euclidean")
+# dendogram with p values
+plot(fit) 
+# add rectangles around groups highly supported by the data
+pvrect(fit, alpha=.95)
+# show list of clusters and their composition
+pvpick(fit, alpha=.95)
+
+# Bruges C
+
+fit <- pvclust(Bruges_C_lang_ts_scaled, method.hclust="average",
+               method.dist="euclidean")
+# dendogram with p values
+plot(fit) 
+# add rectangles around groups highly supported by the data
+pvrect(fit, alpha=.95)
+# show list of clusters and their composition
+pvpick(fit, alpha=.95)
+
+# Bruges F
+
+fit <- pvclust(Bruges_F_lang_ts_scaled, method.hclust="average",
+               method.dist="euclidean")
+# dendogram with p values
+plot(fit) 
+# add rectangles around groups highly supported by the data
+pvrect(fit, alpha=.95)
+# show list of clusters and their composition
+pvpick(fit, alpha=.95)
+
+# Vienna C
+
+fit <- pvclust(Vienna_C_lang_ts_scaled, method.hclust="average",
+               method.dist="euclidean")
+# dendogram with p values
+plot(fit) 
+# add rectangles around groups highly supported by the data
+pvrect(fit, alpha=.95)
+# show list of clusters and their composition
+pvpick(fit, alpha=.95)
 
 ### Time series clustering
 ### Dynamic time warping
