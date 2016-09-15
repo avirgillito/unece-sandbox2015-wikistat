@@ -130,6 +130,8 @@ Vienna_articles_DE <- Vienna_articles_DE%>%
 Vienna_string_join <- Vienna_C %>%
   left_join(Vienna_articles_DE, by = 'item') 
 
+write.csv(Vienna_string_join, "Vienna_wiki_points.csv", fileEncoding = "UTF-8")
+
 # Join with geo distance dataset
 
 Vienna_total_join <- Vienna_geo_join %>%
@@ -467,4 +469,94 @@ training_total <- read.csv("./data_using_wikidata/random_forest/results/training
 
 TEST_post <- read.csv("./data_using_wikidata/random_forest/results/TEST_post.csv", encoding = "UTF-8") %>%
   select(-X)
+
+# Verify how many matches we have
+
+Vienna_YES <- Vienna_to_predict %>%
+  filter(predicted.response == "YES") %>%
+  distinct(item, .keep_all = T)
+
+Vienna_YES_levels <- levels(Vienna_YES$NAMECAT_NAME)
+
+write.csv(Vienna_YES_levels, "Vienna_YES_levels.csv", fileEncoding = "UTF-8")
+
+# 787 points (over 2663, nearly 30% of Vienna Wikidata items)
+# In this group we have 42 categories (the total was 44)
+
+Vienna_YES_levels <- read.csv("C:/Users/signose/Desktop/Vienna_YES_levels.csv", encoding = "UTF-8") %>%
+  select(-X) 
+
+# we build a map with official points, wiki points and matches (leaflet does not work on Sandbox)
+
+Vienna_official_points <- read.csv("C:/Users/signose/Desktop/Vienna_official.csv", encoding = "UTF-8") %>%
+  select(-X)
+
+Vienna_wiki_points <- read.csv("C:/Users/signose/Desktop/Vienna_wiki_points.csv", encoding = "UTF-8") %>%
+  select(-X)
+
+Vienna_match_points <- Vienna_YES %>%
+  select(OBJECTID_12, FEATURENAME, NAMECAT, NAMECAT_NAME, long, lat, article, lang)
+
+library(leaflet)
+library(htmlwidgets)
+
+pal <- colorFactor("Reds", NULL, n = 44)
+
+# Map for Official points
+
+# with categories
+m <- leaflet(Vienna_official_points) %>%
+  addProviderTiles("CartoDB.Positron")%>%
+  addCircles(~long, ~lat, color = ~pal(NAMECAT_NAME), weight = 8, fillOpacity = 0.8, fillColor = ~pal(NAMECAT_NAME), radius = 100, stroke = F) %>%
+  addMarkers(~long, ~lat, popup = ~FEATURENAME, options =markerOptions(opacity = 0)) %>%
+  addLegend(position = c("bottomright"), colorFactor("Reds", NULL, n=44), values = ~NAMECAT_NAME, title = "Vienna official points")
+m
+
+saveWidget(widget = m, file="Vienna_official_with_cat.html", selfcontained = FALSE)
+
+# without categories
+m <- leaflet(Vienna_official_points) %>%
+  addProviderTiles("CartoDB.Positron")%>%
+  addCircles(~long, ~lat, color = "darkred", weight = 8, fillOpacity = 0.8, fillColor = "darkred", radius = 100, stroke = F) %>%
+  addMarkers(~long, ~lat, popup = ~FEATURENAME, options =markerOptions(opacity = 0)) %>%
+  addLegend(position = c("bottomright"), colors = "darkred", labels = "Point of interest", title = "Vienna official points")
+m
+
+saveWidget(widget = m, file="Vienna_official.html", selfcontained = FALSE)
+
+# Map for Wikidata points
+
+m <- leaflet(Vienna_wiki_points) %>%
+  addProviderTiles("CartoDB.Positron")%>%
+  addCircles(~long, ~lat, color = "darkred", weight = 8, fillOpacity = 0.8, fillColor = "darkred", radius = 100, stroke = F) %>%
+  addMarkers(~long, ~lat, popup = ~article, options = markerOptions(opacity = 0)) %>%
+  addLegend(position = c("bottomright"), colors = "darkred", labels = "Point of interest", title = "Vienna Wikidata points")
+m
+
+saveWidget(widget = m, file="Vienna_wiki.html", selfcontained = FALSE)
+
+# Map for match points
+
+# with categories
+m <- leaflet(Vienna_match_points) %>%
+  addProviderTiles("CartoDB.Positron")%>%
+  addCircles(~long, ~lat, color = ~pal(NAMECAT_NAME), weight = 8, fillOpacity = 0.8, fillColor = ~pal(NAMECAT_NAME), radius = 100, stroke = F) %>%
+  addMarkers(~long, ~lat, popup = ~article, options =markerOptions(opacity = 0)) %>%
+  addLegend(position = c("bottomright"), colorFactor("Reds", NULL, n=44), values = ~NAMECAT_NAME, title = "Vienna matched points")
+m
+
+saveWidget(widget = m, file="Vienna_match_with_cat.html", selfcontained = FALSE)
+
+
+# without categories
+m <- leaflet(Vienna_match_points) %>%
+  addProviderTiles("CartoDB.Positron")%>%
+  addCircles(~long, ~lat, color = "darkred", weight = 8, fillOpacity = 0.8, fillColor = "darkred", radius = 100, stroke = F) %>%
+  addMarkers(~long, ~lat, popup = ~article, options = markerOptions(opacity = 0)) %>%
+  addLegend(position = c("bottomright"), colors = "darkred", labels = "Point of interest", title = "Vienna matched points")
+m
+
+saveWidget(widget = m, file="Vienna_match.html", selfcontained = FALSE)
+
+
 
