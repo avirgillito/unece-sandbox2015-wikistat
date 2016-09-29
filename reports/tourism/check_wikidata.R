@@ -427,7 +427,7 @@ test1 <- class %>%
 test <- class%>%
   left_join(test1, by = 'item')
 
-Barcelona_C_cat_AUGUST <- data.frame(item = character(), cat = character())
+Barcelona_C_cat_SEPTEMBER <- data.frame(item = character(), cat = character())
 for (i in 1:nrow(test)) {
   item <- data.frame(item = test$item[i])
   if (is.na(test$cat.y[i])) {
@@ -437,10 +437,10 @@ for (i in 1:nrow(test)) {
   }
   temp <- item %>%
     mutate(cat = cat) 
-  Barcelona_C_cat_AUGUST <- rbind(Barcelona_C_cat_AUGUST, temp)
+  Barcelona_C_cat_SEPTEMBER <- rbind(Barcelona_C_cat_SEPTEMBER, temp)
 }
 
-Barcelona_C_cat_AUGUST <- Barcelona_C_cat_AUGUST%>%
+Barcelona_C_cat_SEPTEMBER <- Barcelona_C_cat_SEPTEMBER%>%
   distinct(item, .keep_all = TRUE)
 
 # Barcelona K
@@ -456,7 +456,7 @@ test1 <- class%>%
 test <- class%>%
   left_join(test1, by = 'item')
 
-Barcelona_K_cat_AUGUST <- data.frame(item = character(), cat = character())
+Barcelona_K_cat_SEPTEMBER <- data.frame(item = character(), cat = character())
 for (i in 1:nrow(test)) {
   item <- data.frame(item = test$item[i])
   if (is.na(test$cat.y[i])) {
@@ -466,10 +466,10 @@ for (i in 1:nrow(test)) {
   }
   temp <- item %>%
     mutate(cat = cat) 
-  Barcelona_K_cat_AUGUST <- rbind(Barcelona_K_cat_AUGUST, temp)
+  Barcelona_K_cat_SEPTEMBER <- rbind(Barcelona_K_cat_SEPTEMBER, temp)
 }
 
-Barcelona_K_cat_AUGUST <- Barcelona_K_cat_AUGUST%>%
+Barcelona_K_cat_SEPTEMBER <- Barcelona_K_cat_SEPTEMBER%>%
   distinct(item, .keep_all = TRUE)
 
 # Bruges C
@@ -485,7 +485,7 @@ test1 <- class%>%
 test <- class%>%
   left_join(test1, by = 'item')
 
-Bruges_C_cat_AUGUST <- data.frame(item = character(), cat = character())
+Bruges_C_cat_SEPTEMBER <- data.frame(item = character(), cat = character())
 for (i in 1:nrow(test)) {
   item <- data.frame(item = test$item[i])
   if (is.na(test$cat.y[i])) {
@@ -495,10 +495,10 @@ for (i in 1:nrow(test)) {
   }
   temp <- item %>%
     mutate(cat = cat) 
-  Bruges_C_cat_AUGUST <- rbind(Bruges_C_cat_AUGUST, temp)
+  Bruges_C_cat_SEPTEMBER <- rbind(Bruges_C_cat_SEPTEMBER, temp)
 }
 
-Bruges_C_cat_AUGUST <- Bruges_C_cat_AUGUST%>%
+Bruges_C_cat_SEPTEMBER <- Bruges_C_cat_SEPTEMBER%>%
   distinct(item, .keep_all = TRUE)
 
 # Bruges F
@@ -514,7 +514,7 @@ test1 <- class%>%
 test <- class%>%
   left_join(test1, by = 'item')
 
-Bruges_F_cat_AUGUST <- data.frame(item = character(), cat = character())
+Bruges_F_cat_SEPTEMBER <- data.frame(item = character(), cat = character())
 for (i in 1:nrow(test)) {
   item <- data.frame(item = test$item[i])
   if (is.na(test$cat.y[i])) {
@@ -524,10 +524,10 @@ for (i in 1:nrow(test)) {
   }
   temp <- item %>%
     mutate(cat = cat) 
-  Bruges_F_cat_AUGUST <- rbind(Bruges_F_cat_AUGUST, temp)
+  Bruges_F_cat_SEPTEMBER <- rbind(Bruges_F_cat_SEPTEMBER, temp)
 }
 
-Bruges_F_cat_AUGUST <- Bruges_F_cat_AUGUST%>%
+Bruges_F_cat_SEPTEMBER <- Bruges_F_cat_SEPTEMBER%>%
   distinct(item, .keep_all = TRUE)
 
 # Vienna C
@@ -543,7 +543,7 @@ test1 <- class%>%
 test <- class%>%
   left_join(test1, by = 'item')
 
-Vienna_C_cat_AUGUST <- data.frame(item = character(), cat = character())
+Vienna_C_cat_SEPTEMBER <- data.frame(item = character(), cat = character())
 for (i in 1:nrow(test)) {
   item <- data.frame(item = test$item[i])
   if (is.na(test$cat.y[i])) {
@@ -553,8 +553,8 @@ for (i in 1:nrow(test)) {
   }
   temp <- item %>%
     mutate(cat = cat) 
-  Vienna_C_cat_AUGUST <- rbind(Vienna_C_cat_AUGUST, temp)
+  Vienna_C_cat_SEPTEMBER <- rbind(Vienna_C_cat_SEPTEMBER, temp)
 }
 
-Vienna_C_cat_AUGUST <- Vienna_C_cat_AUGUST%>%
+Vienna_C_cat_SEPTEMBER <- Vienna_C_cat_SEPTEMBER%>%
   distinct(item, .keep_all = TRUE)
