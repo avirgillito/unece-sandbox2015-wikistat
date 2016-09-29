@@ -159,7 +159,7 @@ training_data <- Vienna_total_join %>%
 
 write.csv(training_data, "training_data.csv")
 
-### AFTER THIS, I'VE CHECKED MANUALLY THE MATCHIN OF A SAMPLE OF POINTS AND THEN I WILL RELOAD THE FILE
+### AFTER THIS, I'VE CHECKED MANUALLY THE MATCHING OF A SAMPLE OF POINTS AND THEN I WILL RELOAD THE FILE
 
 # Load new training data
 
@@ -178,7 +178,6 @@ TEST <- training_data_post[sample.ind==3,]
 OID_training_dev <- data.frame(OBJECTID = training_dev$OBJECTID, match = as.factor(gsub("\t", "", training_dev$match))) 
 OID_training_val <- data.frame(OBJECTID = training_val$OBJECTID, match = as.factor(gsub("\t", "", training_val$match))) 
 OID_TEST <- data.frame(OBJECTID = TEST$OBJECTID, match = as.factor(gsub("\t", "", TEST$match)))  
-OID_Vienna_to_predict <- data.frame(OBJECTID = Vienna_to_predict$OBJECTID) 
 
 ###
 # Add new features
@@ -478,12 +477,12 @@ Vienna_YES <- Vienna_to_predict %>%
 
 Vienna_YES_levels <- levels(Vienna_YES$NAMECAT_NAME)
 
-write.csv(Vienna_YES_levels, "Vienna_YES_levels.csv", fileEncoding = "UTF-8")
+write.csv(Vienna_YES, "Vienna_YES.csv", fileEncoding = "UTF-8")
 
-# 787 points (over 2663, nearly 30% of Vienna Wikidata items)
-# In this group we have 42 categories (the total was 44)
+# 796 points (over 2663, nearly 30% of Vienna Wikidata items)
+# In this group we have 35 categories (the total was 44)
 
-Vienna_YES_levels <- read.csv("C:/Users/signose/Desktop/Vienna_YES_levels.csv", encoding = "UTF-8") %>%
+Vienna_YES <- read.csv("./data_using_wikidata/random_forest/results/Vienna_YES.csv", encoding = "UTF-8") %>%
   select(-X) 
 
 # we build a map with official points, wiki points and matches (leaflet does not work on Sandbox)
@@ -558,5 +557,456 @@ m
 
 saveWidget(widget = m, file="Vienna_match.html", selfcontained = FALSE)
 
+### TOPIC MODELING
+
+library(jsonlite)
+source("scripts/r/wikidata_functions.R")
+source("scripts/r/redirects_target_and_origin_for_cities.R")
+
+Vienna_articles_in_C <- Vienna_articles_in_C %>%
+  mutate(wm = getWikiMarkup(article, lang))
+
+write.csv(Vienna_articles_in_C, "Vienna_articles_in_C.csv", fileEncoding = "UTF-8")
+
+Vienna_articles_in_C <- read.csv("./Vienna_articles_in_C.csv", encoding = "UTF-8") %>%
+  select(-X) %>%
+  mutate(wm = as.character(wm))
+
+Vienna_articles_in_C_DE <- Vienna_articles_in_C %>%
+  filter(lang == "de") %>%
+  full_join(Vienna_articles_in_C, by = 'item') 
+
+names(Vienna_articles_in_C_DE) <- c("item", "articlex", "langx", "wmx", "articley", "langy", "wmy")
+
+Vienna_articles_DE <- data.frame(item = character(), article = character(), lang = character(), wm = character())
+for (i in 1:nrow(Vienna_articles_in_C_DE)) {
+  item <- data.frame(item = Vienna_articles_in_C_DE$item[i])
+  if (!is.na(Vienna_articles_in_C_DE$langx[i])) {
+    article <- Vienna_articles_in_C_DE$articlex[i]
+    lang <- Vienna_articles_in_C_DE$langx[i]
+    wm <- Vienna_articles_in_C_DE$wmx[i]
+  } else {
+    article <- Vienna_articles_in_C_DE$articley[i]
+    lang <- Vienna_articles_in_C_DE$langy[i]
+    wm <- Vienna_articles_in_C_DE$wmy[i]
+  }
+  temp <- item %>%
+    mutate(article = article, lang = lang, wm = wm)
+  Vienna_articles_DE <- rbind(Vienna_articles_DE, temp)
+}
+
+# divide articles by language
+
+Vienna_DE <- Vienna_articles_DE %>%
+  filter(lang == "de") %>%
+  distinct(article, .keep_all = TRUE)
+
+# exclude articles without wikimarkup
+
+Vienna_DE <- Vienna_DE %>%
+  filter(wm != "ERROR: wikimarkup missing")
+
+# Remove history part of article
+
+# Preprocessing of data
+
+library(tm)
+
+#create corpus from vector
+
+Vienna_DE$wm <- Corpus(VectorSource(Vienna_DE$wm))
+
+#Transform to lower case
+
+Vienna_DE$wm <- tm_map(Vienna_DE$wm, content_transformer(tolower))
+
+#remove potentially problematic symbols
+toSpace <- content_transformer(function(x, pattern) { return (gsub(pattern, " ", x))})
+
+Vienna_DE$wm <- tm_map(Vienna_DE$wm, toSpace, "-")
+Vienna_DE$wm <- tm_map(Vienna_DE$wm, toSpace, "’")
+Vienna_DE$wm <- tm_map(Vienna_DE$wm, toSpace, "‘")
+Vienna_DE$wm <- tm_map(Vienna_DE$wm, toSpace, "•") 
+Vienna_DE$wm <- tm_map(Vienna_DE$wm, toSpace, "“")
+Vienna_DE$wm <- tm_map(Vienna_DE$wm, toSpace, "”")
+Vienna_DE$wm <- tm_map(Vienna_DE$wm, toSpace, "…")
+Vienna_DE$wm <- tm_map(Vienna_DE$wm, toSpace, "„")
+Vienna_DE$wm <- tm_map(Vienna_DE$wm, toSpace, "€")
+Vienna_DE$wm <- tm_map(Vienna_DE$wm, toSpace, "—")
+
+#remove punctuation
+
+Vienna_DE$wm <- tm_map(Vienna_DE$wm, removePunctuation)
+
+#Strip digits
+
+Vienna_DE$wm <- tm_map(Vienna_DE$wm, removeNumbers)
+
+#remove stopwords (only for selected languages)
+
+Vienna_DE$wm <- tm_map(Vienna_DE$wm, removeWords, stopwords("de"))
+
+#remove whitespace
+
+Vienna_DE$wm <- tm_map(Vienna_DE$wm, stripWhitespace)
+
+#Good practice to check every now and then
+writeLines(as.character(Vienna_DE$article[[20]]))
+
+#Stem document
+
+Vienna_DE$wm <- tm_map(Vienna_DE$wm, stemDocument, lang = "de")
+
+# Remove words related to the city and the country 
+
+myStopwords <- c("wien", "austria", "osterreich", "vienna")
+
+Vienna_DE$wm <- tm_map(Vienna_DE$wm, removeWords, myStopwords)
+
+write.csv(Vienna_DE, "Vienna_DE.csv")
+
+#Create document-term matrix
+
+dtm_DE <- DocumentTermMatrix(Vienna_DE$wm)
+
+#convert rownames to filenames
+
+rownames(dtm_DE) <- Vienna_DE$article
+
+#collapse matrix by summing over columns
+
+freq_DE <- slam::col_sums(dtm_DE, na.rm = T)
+
+#length should be total number of terms
+
+length(freq_DE)
+
+#create sort order (descending)
+
+ord_DE <- order(freq_DE,decreasing=TRUE)
+
+#List all terms in decreasing order of freq 
+freq_DE[ord_DE]
+
+#load topic models library
+library(topicmodels)
+
+#Number of topics
+k <- 45
+
+#Run LDA using Gibbs sampling
+
+ldaOut <-LDA(dtm_DE, k, method="Gibbs")
+
+#write out results
+#docs to topics
+
+ldaOut.topics <- as.matrix(topics(ldaOut))
+
+save(ldaOut, file="ldaOut45.RData")
+save(ldaOut.topics, file="topics45.Rdata")
+
+#top 6 terms in each topic
+ldaOut.terms <- as.matrix(terms(ldaOut,10))
+
+save(ldaOut.terms, file="terms45.Rdata")
+
+# upload list of found categories
+
+categories <- read.csv("./categoriesNEW.csv") %>%
+  mutate(id = as.numeric(id), keywords = as.character(keywords), category = as.character(category))
+
+# create list of articles with id of the category
+
+ldaOut.topics.post <- ldaOut.topics 
+rownames(ldaOut.topics.post) = NULL
+
+ldaOut_topics<- data.frame(article = rownames(ldaOut.topics), id = ldaOut.topics.post)
+
+# Add category to data frame of articles 
+
+Vienna_DE_post <- data.frame(item = as.character(Vienna_DE$item), article = as.character(Vienna_DE$article), lang = as.character(Vienna_DE$lang)) %>%
+  left_join(ldaOut_topics, by = "article") %>%
+  mutate(id = as.numeric(id), item = as.character(item), article = as.character(article), lang = as.character(lang))
+
+library(stringi)
+
+Vienna_DE_post$article <- stri_trans_general(Vienna_DE_post$article, "Latin-ASCII")
+
+# Unify the doubled categories
+
+Vienna_DE_post$id[Vienna_DE_post$id == 22] <- 30
+Vienna_DE_post$id[Vienna_DE_post$id == 11] <- 9 
+Vienna_DE_post$id[Vienna_DE_post$id == 14] <- 9 
+Vienna_DE_post$id[Vienna_DE_post$id == 37] <- 9 
+Vienna_DE_post$id[Vienna_DE_post$id == 43] <- 9 
+Vienna_DE_post$id[Vienna_DE_post$id == 19] <- 3 
+Vienna_DE_post$id[Vienna_DE_post$id == 26] <- 3 
+Vienna_DE_post$id[Vienna_DE_post$id == 38] <- 13 
+Vienna_DE_post$id[Vienna_DE_post$id == 8] <- 7 
+Vienna_DE_post$id[Vienna_DE_post$id == 15] <- 7 
+
+# prepare keywords
+
+keywords <- paste(categories$keywords[1], categories$keywords[2], 
+                  categories$keywords[3], categories$keywords[4],
+                  categories$keywords[5], categories$keywords[6],
+                  categories$keywords[7], categories$keywords[8],
+                  categories$keywords[9], categories$keywords[10],
+                  categories$keywords[11], categories$keywords[12],
+                  categories$keywords[13], categories$keywords[14],
+                  categories$keywords[15], categories$keywords[16],
+                  categories$keywords[17], categories$keywords[18],
+                  categories$keywords[19], categories$keywords[20],
+                  categories$keywords[21], categories$keywords[22], 
+                  categories$keywords[23], sep = ", ")
+
+keywords <- unlist(strsplit(keywords, " "))
+keywords <- unlist(strsplit(keywords, ","))
+
+# Fix the mixed categories (6, 16, 20, 23, 24, 25, 29, 31, 32, 36, 40, 42)
+
+Mixed_Vienna_DE <- Vienna_DE_post %>%
+  filter(id == 6 | id == 16 | id == 20 | id == 23 | id == 24 | id == 25 | id == 29 |
+           id == 31 | id == 32 | id == 36 | id == 40 | id == 42)
+
+# check if match between keywords and title of article exists
+
+for (i in 1:nrow(Mixed_Vienna_DE)) {
+  Mixed_Vienna_DE$stadion[i] <-  grepl(keywords[1], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$gemeindebau[i] <-  grepl(keywords[2], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$organisation[i] <-  grepl(keywords[3], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$ungarn[i] <-  grepl(keywords[5], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$deutsch[i] <-  grepl(keywords[6], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$gemeindebezirk[i] <-  grepl(keywords[7], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$kirch[i] <-  grepl(keywords[8], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$kapelle[i] <-  grepl(keywords[9], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$tempel[i] <-  grepl(keywords[10], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$synagog[i] <-  grepl(keywords[11], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$cafe[i] <-  grepl(keywords[12], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$kraftwerk[i] <-  grepl(keywords[13], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$gaswerk[i] <-  grepl(keywords[14], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$fabrik[i] <-  grepl(keywords[15], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$club[i] <-  grepl(keywords[16], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$hotel[i] <-  grepl(keywords[17], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$gasometer[i] <-  grepl(keywords[18], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$bahn[i] <-  grepl(keywords[19], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$haltestell[i] <-  grepl(keywords[20], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$berg[i] <-  grepl(keywords[21], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$send[i] <-  grepl(keywords[22], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$botschaft[i] <-  grepl(keywords[23], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$strass[i] <-  grepl(keywords[24], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$gasse[i] <-  grepl(keywords[25], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$platz[i] <-  grepl(keywords[26], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$bach[i] <-  grepl(keywords[27], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$park[i] <-  grepl(keywords[28], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$garten[i] <-  grepl(keywords[29], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$museum[i] <-  grepl(keywords[30], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$tower[i] <-  grepl(keywords[31], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$palais[i] <-  grepl(keywords[32], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$schloss[i] <-  grepl(keywords[33], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$villa[i] <-  grepl(keywords[34], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$kaserne[i] <-  grepl(keywords[35], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$krankenhaus[i] <-  grepl(keywords[36], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$spital[i] <-  grepl(keywords[37], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$klinik[i] <-  grepl(keywords[38], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$bibliothek[i] <-  grepl(keywords[39], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$statue[i] <-  grepl(keywords[40], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$brunn[i] <-  grepl(keywords[41], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$schul[i] <-  grepl(keywords[42], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$universitat[i] <-  grepl(keywords[43], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$gymnasium[i] <-  grepl(keywords[44], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$institut[i] <-  grepl(keywords[45], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$akademie[i] <-  grepl(keywords[46], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$bruck[i] <-  grepl(keywords[47], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$donau[i] <-  grepl(keywords[48], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$theat[i] <-  grepl(keywords[49], tolower(Mixed_Vienna_DE$article[i]))
+  Mixed_Vienna_DE$friedhof[i] <-  grepl(keywords[50], tolower(Mixed_Vienna_DE$article[i]))
+}
+
+Mixed_Vienna_DE$matches <- rowSums(Mixed_Vienna_DE[,5:53])
+
+# second round of matches (hof)
+
+Second_mixed_Vienna_DE <- Mixed_Vienna_DE %>%
+  filter(matches == 0) %>%
+  select(item, article, lang, id)
+
+for (i in 1:nrow(Second_mixed_Vienna_DE)) {
+  Second_mixed_Vienna_DE$matches_2[i] <-  grepl("hof", tolower(Second_mixed_Vienna_DE$article[i]))
+}
+
+# add new category and add 99 for residual unclassified cases
+
+for (i in 1:nrow(Second_mixed_Vienna_DE)) {
+  if (Second_mixed_Vienna_DE$matches_2[i] == TRUE) {
+    Second_mixed_Vienna_DE$id[i] <- 20
+  } else {
+    Second_mixed_Vienna_DE$id[i] <- 99
+  }
+}
+
+# Add new categories
+
+Match_1 <- Mixed_Vienna_DE %>%
+  filter(matches == 1)
+
+for (i in 1:nrow(Match_1)) {
+  if (Match_1[i,5] == TRUE) {
+    Match_1$id[i] <- 1
+  } else if (Match_1[i,6] == TRUE) {
+    Match_1$id[i] <- 2
+  } else if (Match_1[i,7] == TRUE) {
+    Match_1$id[i] <- 3
+  } else if (Match_1[i,8] == TRUE | Match_1[i,9] == TRUE ) {
+    Match_1$id[i] <- 4
+  } else if (Match_1[i,10] == TRUE) {
+    Match_1$id[i] <- 5
+  } else if (Match_1[i,11] == TRUE | Match_1[i,12] == TRUE |
+             Match_1[i,13] == TRUE | Match_1[i,14] == TRUE) {
+    Match_1$id[i] <- 7
+  } else if (Match_1[i,15] == TRUE | Match_1[i,16] == TRUE |
+             Match_1[i,17] == TRUE | Match_1[i,18] == TRUE |
+             Match_1[i,19] == TRUE | Match_1[i,20] == TRUE |
+             Match_1[i,21] == TRUE ) {
+    Match_1$id[i] <- 9
+  } else if (Match_1[i,22] == TRUE | Match_1[i,23] == TRUE ) {
+    Match_1$id[i] <- 12
+  } else if (Match_1[i,24] == TRUE) {
+    Match_1$id[i] <- 13
+  } else if (Match_1[i,25] == TRUE) {
+    Match_1$id[i] <- 17
+  } else if (Match_1[i,26] == TRUE) {
+    Match_1$id[i] <- 18
+  } else if (Match_1[i,27] == TRUE | Match_1[i,28] == TRUE |
+             Match_1[i,29] == TRUE) {
+    Match_1$id[i] <- 20
+  } else if (Match_1[i,30] == TRUE | Match_1[i,31] == TRUE |
+             Match_1[i,32] == TRUE) {
+    Match_1$id[i] <- 21
+  } else if (Match_1[i,33] == TRUE) {
+    Match_1$id[i] <- 27
+  } else if (Match_1[i,34] == TRUE) {
+    Match_1$id[i] <- 28
+  } else if (Match_1[i,35] == TRUE | Match_1[i,36] == TRUE |
+             Match_1[i,37] == TRUE | Match_1[i,38] == TRUE) {
+    Match_1$id[i] <- 30
+  } else if (Match_1[i,39] == TRUE | Match_1[i,40] == TRUE |
+             Match_1[i,41] == TRUE) {
+    Match_1$id[i] <- 33
+  } else if (Match_1[i,42] == TRUE) {
+    Match_1$id[i] <- 34
+  } else if (Match_1[i,43] == TRUE | Match_1[i,44] == TRUE ) {
+    Match_1$id[i] <- 35
+  } else if (Match_1[i,45] == TRUE | Match_1[i,46] == TRUE |
+             Match_1[i,47] == TRUE | Match_1[i,48] == TRUE |
+             Match_1[i,49] == TRUE) {
+    Match_1$id[i] <- 39
+  } else if (Match_1[i,50] == TRUE | Match_1[i,51] == TRUE ) {
+    Match_1$id[i] <- 41
+  } else if (Match_1[i,52] == TRUE) {
+    Match_1$id[i] <- 44
+  } else if (Match_1[i,53] == TRUE) {
+    Match_1$id[i] <- 45
+  }
+}
+
+Match_2 <- Mixed_Vienna_DE %>%
+  filter(matches > 1)
+
+for (i in 1:nrow(Match_2)) {
+  if (Match_2$palais[i] == TRUE) {
+    Match_2$id[i] <- 30
+  } 
+}
+
+Match_21 <- Match_2 %>%
+  filter(id == 30)
+
+Match_3 <- Match_2 %>%
+  filter(id != 30)
+
+for (i in 1:nrow(Match_3)) {
+  if (Match_3$cafe[i] == TRUE | Match_3$gasometer[i] == TRUE | 
+      Match_3$gaswerk[i] == TRUE) {
+    Match_3$id[i] <- 9
+  } else if (Match_3$gymnasium[i] == TRUE) {
+    Match_3$id[i] <- 39
+  } else if (Match_3$friedhof[i] == TRUE) {
+    Match_3$id[i] <- 45
+  } else if (Match_3$museum[i] == TRUE) {
+    Match_3$id[i] <- 27
+  } else if (Match_3$bibliothek[i] == TRUE) {
+    Match_3$id[i] <- 34
+  } else if (Match_3$theat[i] == TRUE) {
+    Match_3$id[i] <- 44
+  } else if (Match_3$kaserne[i] == TRUE) {
+    Match_3$id[i] <- 30
+  }
+}
+
+Match_3$id[Match_3$id == 31] <- 20
+Match_3$id[Match_3$id == 42] <- 7
+
+Match_31 <- Match_3 %>%
+  filter(id == 7 | id == 9 | id == 34 | id == 20 | id == 27 | id == 30 | id == 39 | id == 44 | id == 45)
+
+Match_4 <- Match_3 %>%
+  filter(id != 7 & id != 9 & id != 34 & id != 20 & id != 27 & id != 30 & id != 39 & id != 44 & id != 45)
+
+for (i in 1:nrow(Match_4)) {
+  if (Match_4$synagog[i] == TRUE) {
+    Match_4$id[i] <- 7
+  } else if (Match_4$kraftwerk[i] == TRUE | Match_4$hotel[i] == TRUE) {
+    Match_4$id[i] <- 9
+  } else if (Match_4$club[i] == TRUE) {
+    Match_4$id[i] <- 1
+  } else if (Match_4$statue[i] == TRUE) {
+    Match_4$id[i] <- 35
+  }
+}
+
+Match_41 <- Match_4 %>%
+  filter(id == 1 | id == 9 | id == 35 | id == 7)
+
+Match_5 <- Match_4 %>%
+  filter(id != 1 & id != 9 & id != 35 & id != 7)
+
+#### DON'T RUN
+write.csv(Match_5, "manual_match_Vienna.csv", fileEncoding = "UTF-8")
+
+Match_5 <- read.csv("./manual_match_Vienna.csv", fileEncoding = "UTF-8") %>%
+  select(-X)
+
+# Unify all articles with classification
+
+Vienna_final_match <- rbind(Match_1, Match_21, Match_31, Match_41, Match_5) %>%
+  select(item, article, lang, id)
+
+Vienna_final_match_2 <- Second_mixed_Vienna_DE %>%
+  select(item, article, lang, id)
+
+Vienna_final_match_3 <- Vienna_DE_post %>%
+  filter(id != 6 & id != 16 & id != 20 & id != 23 & id != 24 & id != 25 & id != 29 &
+           id != 31 & id != 32 & id != 36 & id != 40 & id != 42)
+
+Vienna_matched <- rbind(Vienna_final_match, Vienna_final_match_2, Vienna_final_match_3)
+
+Vienna_matched$id <- as.factor(Vienna_matched$id)
+
+summary(Vienna_matched$id)
+
+Vienna_articles_matched <- Vienna_matched %>%
+  select(article, id)
+
+Vienna_DE_nonunique <- Vienna_articles_DE %>%
+  filter(lang == "de") 
+
+Vienna_DE_nonunique$article <- stri_trans_general(Vienna_DE_nonunique$article, "Latin-ASCII")
+
+Vienna_final <- Vienna_DE_nonunique %>%
+  left_join(Vienna_articles_matched, by = "article") %>%
+  select(-wm) %>%
+  filter(!is.na(id))
 
 
