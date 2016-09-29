@@ -1009,4 +1009,35 @@ Vienna_final <- Vienna_DE_nonunique %>%
   select(-wm) %>%
   filter(!is.na(id))
 
+# Add residual category to dataframe
 
+categories[24,] <- c(99, "Other/Unclassified", "")
+
+# Join with pageviews file
+
+Vienna_pageviews_article <- Vienna_final %>%
+  distinct(item, .keep_all = T) %>%
+  left_join(Vienna_pageviews_C, by = "item") %>%
+  group_by(id) %>%
+  summarise(value_id = sum(value, na.rm = T)) %>%
+  left_join(categories, by = "id") %>%
+  select(-keywords) %>%
+  filter(id != 99)
+
+Vienna_pageviews_article$percentage <- scales::percent(Vienna_pageviews_article$value_id/sum(Vienna_pageviews_article$value_id))
+
+# create chart (not finished)
+
+library(ggplot2)
+
+y.breaks <- cumsum(Vienna_pageviews_article$value_id) - Vienna_pageviews_article$value_id/2
+
+pie <- ggplot(transform(transform(Vienna_pageviews_article, value_id = value_id/sum(value_id)), labPos=cumsum(value_id)-value_id/2), aes(x = "", y = value_id, fill=category)) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start=0) +
+  ggtitle("Categories for Vienna") +
+  xlab("") +
+  ylab("") +
+  theme_classic() +
+  geom_text(aes(y=labPos, label=scales::percent(value_id)))
+pie
