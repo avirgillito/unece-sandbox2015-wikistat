@@ -1002,7 +1002,16 @@ Vienna_articles_matched <- Vienna_matched %>%
 Vienna_DE_nonunique <- Vienna_articles_DE %>%
   filter(lang == "de") 
 
+Vienna_unique <- Vienna_articles_in_C %>%
+  distinct(article, lang, .keep_all = T) %>%
+  select(-wm) %>%
+  left_join(Vienna_matched, by = "item")
+
+summary(Vienna_unique$id)
+
 Vienna_DE_nonunique$article <- stri_trans_general(Vienna_DE_nonunique$article, "Latin-ASCII")
+
+Vienna_unique$article <- stri_trans_general(Vienna_unique$article, "Latin-ASCII")
 
 Vienna_final <- Vienna_DE_nonunique %>%
   left_join(Vienna_articles_matched, by = "article") %>%
@@ -1026,18 +1035,100 @@ Vienna_pageviews_article <- Vienna_final %>%
 
 Vienna_pageviews_article$percentage <- scales::percent(Vienna_pageviews_article$value_id/sum(Vienna_pageviews_article$value_id))
 
-# create chart (not finished)
+# create barchart 
 
 library(ggplot2)
 
-y.breaks <- cumsum(Vienna_pageviews_article$value_id) - Vienna_pageviews_article$value_id/2
+plot <- ggplot(data = Vienna_pageviews_article, aes(x = reorder(factor(category), value_id), y = value_id, fill = category)) +
+  geom_bar(stat = "identity") +
+  ggtitle("Number of pageviews by category - Vienna") +
+  guides(fill=FALSE) +
+  coord_flip() +
+  xlab("") + 
+  ylab("Number of pageviews")
+  
+plot
 
-pie <- ggplot(transform(transform(Vienna_pageviews_article, value_id = value_id/sum(value_id)), labPos=cumsum(value_id)-value_id/2), aes(x = "", y = value_id, fill=category)) +
-  geom_bar(width = 1, stat = "identity") +
-  coord_polar("y", start=0) +
-  ggtitle("Categories for Vienna") +
-  xlab("") +
-  ylab("") +
-  theme_classic() +
-  geom_text(aes(y=labPos, label=scales::percent(value_id)))
-pie
+# Create scatterplot
+
+scatter <- data.frame(no_articles = summary(Vienna_unique$id))
+scatter <- scatter[-c(24,25),]
+categ <- categories$id 
+categ <- categ[-24]
+value_id <- Vienna_pageviews_article$value_id
+
+scatter_data <- data.frame(cbind(id = categ, value_id = value_id, no_articles = scatter), stringsAsFactors = F) %>%
+  mutate(value_id = as.integer(value_id), 
+         no_articles = as.integer(no_articles))
+
+s <- ggplot(scatter_data, aes(x=no_articles, y=value_id)) +
+  geom_point(shape=1) +    
+  geom_smooth(method = "lm", se = F) +
+  xlab("Number of articles") +
+  ylab("Number of pageviews") +
+  ggtitle("Correlation between number of articles and pageviews")
+s
+
+# Consider pageviews per category by language
+
+Vienna_pageviews_article_language <- Vienna_unique %>%
+  distinct(article.x, lang.x, .keep_all = T) %>%
+  left_join(Vienna_pageviews_C, by = "item") %>%
+  group_by(id, lang.x) %>%
+  summarise(value_id = sum(value, na.rm = T)) %>%
+  filter(id != 99 & !is.na(id))%>%
+  left_join(categories, by = "id") %>%
+  select(-keywords) 
+ 
+Vienna_pageviews_article_language$percentage <- scales::percent(Vienna_pageviews_article_language$value_id/sum(Vienna_pageviews_article_language$value_id))
+
+library(reshape2)
+
+w <- dcast(Vienna_pageviews_article_language, id + category ~ lang.x, value.var = "value_id")
+
+nas <- is.na(w_percentage)
+w_percentage[nas] <- 0
+
+library(tigerstats)
+
+lang_percentage <- colPerc(w_percentage) 
+lang_percentage <- lang_percentage[-24,]
+lang_percentage <- data.frame(cbind(id = w$id, category = w$category, lang_percentage)) %>%
+  mutate(id = as.numeric(id))
+
+# Build time series for categories
+
+Vienna_final_2 <- Vienna_final %>%
+  distinct(item, .keep_all = T)
+  
+Vienna_final_ts <- Vienna_reads_in_C %>%
+  left_join(Vienna_final_2, by = 'item') %>%
+  select(-lat, -long)%>%
+  filter(!is.na(id))%>%
+  group_by(time, id)%>%
+  summarise(value = sum(value))
+
+## Plot time series
+
+# Adjust the way the time variable is displayed
+
+library(reshape2)
+library(xts)
+
+Vienna_final_ts <- dcast(Vienna_final_ts, time ~ id) %>%
+  mutate(time = as.Date(ts(1:48, frequency = 12, start = c(2012, 01))))
+Vienna_final_ts <- xts(Vienna_final_ts[,-1], order.by = as.POSIXct(Vienna_final_ts$time))
+
+# Standardized
+Vienna_final_ts_scaled <- scale(Vienna_final_ts)
+
+library(dygraphs)
+library(htmlwidgets)
+options(scipen=999)
+
+g <- dygraph(Vienna_final_ts_scaled, main = "Vienna (C) pageviews by categories") %>%
+  dyOptions(colors = RColorBrewer::brewer.pal(8, "Dark2")) %>%
+g
+
+saveWidget(widget = g, file="Vienna_categories.html", selfcontained = FALSE)
+
