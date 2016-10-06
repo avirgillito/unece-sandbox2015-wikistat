@@ -1132,3 +1132,916 @@ g
 
 saveWidget(widget = g, file="Vienna_categories.html", selfcontained = FALSE)
 
+### BARCELONA
+
+## TOPIC MODELING
+
+library(jsonlite)
+source("scripts/r/wikidata_functions.R")
+source("scripts/r/redirects_target_and_origin_for_cities.R")
+
+Barcelona_articles_in_C <- Barcelona_articles_in_C %>%
+  mutate(wm = getWikiMarkup(article, lang))
+
+write.csv(Barcelona_articles_in_C, "Barcelona_articles_in_C.csv", fileEncoding = "UTF-8")
+
+Barcelona_articles_in_C <- read.csv("C:/Users/signose/Desktop/Barcelona_articles_in_C.csv", encoding = "UTF-8") %>%
+  select(-X) %>%
+  mutate(wm = as.character(wm))
+
+B <- Barcelona_articles_in_C %>%
+  mutate(lang = as.factor(lang))
+
+summary(B)
+
+Barcelona_articles_in_C_ES <- Barcelona_articles_in_C %>%
+  filter(lang == "es") %>%
+  full_join(Barcelona_articles_in_C, by = 'item')
+
+names(Barcelona_articles_in_C_ES) <- c("item", "articlex", "langx", "wmx", "articley", "langy", "wmy")
+
+Barcelona_articles_ES <- data.frame(item = character(), article = character(), lang = character(), wm = character())
+for (i in 1:nrow(Barcelona_articles_in_C_ES)) {
+  item <- data.frame(item = Barcelona_articles_in_C_ES$item[i])
+  if (!is.na(Barcelona_articles_in_C_ES$langx[i])) {
+    article <- Barcelona_articles_in_C_ES$articlex[i]
+    lang <- Barcelona_articles_in_C_ES$langx[i]
+    wm <- Barcelona_articles_in_C_ES$wmx[i]
+  } else {
+    article <- Barcelona_articles_in_C_ES$articley[i]
+    lang <- Barcelona_articles_in_C_ES$langy[i]
+    wm <- Barcelona_articles_in_C_ES$wmy[i]
+  }
+  temp <- item %>%
+    mutate(article = article, lang = lang, wm = wm)
+  Barcelona_articles_ES <- rbind(Barcelona_articles_ES, temp)
+}
+
+# divide articles by language
+
+Barcelona_ES <- Barcelona_articles_ES %>%
+  filter(lang == "es") %>%
+  distinct(article, .keep_all = TRUE)
+
+# exclude articles without wikimarkup
+
+Barcelona_ES <- Barcelona_ES %>%
+  filter(wm != "ERROR: wikimarkup missing")
+
+# Preprocessing of data
+
+library(tm)
+
+#create corpus from vector
+
+Barcelona_ES$wm <- Corpus(VectorSource(Barcelona_ES$wm))
+
+#Transform to lower case
+
+Barcelona_ES$wm <- tm_map(Barcelona_ES$wm, content_transformer(tolower))
+
+#remove potentially problematic symbols
+toSpace <- content_transformer(function(x, pattern) { return (gsub(pattern, " ", x))})
+
+Barcelona_ES$wm <- tm_map(Barcelona_ES$wm, toSpace, "-")
+Barcelona_ES$wm <- tm_map(Barcelona_ES$wm, toSpace, "’")
+Barcelona_ES$wm <- tm_map(Barcelona_ES$wm, toSpace, "‘")
+Barcelona_ES$wm <- tm_map(Barcelona_ES$wm, toSpace, "•") 
+Barcelona_ES$wm <- tm_map(Barcelona_ES$wm, toSpace, "“")
+Barcelona_ES$wm <- tm_map(Barcelona_ES$wm, toSpace, "”")
+Barcelona_ES$wm <- tm_map(Barcelona_ES$wm, toSpace, "…")
+Barcelona_ES$wm <- tm_map(Barcelona_ES$wm, toSpace, "„")
+Barcelona_ES$wm <- tm_map(Barcelona_ES$wm, toSpace, "€")
+Barcelona_ES$wm <- tm_map(Barcelona_ES$wm, toSpace, "—")
+
+#remove punctuation
+
+Barcelona_ES$wm <- tm_map(Barcelona_ES$wm, removePunctuation)
+
+#Strip digits
+
+Barcelona_ES$wm <- tm_map(Barcelona_ES$wm, removeNumbers)
+
+#remove stopwords (only for selected languages)
+
+Barcelona_ES$wm <- tm_map(Barcelona_ES$wm, removeWords, stopwords("es"))
+
+#remove whitespace
+
+Barcelona_ES$wm <- tm_map(Barcelona_ES$wm, stripWhitespace)
+
+#Good practice to check every now and then
+writeLines(as.character(Barcelona_ES$article[[20]]))
+
+#Stem document
+
+Barcelona_ES$wm <- tm_map(Barcelona_ES$wm, stemDocument, lang = "es")
+
+# Remove words related to the city and the country 
+
+myStopwords <- c("españ", "barcelon", "ciud", "cataluñ")
+
+Barcelona_ES$wm <- tm_map(Barcelona_ES$wm, removeWords, myStopwords)
+
+#write.csv(Barcelona_ES, "Barcelona_ES.csv")
+
+#Create document-term matrix
+
+dtm_ES <- DocumentTermMatrix(Barcelona_ES$wm)
+
+#convert rownames to filenames
+
+rownames(dtm_ES) <- Barcelona_ES$article
+
+#collapse matrix by summing over columns
+
+freq_ES <- slam::col_sums(dtm_ES, na.rm = T)
+
+#length should be total number of terms
+
+length(freq_ES)
+
+#create sort orESr (ESscending)
+
+ord_ES <- order(freq_ES,decreasing=TRUE)
+
+#List all terms in EScreasing orESr of freq 
+freq_ES[ord_ES]
+
+#load topic moESls library
+
+library(topicmodels)
+
+#Number of topics
+k <- 45
+k <- 35
+k <- 20
+
+#Run LDA using Gibbs sampling
+
+ldaOut <-LDA(dtm_ES, k, method="Gibbs")
+ldaOut.35 <-LDA(dtm_ES, k, method="Gibbs")
+ldaOut.20 <-LDA(dtm_ES, k, method="Gibbs")
+
+#write out results
+#docs to topics
+
+ldaOut.topics.Barcelona <- as.matrix(topics(ldaOut))
+ldaOut.topics.Barcelona.35 <- as.matrix(topics(ldaOut.35))
+ldaOut.topics.Barcelona.20 <- as.matrix(topics(ldaOut.20))
+
+save(ldaOut.20, file="ldaOut20Barcelona.RData")
+save(ldaOut.topics.Barcelona.20, file="topics20Barcelona.Rdata")
+
+#top 6 terms in each topic
+ldaOut.terms.Barcelona <- as.matrix(terms(ldaOut,10))
+ldaOut.terms.Barcelona.35 <- as.matrix(terms(ldaOut.35,10))
+ldaOut.terms.Barcelona.20 <- as.matrix(terms(ldaOut.20,10))
+
+save(ldaOut.terms.Barcelona.20, file="terms20Barcelona.Rdata")
+
+# upload list of found categories
+
+categories_Barcelona <- read.csv("./categoriesBARCELONA.csv") %>%
+  mutate(id = as.numeric(id), keywords = as.character(keywords), category = as.character(category))
+
+# create list of articles with id of the category
+
+ldaOut.topics.Barcelona.post <- ldaOut.topics.Barcelona.20 
+rownames(ldaOut.topics.Barcelona.post) = NULL
+
+ldaOut_topics_Barcelona <- data.frame(article = rownames(ldaOut.topics.Barcelona.20), id = ldaOut.topics.Barcelona.post)
+
+# Add category to data frame of articles 
+
+Barcelona_ES_post <- data.frame(item = as.character(Barcelona_ES$item), article = as.character(Barcelona_ES$article), lang = as.character(Barcelona_ES$lang)) %>%
+  left_join(ldaOut_topics_Barcelona, by = "article") %>%
+  mutate(id = as.numeric(id), item = as.character(item), article = as.character(article), lang = as.character(lang))
+
+library(stringi)
+
+Barcelona_ES_post$article <- stri_trans_general(Barcelona_ES_post$article, "Latin-ASCII")
+
+# Unify the doubled categories
+
+Barcelona_ES_post$id[Barcelona_ES_post$id == 14] <- 7
+Barcelona_ES_post$id[Barcelona_ES_post$id == 5] <- 1 
+Barcelona_ES_post$id[Barcelona_ES_post$id == 19] <- 1 
+Barcelona_ES_post$id[Barcelona_ES_post$id == 8] <- 2 
+Barcelona_ES_post$id[Barcelona_ES_post$id == 20] <- 2 
+
+# prepare keywords
+
+keywords_Barcelona <- paste(categories_Barcelona$keywords[1], categories_Barcelona$keywords[2], 
+                  categories_Barcelona$keywords[3], categories_Barcelona$keywords[4],
+                  categories_Barcelona$keywords[5], categories_Barcelona$keywords[6],
+                  categories_Barcelona$keywords[7], categories_Barcelona$keywords[8],
+                  categories_Barcelona$keywords[9], categories_Barcelona$keywords[10],
+                  categories_Barcelona$keywords[11], categories_Barcelona$keywords[12],
+                  categories_Barcelona$keywords[13], categories_Barcelona$keywords[14], sep = ", ")
+
+keywords_Barcelona <- unlist(strsplit(keywords_Barcelona, " "))
+keywords_Barcelona <- unlist(strsplit(keywords_Barcelona, ","))
+
+# Fix the mixed categories (4)
+
+Mixed_Barcelona_ES <- Barcelona_ES_post %>%
+  filter(id == 4) 
+
+# check if match between keywords and title of article exists
+
+for (i in 1:nrow(Mixed_Barcelona_ES)) {
+  Mixed_Barcelona_ES$estacion[i] <-  grepl(keywords_Barcelona[1], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$line[i] <-  grepl(keywords_Barcelona[2], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$metr[i] <-  grepl(keywords_Barcelona[3], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$club[i] <-  grepl(keywords_Barcelona[4], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$futbol[i] <-  grepl(keywords_Barcelona[5], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$equip[i] <-  grepl(keywords_Barcelona[6], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$camp[i] <-  grepl(keywords_Barcelona[7], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$deport[i] <-  grepl(keywords_Barcelona[8], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$univers[i] <-  grepl(keywords_Barcelona[9], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$escuel[i] <-  grepl(keywords_Barcelona[10], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$estudi[i] <-  grepl(keywords_Barcelona[11], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$institut[i] <-  grepl(keywords_Barcelona[12], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$superior[i] <-  grepl(keywords_Barcelona[13], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$campus[i] <-  grepl(keywords_Barcelona[14], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$escola[i] <-  grepl(keywords_Barcelona[15], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$teatr[i] <-  grepl(keywords_Barcelona[16], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$music[i] <-  grepl(keywords_Barcelona[17], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$edifici[i] <-  grepl(keywords_Barcelona[18], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$cas[i] <-  grepl(keywords_Barcelona[19], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$torr[i] <-  grepl(keywords_Barcelona[20], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$fabric[i] <-  grepl(keywords_Barcelona[21], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$industrial[i] <-  grepl(keywords_Barcelona[22], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$palacio[i] <-  grepl(keywords_Barcelona[23], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$villa[i] <-  grepl(keywords_Barcelona[24], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$can[i] <-  grepl(keywords_Barcelona[25], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$palacete[i] <-  grepl(keywords_Barcelona[26], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$barri[i] <-  grepl(keywords_Barcelona[27], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$distrit[i] <-  grepl(keywords_Barcelona[28], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$call[i] <-  grepl(keywords_Barcelona[29], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$plaz[i] <-  grepl(keywords_Barcelona[30], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$avenida[i] <-  grepl(keywords_Barcelona[31], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$paseo[i] <-  grepl(keywords_Barcelona[32], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$muse[i] <-  grepl(keywords_Barcelona[33], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$famili[i] <-  grepl(keywords_Barcelona[34], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$sagr[i] <-  grepl(keywords_Barcelona[35], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$guerr[i] <-  grepl(keywords_Barcelona[36], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$general[i] <-  grepl(keywords_Barcelona[37], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$departamento[i] <-  grepl(keywords_Barcelona[38], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$monument[i] <-  grepl(keywords_Barcelona[39], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$fuent[i] <-  grepl(keywords_Barcelona[40], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$arte[i] <-  grepl(keywords_Barcelona[41], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$parqu[i] <-  grepl(keywords_Barcelona[42], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$jardin[i] <-  grepl(keywords_Barcelona[43], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$sant[i] <-  grepl(keywords_Barcelona[44], tolower(Mixed_Barcelona_ES$article[i]))
+  Mixed_Barcelona_ES$iglesi[i] <-  grepl(keywords_Barcelona[45], tolower(Mixed_Barcelona_ES$article[i]))
+}
+
+Mixed_Barcelona_ES$matches <- rowSums(Mixed_Barcelona_ES[,5:45])
+
+# add new category and add 99 for residual unclassified cases
+
+for (i in 1:nrow(Mixed_Barcelona_ES)) {
+  if (Mixed_Barcelona_ES$matches[i] == 0) {
+    Mixed_Barcelona_ES$id[i] <- 99
+  } 
+}
+
+# Add new categories
+
+Match_1_Barcelona <- Mixed_Barcelona_ES %>%
+  filter(matches == 1)
+
+for (i in 1:nrow(Match_1_Barcelona)) {
+  if (Match_1_Barcelona[i,5] == TRUE) {
+    Match_1_Barcelona$id[i] <- 1
+  } else if (Match_1_Barcelona[i,19] == TRUE) {
+    Match_1_Barcelona$id[i] <- 3
+  } else if (Match_1_Barcelona[i,20] == TRUE | Match_1_Barcelona[i,21] == TRUE) {
+    Match_1_Barcelona$id[i] <- 6
+  } else if (Match_1_Barcelona[i,22] == TRUE | Match_1_Barcelona[i,23] == TRUE | 
+             Match_1_Barcelona[i,25] == TRUE | Match_1_Barcelona[i,27] == TRUE |
+             Match_1_Barcelona[i,30] == TRUE) {
+    Match_1_Barcelona$id[i] <- 7
+  } else if (Match_1_Barcelona[i,35] == TRUE | Match_1_Barcelona[i,36] == TRUE) {
+    Match_1_Barcelona$id[i] <- 9
+  } else if (Match_1_Barcelona[i,47] == TRUE) {
+    Match_1_Barcelona$id[i] <- 17
+  } 
+}
+
+Match_1_Barcelona$id[Match_1_Barcelona$id == 4] <- 99 
+
+Match_2_Barcelona <- Mixed_Barcelona_ES %>%
+  filter(matches == 0)
+
+Match_3_Barcelona <- Mixed_Barcelona_ES %>%
+  filter(matches == 2)
+
+for (i in 1:nrow(Match_3_Barcelona)) {
+  if (Match_3_Barcelona[i,27] == TRUE) {
+    Match_3_Barcelona$id[i] <- 7
+  }
+}
+
+Match_3_Barcelona$id[Match_3_Barcelona$id == 4] <- 99
+
+Barcelona_final_match <- rbind(Match_1_Barcelona, Match_2_Barcelona, Match_3_Barcelona) %>%
+  select(item, article, lang, id)
+
+Barcelona_final_match_2 <- Barcelona_ES_post %>%
+  filter(id != 4)
+
+Barcelona_matched <- rbind(Barcelona_final_match, Barcelona_final_match_2)
+
+Barcelona_matched$id <- as.factor(Barcelona_matched$id)
+
+summary(Barcelona_matched$id)
+
+Barcelona_articles_matched <- Barcelona_matched %>%
+  select(article, id)
+
+Barcelona_ES_nonunique <- Barcelona_articles_ES %>%
+  filter(lang == "es") 
+
+Barcelona_unique <- Barcelona_articles_in_C %>%
+  distinct(article, lang, .keep_all = T) %>%
+  select(-wm) %>%
+  left_join(Barcelona_matched, by = "item") %>%
+  select(-article.y, -lang.y)
+
+names(Barcelona_unique) <- c("item", "article", "lang", "id")
+
+summary(Barcelona_unique$id)
+
+Barcelona_ES_nonunique$article <- stri_trans_general(Barcelona_ES_nonunique$article, "Latin-ASCII")
+
+Barcelona_unique$article <- stri_trans_general(Barcelona_unique$article, "Latin-ASCII")
+
+Barcelona_final <- Barcelona_ES_nonunique %>%
+  left_join(Barcelona_articles_matched, by = "article") %>%
+  select(-wm) %>%
+  filter(!is.na(id))
+
+# Add residual category to dataframe
+
+categories_Barcelona[15,] <- c(99, "Other/Unclassified", "")
+
+# Join with pageviews file
+
+Barcelona_pageviews_article <- Barcelona_final %>%
+  distinct(item, .keep_all = T) %>%
+  left_join(Barcelona_pageviews_C, by = "item") %>%
+  group_by(id) %>%
+  summarise(value_id = sum(value, na.rm = T)) %>%
+  left_join(categories_Barcelona, by = "id") %>%
+  select(-keywords) %>%
+  filter(id != 99)
+
+Barcelona_pageviews_article$percentage <- scales::percent(Barcelona_pageviews_article$value_id/sum(Barcelona_pageviews_article$value_id))
+
+# create barchart 
+
+library(ggplot2)
+
+plot <- ggplot(data = Barcelona_pageviews_article, aes(x = reorder(factor(category), value_id), y = value_id, fill = category)) +
+  geom_bar(stat = "identity") +
+  ggtitle("Number of pageviews by category - Barcelona") +
+  guides(fill=FALSE) +
+  coord_flip() +
+  xlab("") + 
+  ylab("Number of pageviews")
+
+plot
+
+# Create scatterplot
+
+scatter <- data.frame(no_articles = summary(Barcelona_unique$id))
+scatter <- scatter[-c(15,16),]
+categ <- categories_Barcelona$id 
+categ <- categ[-15]
+value_id <- Barcelona_pageviews_article$value_id
+
+scatter_data <- data.frame(cbind(id = categ, value_id = value_id, no_articles = scatter), stringsAsFactors = F) %>%
+  mutate(value_id = as.integer(value_id), 
+         no_articles = as.integer(no_articles))
+
+s <- ggplot(scatter_data, aes(x=no_articles, y=value_id)) +
+  geom_point(shape=1) +    
+  geom_smooth(method = "lm", se = F) +
+  xlab("Number of articles") +
+  ylab("Number of pageviews") +
+  ggtitle("Correlation between number of articles and pageviews")
+s
+
+# Consider pageviews per category by language
+
+Barcelona_pageviews_article_language <- Barcelona_unique %>%
+  distinct(article, lang, .keep_all = T) %>%
+  left_join(Barcelona_pageviews_C, by = "item") %>%
+  group_by(id, lang) %>%
+  summarise(value_id = sum(value, na.rm = T)) %>%
+  filter(id != 99 & !is.na(id))%>%
+  left_join(categories_Barcelona, by = "id") %>%
+  select(-keywords) 
+
+Barcelona_pageviews_article_language$percentage <- scales::percent(Barcelona_pageviews_article_language$value_id/sum(Barcelona_pageviews_article_language$value_id))
+
+library(reshape2)
+
+w <- dcast(Barcelona_pageviews_article_language, id + category ~ lang, value.var = "value_id")
+w_percentage <- w[,3:33]
+nas <- is.na(w_percentage)
+w_percentage[nas] <- 0
+
+library(tigerstats)
+
+lang_percentage <- colPerc(w_percentage) 
+lang_percentage <- lang_percentage[-15,]
+lang_percentage <- data.frame(cbind(id = w$id, category = w$category, lang_percentage)) %>%
+  mutate(id = as.numeric(id))
+
+# Build time series for categories
+
+Barcelona_final_2 <- Barcelona_final %>%
+  distinct(item, .keep_all = T)
+
+Barcelona_final_ts <- Barcelona_reads_in_C %>%
+  left_join(Barcelona_final_2, by = 'item') %>%
+  select(-lat, -long)%>%
+  filter(!is.na(id))%>%
+  group_by(time, id)%>%
+  summarise(value = sum(value))
+
+## Plot time series
+
+# Adjust the way the time variable is displayed
+
+library(reshape2)
+library(xts)
+
+Barcelona_final_ts <- dcast(Barcelona_final_ts, time ~ id) %>%
+  mutate(time = as.Date(ts(1:48, frequency = 12, start = c(2012, 01))))
+Barcelona_final_ts <- xts(Barcelona_final_ts[,-1], order.by = as.POSIXct(Barcelona_final_ts$time))
+
+# Standardized
+Barcelona_final_ts_scaled <- scale(Barcelona_final_ts)
+
+library(dygraphs)
+library(htmlwidgets)
+options(scipen=999)
+
+g <- dygraph(Barcelona_final_ts_scaled, main = "Barcelona (C) pageviews by categories") %>%
+  dyOptions(colors = RColorBrewer::brewer.pal(8, "Dark2")) 
+g
+
+saveWidget(widget = g, file="Barcelona_categories.html", selfcontained = FALSE)
+
+### BRUGES
+
+## TOPIC MODELING
+
+library(jsonlite)
+source("scripts/r/wikidata_functions.R")
+source("scripts/r/redirects_target_and_origin_for_cities.R")
+
+Bruges_articles_in_C <- Bruges_articles_in_C %>%
+  mutate(wm = getWikiMarkup(article, lang))
+
+write.csv(Bruges_articles_in_C, "Bruges_articles_in_C.csv", fileEncoding = "UTF-8")
+
+Bruges_articles_in_C <- read.csv("C:/Users/signose/Desktop/Bruges_articles_in_C.csv", encoding = "UTF-8") %>%
+  select(-X) %>%
+  mutate(wm = as.character(wm))
+
+B <- Bruges_articles_in_C %>%
+  mutate(lang = as.factor(lang))
+
+summary(B)
+
+Bruges_articles_in_C_NL <- Bruges_articles_in_C %>%
+  filter(lang == "nl") %>%
+  full_join(Bruges_articles_in_C, by = 'item')
+
+names(Bruges_articles_in_C_NL) <- c("item", "articlex", "langx", "wmx", "articley", "langy", "wmy")
+
+Bruges_articles_NL <- data.frame(item = character(), article = character(), lang = character(), wm = character())
+for (i in 1:nrow(Bruges_articles_in_C_NL)) {
+  item <- data.frame(item = Bruges_articles_in_C_NL$item[i])
+  if (!is.na(Bruges_articles_in_C_NL$langx[i])) {
+    article <- Bruges_articles_in_C_NL$articlex[i]
+    lang <- Bruges_articles_in_C_NL$langx[i]
+    wm <- Bruges_articles_in_C_NL$wmx[i]
+  } else {
+    article <- Bruges_articles_in_C_NL$articley[i]
+    lang <- Bruges_articles_in_C_NL$langy[i]
+    wm <- Bruges_articles_in_C_NL$wmy[i]
+  }
+  temp <- item %>%
+    mutate(article = article, lang = lang, wm = wm)
+  Bruges_articles_NL <- rbind(Bruges_articles_NL, temp)
+}
+
+# divide articles by language
+
+Bruges_NL <- Bruges_articles_NL %>%
+  filter(lang == "nl") %>%
+  distinct(article, .keep_all = TRUE)
+
+# exclude articles without wikimarkup
+
+Bruges_NL <- Bruges_NL %>%
+  filter(wm != "ERROR: wikimarkup missing")
+
+# Preprocessing of data
+
+library(tm)
+
+#create corpus from vector
+
+Bruges_NL$wm <- Corpus(VectorSource(Bruges_NL$wm))
+
+#Transform to lower case
+
+Bruges_NL$wm <- tm_map(Bruges_NL$wm, content_transformer(tolower))
+
+#remove potentially problematic symbols
+toSpace <- content_transformer(function(x, pattern) { return (gsub(pattern, " ", x))})
+
+Bruges_NL$wm <- tm_map(Bruges_NL$wm, toSpace, "-")
+Bruges_NL$wm <- tm_map(Bruges_NL$wm, toSpace, "’")
+Bruges_NL$wm <- tm_map(Bruges_NL$wm, toSpace, "‘")
+Bruges_NL$wm <- tm_map(Bruges_NL$wm, toSpace, "•") 
+Bruges_NL$wm <- tm_map(Bruges_NL$wm, toSpace, "“")
+Bruges_NL$wm <- tm_map(Bruges_NL$wm, toSpace, "”")
+Bruges_NL$wm <- tm_map(Bruges_NL$wm, toSpace, "…")
+Bruges_NL$wm <- tm_map(Bruges_NL$wm, toSpace, "„")
+Bruges_NL$wm <- tm_map(Bruges_NL$wm, toSpace, "€")
+Bruges_NL$wm <- tm_map(Bruges_NL$wm, toSpace, "—")
+
+#remove punctuation
+
+Bruges_NL$wm <- tm_map(Bruges_NL$wm, removePunctuation)
+
+#Strip digits
+
+Bruges_NL$wm <- tm_map(Bruges_NL$wm, removeNumbers)
+
+#remove stopwords (only for selected languages)
+
+Bruges_NL$wm <- tm_map(Bruges_NL$wm, removeWords, stopwords("nl"))
+
+#remove whitespace
+
+Bruges_NL$wm <- tm_map(Bruges_NL$wm, stripWhitespace)
+
+#Good practice to check every now and then
+writeLines(as.character(Bruges_NL$article[[20]]))
+
+#Stem document
+
+Bruges_NL$wm <- tm_map(Bruges_NL$wm, stemDocument, lang = "nl")
+
+# Remove words related to the city and the country 
+
+myStopwords <- c("brugg", "belgie", "bruges", "sint", "stad")
+
+Bruges_NL$wm <- tm_map(Bruges_NL$wm, removeWords, myStopwords)
+
+#write.csv(Bruges_NL, "Bruges_NL.csv")
+
+#Create document-term matrix
+
+dtm_NL <- DocumentTermMatrix(Bruges_NL$wm)
+
+#convert rownames to filenames
+
+rownames(dtm_NL) <- Bruges_NL$article
+
+#collapse matrix by summing over columns
+
+freq_NL <- slam::col_sums(dtm_NL, na.rm = T)
+
+#length should be total number of terms
+
+length(freq_NL)
+
+#create sort orNLr (NLscending)
+
+ord_NL <- order(freq_NL,decreasing=TRUE)
+
+#List all terms in NLcreasing orNLr of freq 
+
+freq_NL[ord_NL]
+
+#load topic moNLls library
+
+library(topicmodels)
+
+#Number of topics
+k <- 20
+k <- 15
+k <- 12
+
+#Run LDA using Gibbs sampling
+
+ldaOut.20 <-LDA(dtm_NL, k, method="Gibbs")
+ldaOut.10 <-LDA(dtm_NL, k, method="Gibbs")
+ldaOut.12 <-LDA(dtm_NL, k, method="Gibbs")
+
+
+#write out results
+#docs to topics
+
+ldaOut.topics.Bruges.20 <- as.matrix(topics(ldaOut.20))
+ldaOut.topics.Bruges.10 <- as.matrix(topics(ldaOut.10))
+ldaOut.topics.Bruges.12 <- as.matrix(topics(ldaOut.12))
+
+save(ldaOut.12, file="ldaOut12Bruges.RData")
+save(ldaOut.topics.Bruges.12, file="topics12Bruges.Rdata")
+
+#top 6 terms in each topic
+
+ldaOut.terms.Bruges.20 <- as.matrix(terms(ldaOut.20,10))
+ldaOut.terms.Bruges.10 <- as.matrix(terms(ldaOut.10,10))
+ldaOut.terms.Bruges.12 <- as.matrix(terms(ldaOut.12,10))
+
+save(ldaOut.terms.Bruges.12, file="terms12Bruges.Rdata")
+
+# upload list of found categories
+
+categories_Bruges <- read.csv("./categoriesBRUGES.csv") %>%
+  mutate(id = as.numeric(id), keywords = as.character(keywords), category = as.character(category))
+
+# create list of articles with id of the category
+
+ldaOut.topics.Bruges.post <- ldaOut.topics.Bruges.12
+rownames(ldaOut.topics.Bruges.post) = NULL
+
+ldaOut_topics_Bruges <- data.frame(article = rownames(ldaOut.topics.Bruges.12), id = ldaOut.topics.Bruges.post)
+
+# Add category to data frame of articles 
+
+Bruges_NL_post <- data.frame(item = as.character(Bruges_NL$item), article = as.character(Bruges_NL$article), lang = as.character(Bruges_NL$lang)) %>%
+  left_join(ldaOut_topics_Bruges, by = "article") %>%
+  mutate(id = as.numeric(id), item = as.character(item), article = as.character(article), lang = as.character(lang))
+
+library(stringi)
+
+Bruges_NL_post$article <- stri_trans_general(Bruges_NL_post$article, "Latin-ASCII")
+
+# Unify the doubled categories
+
+Bruges_NL_post$id[Bruges_NL_post$id == 12] <- 2
+Bruges_NL_post$id[Bruges_NL_post$id == 7] <- 2
+
+# prepare keywords
+
+keywords_Bruges <- paste(categories_Bruges$keywords[1], categories_Bruges$keywords[2], 
+                            categories_Bruges$keywords[3], categories_Bruges$keywords[4],
+                            categories_Bruges$keywords[5], categories_Bruges$keywords[6],
+                            categories_Bruges$keywords[7], categories_Bruges$keywords[8],
+                            categories_Bruges$keywords[9], categories_Bruges$keywords[10],
+                            categories_Bruges$keywords[11], sep = ", ")
+
+keywords_Bruges <- unlist(strsplit(keywords_Bruges, " "))
+keywords_Bruges <- unlist(strsplit(keywords_Bruges, ","))
+
+# Fix the mixed categories (4)
+
+Mixed_Bruges_NL <- Bruges_NL_post %>%
+  filter(id == 3 | id == 5 | id == 6 | id == 8 | id == 10) 
+
+# check if match between keywords and title of article exists
+
+for (i in 1:nrow(Mixed_Bruges_NL)) {
+  Mixed_Bruges_NL$station[i] <-  grepl(keywords_Bruges[1], tolower(Mixed_Bruges_NL$article[i]))
+  Mixed_Bruges_NL$statt[i] <-  grepl(keywords_Bruges[2], tolower(Mixed_Bruges_NL$article[i]))
+  Mixed_Bruges_NL$plein[i] <-  grepl(keywords_Bruges[3], tolower(Mixed_Bruges_NL$article[i]))
+  Mixed_Bruges_NL$rei[i] <-  grepl(keywords_Bruges[4], tolower(Mixed_Bruges_NL$article[i]))
+  Mixed_Bruges_NL$tunnel[i] <-  grepl(keywords_Bruges[5], tolower(Mixed_Bruges_NL$article[i]))
+  Mixed_Bruges_NL$poort[i] <-  grepl(keywords_Bruges[6], tolower(Mixed_Bruges_NL$article[i]))
+  Mixed_Bruges_NL$weg[i] <-  grepl(keywords_Bruges[7], tolower(Mixed_Bruges_NL$article[i]))
+  Mixed_Bruges_NL$bibliotheek[i] <-  grepl(keywords_Bruges[8], tolower(Mixed_Bruges_NL$article[i]))
+  Mixed_Bruges_NL$kastel[i] <-  grepl(keywords_Bruges[9], tolower(Mixed_Bruges_NL$article[i]))
+  Mixed_Bruges_NL$fort[i] <-  grepl(keywords_Bruges[10], tolower(Mixed_Bruges_NL$article[i]))
+  Mixed_Bruges_NL$schol[i] <-  grepl(keywords_Bruges[11], tolower(Mixed_Bruges_NL$article[i]))
+  Mixed_Bruges_NL$instituut[i] <-  grepl(keywords_Bruges[12], tolower(Mixed_Bruges_NL$article[i]))
+  Mixed_Bruges_NL$school[i] <-  grepl(keywords_Bruges[13], tolower(Mixed_Bruges_NL$article[i]))
+  Mixed_Bruges_NL$college[i] <-  grepl(keywords_Bruges[14], tolower(Mixed_Bruges_NL$article[i]))
+  Mixed_Bruges_NL$brouwerij[i] <-  grepl(keywords_Bruges[15], tolower(Mixed_Bruges_NL$article[i]))
+  Mixed_Bruges_NL$brug[i] <-  grepl(keywords_Bruges[16], tolower(Mixed_Bruges_NL$article[i]))
+  Mixed_Bruges_NL$kanal[i] <-  grepl(keywords_Bruges[17], tolower(Mixed_Bruges_NL$article[i]))
+  Mixed_Bruges_NL$kanaal[i] <-  grepl(keywords_Bruges[18], tolower(Mixed_Bruges_NL$article[i]))
+  Mixed_Bruges_NL$stadion[i] <-  grepl(keywords_Bruges[19], tolower(Mixed_Bruges_NL$article[i]))
+  Mixed_Bruges_NL$kerk[i] <-  grepl(keywords_Bruges[21], tolower(Mixed_Bruges_NL$article[i]))
+  Mixed_Bruges_NL$kapel[i] <-  grepl(keywords_Bruges[22], tolower(Mixed_Bruges_NL$article[i]))
+  Mixed_Bruges_NL$kathedraal[i] <-  grepl(keywords_Bruges[23], tolower(Mixed_Bruges_NL$article[i]))
+  Mixed_Bruges_NL$museum[i] <-  grepl(keywords_Bruges[24], tolower(Mixed_Bruges_NL$article[i]))
+}
+
+Mixed_Bruges_NL$matches <- rowSums(Mixed_Bruges_NL[,5:27])
+
+# add new category and add 99 for residual unclassified cases
+
+for (i in 1:nrow(Mixed_Bruges_NL)) {
+  if (Mixed_Bruges_NL$matches[i] == 0) {
+    Mixed_Bruges_NL$id[i] <- 99
+  } 
+}
+
+# Add new categories
+
+Match_1_Bruges <- Mixed_Bruges_NL %>%
+  filter(matches == 1)
+
+for (i in 1:nrow(Match_1_Bruges)) {
+  if (Match_1_Bruges[i,5] == TRUE) {
+    Match_1_Bruges$id[i] <- 1
+  } else if (Match_1_Bruges[i,7] == TRUE | Match_1_Bruges[i,8] == TRUE | Match_1_Bruges[i,9] == TRUE) {
+    Match_1_Bruges$id[i] <- 2
+  } else if (Match_1_Bruges[i,12] == TRUE) {
+    Match_1_Bruges$id[i] <- 3
+  } else if (Match_1_Bruges[i,16] == TRUE | Match_1_Bruges[i,18]) {
+    Match_1_Bruges$id[i] <- 5
+  } else if (Match_1_Bruges[i,19] == TRUE) {
+    Match_1_Bruges$id[i] <- 13
+  } else if (Match_1_Bruges[i,22] == TRUE) {
+    Match_1_Bruges$id[i] <- 8
+  } else if (Match_1_Bruges[i,24] == TRUE) {
+    Match_1_Bruges$id[i] <- 11
+  } else if (Match_1_Bruges[i,27] == TRUE) {
+    Match_1_Bruges$id[i] <- 14
+  }
+}
+
+Match_1_Bruges$id[Match_1_Bruges$id == 6] <- 99 
+
+Match_2_Bruges <- Mixed_Bruges_NL %>%
+  filter(matches == 0)
+
+Match_3_Bruges <- Mixed_Bruges_NL %>%
+  filter(matches == 2)
+
+for (i in 1:nrow(Match_3_Bruges)) {
+  if (Match_3_Bruges[i,19] == TRUE) {
+    Match_3_Bruges$id[i] <- 13
+  }
+}
+
+Match_4_Bruges <- Mixed_Bruges_NL %>%
+  filter(matches == 3)
+
+Match_4_Bruges$id[Match_4_Bruges$id == 5] <- 14 
+
+Bruges_final_match <- rbind(Match_1_Bruges, Match_2_Bruges, Match_3_Bruges, Match_4_Bruges) %>%
+  select(item, article, lang, id)
+
+Bruges_final_match_2 <- Bruges_NL_post %>%
+  filter(id != 3 & id != 5 & id != 6 & id != 8 & id != 10)
+
+Bruges_matched <- rbind(Bruges_final_match, Bruges_final_match_2)
+
+Bruges_matched$id <- as.factor(Bruges_matched$id)
+
+summary(Bruges_matched$id)
+
+Bruges_articles_matched <- Bruges_matched %>%
+  select(article, id)
+
+Bruges_NL_nonunique <- Bruges_articles_NL %>%
+  filter(lang == "nl") 
+
+Bruges_unique <- Bruges_articles_in_C %>%
+  distinct(article, lang, .keep_all = T) %>%
+  select(-wm) %>%
+  left_join(Bruges_matched, by = "item") %>%
+  select(-article.y, -lang.y)
+
+names(Bruges_unique) <- c("item", "article", "lang", "id")
+
+summary(Bruges_unique$id)
+
+Bruges_NL_nonunique$article <- stri_trans_general(Bruges_NL_nonunique$article, "Latin-ASCII")
+
+Bruges_unique$article <- stri_trans_general(Bruges_unique$article, "Latin-ASCII")
+
+Bruges_final <- Bruges_NL_nonunique %>%
+  left_join(Bruges_articles_matched, by = "article") %>%
+  select(-wm) %>%
+  filter(!is.na(id))
+
+# Add residual category to dataframe
+
+categories_Bruges[13,] <- c(99, "Other/Unclassified", "")
+
+# Join with pageviews file
+
+Bruges_pageviews_article <- Bruges_final %>%
+  distinct(item, .keep_all = T) %>%
+  left_join(Bruges_pageviews_C, by = "item") %>%
+  group_by(id) %>%
+  summarise(value_id = sum(value, na.rm = T)) %>%
+  left_join(categories_Bruges, by = "id") %>%
+  select(-keywords) %>%
+  filter(id != 99)
+
+Bruges_pageviews_article$percentage <- scales::percent(Bruges_pageviews_article$value_id/sum(Bruges_pageviews_article$value_id))
+
+# create barchart 
+
+library(ggplot2)
+
+plot <- ggplot(data = Bruges_pageviews_article, aes(x = reorder(factor(category), value_id), y = value_id, fill = category)) +
+  geom_bar(stat = "identity") +
+  ggtitle("Number of pageviews by category - Bruges") +
+  guides(fill=FALSE) +
+  coord_flip() +
+  xlab("") + 
+  ylab("Number of pageviews")
+
+plot
+
+# Create scatterplot
+
+scatter <- data.frame(no_articles = summary(Bruges_unique$id))
+scatter <- scatter[-c(11,12),]
+categ <- categories_Bruges$id 
+categ <- categ[-c(12,13)]
+value_id <- Bruges_pageviews_article$value_id
+
+scatter_data <- data.frame(cbind(id = categ, value_id = value_id, no_articles = scatter), stringsAsFactors = F) %>%
+  mutate(value_id = as.integer(value_id), 
+         no_articles = as.integer(no_articles))
+
+s <- ggplot(scatter_data, aes(x=no_articles, y=value_id)) +
+  geom_point(shape=1) +    
+  geom_smooth(method = "lm", se = F) +
+  xlab("Number of articles") +
+  ylab("Number of pageviews") +
+  ggtitle("Correlation between number of articles and pageviews")
+s
+
+# Consider pageviews per category by language
+
+Bruges_pageviews_article_language <- Bruges_unique %>%
+  distinct(article, lang, .keep_all = T) %>%
+  left_join(Bruges_pageviews_C, by = "item") %>%
+  group_by(id, lang) %>%
+  summarise(value_id = sum(value, na.rm = T)) %>%
+  filter(id != 99 & !is.na(id))%>%
+  left_join(categories_Bruges, by = "id") %>%
+  select(-keywords) 
+
+Bruges_pageviews_article_language$percentage <- scales::percent(Bruges_pageviews_article_language$value_id/sum(Bruges_pageviews_article_language$value_id))
+
+library(reshape2)
+
+w <- dcast(Bruges_pageviews_article_language, id + category ~ lang, value.var = "value_id")
+w_percentage <- w[,3:27]
+nas <- is.na(w_percentage)
+w_percentage[nas] <- 0
+
+library(tigerstats)
+
+lang_percentage <- colPerc(w_percentage) 
+lang_percentage <- lang_percentage[-12,]
+lang_percentage <- data.frame(cbind(id = w$id, category = w$category, lang_percentage)) %>%
+  mutate(id = as.numeric(id))
+
+# Build time series for categories
+
+Bruges_final_2 <- Bruges_final %>%
+  distinct(item, .keep_all = T)
+
+Bruges_final_ts <- Bruges_reads_in_C %>%
+  left_join(Bruges_final_2, by = 'item') %>%
+  select(-lat, -long)%>%
+  filter(!is.na(id))%>%
+  group_by(time, id)%>%
+  summarise(value = sum(value))
+
+## Plot time series
+
+# Adjust the way the time variable is displayed
+
+library(reshape2)
+library(xts)
+
+Bruges_final_ts <- dcast(Bruges_final_ts, time ~ id) %>%
+  mutate(time = as.Date(ts(1:48, frequency = 12, start = c(2012, 01))))
+Bruges_final_ts <- xts(Bruges_final_ts[,-1], order.by = as.POSIXct(Bruges_final_ts$time))
+
+# Standardized
+Bruges_final_ts_scaled <- scale(Bruges_final_ts)
+
+library(dygraphs)
+library(htmlwidgets)
+options(scipen=999)
+
+g <- dygraph(Bruges_final_ts_scaled, main = "Bruges (C) pageviews by categories") %>%
+  dyOptions(colors = RColorBrewer::brewer.pal(8, "Dark2")) 
+g
+
+saveWidget(widget = g, file="Bruges_categories.html", selfcontained = FALSE)
