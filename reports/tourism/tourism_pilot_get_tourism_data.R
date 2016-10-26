@@ -689,7 +689,7 @@ Vienna_Apr_16 <- Vienna_Apr_16 %>%
 
 # Arrivals
 
-Vienna_arrivals <- cbind(Vienna_Jan_15, Vienna_Feb_15$arrivals, Vienna_Mar_15$arrivals, Vienna_Apr_15$arrivals,
+Vienna_arrivals <- cbind(Vienna_Jan_15$country_of_origin,  Vienna_Jan_15$arrivals, Vienna_Feb_15$arrivals, Vienna_Mar_15$arrivals, Vienna_Apr_15$arrivals,
                          Vienna_May_15$arrivals, Vienna_Jun_15$arrivals, Vienna_Jul_15$arrivals, Vienna_Aug_15$arrivals,
                          Vienna_Sep_15$arrivals, Vienna_Oct_15$arrivals, Vienna_Nov_15$arrivals, Vienna_Dec_15$arrivals,
                          Vienna_Jan_16$arrivals, Vienna_Feb_16$arrivals, Vienna_Mar_16$arrivals, Vienna_Apr_16$arrivals)
@@ -702,7 +702,7 @@ write.csv(Vienna_arrivals, "./tourism_data/Vienna/Vienna_arrivals.csv")
 
 # Overnight stays
 
-Vienna_overnight_stays <- cbind(Vienna_Jan_15, Vienna_Feb_15$overnight_stays, Vienna_Mar_15$overnight_stays, Vienna_Apr_15$overnight_stays,
+Vienna_overnight_stays <- cbind(Vienna_Jan_15$country_of_origin, Vienna_Jan_15$overnight_stays, Vienna_Feb_15$overnight_stays, Vienna_Mar_15$overnight_stays, Vienna_Apr_15$overnight_stays,
                          Vienna_May_15$overnight_stays, Vienna_Jun_15$overnight_stays, Vienna_Jul_15$overnight_stays, Vienna_Aug_15$overnight_stays,
                          Vienna_Sep_15$overnight_stays, Vienna_Oct_15$overnight_stays, Vienna_Nov_15$overnight_stays, Vienna_Dec_15$overnight_stays,
                          Vienna_Jan_16$overnight_stays, Vienna_Feb_16$overnight_stays, Vienna_Mar_16$overnight_stays, Vienna_Apr_16$overnight_stays)
