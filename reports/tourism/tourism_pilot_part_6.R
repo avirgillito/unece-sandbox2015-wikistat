@@ -1018,6 +1018,13 @@ Vienna_final <- Vienna_DE_nonunique %>%
   select(-wm) %>%
   filter(!is.na(id))
 
+Vienna_final$id[Vienna_final$item == 'Q46242'] <- 30
+Vienna_final$id[Vienna_final$item == 'Q871525'] <- 4
+Vienna_final$id[Vienna_final$item == 'Q686544'] <- 28
+Vienna_final$id[Vienna_final$item == 'Q1180082'] <- 4
+Vienna_final$id[Vienna_final$item == 'Q701633'] <- 4
+Vienna_final$id[Vienna_final$item == 'Q303507'] <- 4
+
 # Add residual category to dataframe
 
 categories[24,] <- c(99, "Other/Unclassified", "")
@@ -1484,6 +1491,12 @@ Barcelona_final <- Barcelona_ES_nonunique %>%
   select(-wm) %>%
   filter(!is.na(id))
 
+Barcelona_final$id[Barcelona_final$item == 'Q755125'] <- 2 
+Barcelona_final$id[Barcelona_final$item == 'Q19799406'] <- 2 
+Barcelona_final$id[Barcelona_final$item == 'Q16325382'] <- 2 
+Barcelona_final$id[Barcelona_final$item == 'Q3838459'] <- 2 
+Barcelona_final$id[Barcelona_final$item == 'Q299163'] <- 2 
+
 # Add residual category to dataframe
 
 categories_Barcelona[15,] <- c(99, "Other/Unclassified", "")
@@ -1931,6 +1944,11 @@ Bruges_final <- Bruges_NL_nonunique %>%
   left_join(Bruges_articles_matched, by = "article") %>%
   select(-wm) %>%
   filter(!is.na(id))
+
+Bruges_final$id[Bruges_final$item == 'Q590398'] <- 11
+Bruges_final$id[Bruges_final$item == 'Q184383'] <- 10
+Bruges_final$id[Bruges_final$item == 'Q700864'] <- 10
+Bruges_final$id[Bruges_final$item == 'Q1477819'] <- 13
 
 # Add residual category to dataframe
 

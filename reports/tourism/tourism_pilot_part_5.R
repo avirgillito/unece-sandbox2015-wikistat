@@ -46,173 +46,6 @@ Vienna_items_ts_C <- Vienna_reads_in_C %>%
   mutate(time = as.Date(ts(1:48, frequency = 12, start = c(2012, 01))))
 
 
-#### PRINCIPAL COMPONENT ANALYSIS
-
-library(xts)
-library(reshape2)
-library(dplyr)
-
-# Barcelona C
-
-Barcelona_items_ts_C_PCA <- Barcelona_reads_in_C %>%
-  group_by(item, time) %>%
-  summarise(value = sum(value))%>%
-  mutate(time = as.Date(ts(1:48, frequency = 12, start = c(2012, 01))))
-
-Barcelona_C_PCA_items <- dcast(Barcelona_items_ts_C_PCA, time ~ item) %>%
-  mutate(time = as.Date(ts(1:48, frequency = 12, start = c(2012, 01))))
-
-Barcelona_C_PCA_items_ts <- xts(Barcelona_C_PCA_items[,-1], order.by = as.POSIXct(Barcelona_C_PCA_items$time))
-Barcelona_C_PCA_diff <- diff(Barcelona_C_PCA_items_ts, differences=1)
-Barcelona_C_PCA_diff_scaled <- scale(Barcelona_C_PCA_diff)
-Barcelona_C_PCA_diff_scaled = Barcelona_C_PCA_diff_scaled[-1,]
-
-# PCA with diff and scale ts
-
-Barcelona_C_PCA <- prcomp(Barcelona_C_PCA_diff_scaled)
-summary(Barcelona_C_PCA)
-Barcelona_C_PCA$sdev
-
-# DECIDE HOW MANY COMPONENTS
-
-# No. 1: first change in slope in screeplot
-screeplot(Barcelona_C_PCA, type="barplot")
-screeplot(Barcelona_C_PCA, type="lines")
-
-# No. 2: variance of components
-(Barcelona_C_PCA$sdev)^2
-# Using Kaiser's criterion (variance>1), we retain 46 components
-
-# No. 3: decide a percentage of total variance
-
-# Loadings of components
-Barcelona_C_PCA$rotation[,1]
-
-# Bruges C
-
-Bruges_items_ts_C_PCA <- Bruges_reads_in_C %>%
-  group_by(item, time) %>%
-  summarise(value = sum(value))%>%
-  mutate(time = as.Date(ts(1:48, frequency = 12, start = c(2012, 01))))
-
-Bruges_C_PCA_items <- dcast(Bruges_items_ts_C_PCA, time ~ item) %>%
-  mutate(time = as.Date(ts(1:48, frequency = 12, start = c(2012, 01))))
-Bruges_C_PCA_items_ts <- xts(Bruges_C_PCA_items[,-1], order.by = as.POSIXct(Bruges_C_PCA_items$time))
-
-Bruges_C_PCA_diff <- diff(Bruges_C_PCA_items_ts, differences=1)
-Bruges_C_PCA_diff_scaled <- scale(Bruges_C_PCA_diff)
-Bruges_C_PCA_diff_scaled = Bruges_C_PCA_diff_scaled[-1,]
-
-# PCA with diff and scale ts
-
-Bruges_C_PCA <- prcomp(Bruges_C_PCA_diff_scaled)
-summary(Bruges_C_PCA)
-Bruges_C_PCA$sdev
-
-# DECIDE HOW MANY COMPONENTS
-
-# No. 1: first change in slope in screeplot
-screeplot(Bruges_C_PCA, type="barplot")
-screeplot(Bruges_C_PCA, type="lines")
-
-# No. 2: variance of components
-(Bruges_C_PCA$sdev)^2
-# Using Kaiser's criterion (variance>1), we retain 41 components
-
-# No. 3: decide a percentage of total variance
-
-# Loadings of components
-Bruges_C_PCA$rotation[,1]
-
-# Vienna C
-
-Vienna_items_ts_C_PCA <- Vienna_reads_in_C %>%
-  group_by(item, time) %>%
-  summarise(value = sum(value))%>%
-  mutate(time = as.Date(ts(1:48, frequency = 12, start = c(2012, 01))))
-
-Vienna_C_PCA_items <- dcast(Vienna_items_ts_C_PCA, time ~ item) %>%
-  mutate(time = as.Date(ts(1:48, frequency = 12, start = c(2012, 01))))
-Vienna_C_PCA_items_ts <- xts(Vienna_C_PCA_items[,-1], order.by = as.POSIXct(Vienna_C_PCA_items$time))
-
-Vienna_C_PCA_diff <- diff(Vienna_C_PCA_items_ts, differences=1)
-Vienna_C_PCA_diff_scaled <- scale(Vienna_C_PCA_diff)
-Vienna_C_PCA_diff_scaled = Vienna_C_PCA_diff_scaled[-1,]
-
-# PCA with diff and scale ts
-
-Vienna_C_PCA <- prcomp(Vienna_C_PCA_diff_scaled)
-summary(Vienna_C_PCA)
-Vienna_C_PCA$sdev
-
-# DECIDE HOW MANY COMPONENTS
-
-# No. 1: first change in slope in screeplot
-screeplot(Vienna_C_PCA, type="barplot")
-screeplot(Vienna_C_PCA, type="lines")
-
-# No. 2: variance of components
-(Vienna_C_PCA$sdev)^2
-# Using Kaiser's criterion (variance>1), we retain 46 components
-
-# No. 3: decide a percentage of total variance
-
-# Loadings of components
-Vienna_C_PCA$rotation[,1]
-
-### TSFA PACKAGE
-
-library(tsfa)
-
-
-# Barcelona C
-
-tfplot(Barcelona_C_PCA_items_ts,graphs.per.page = 3)
-tfplot(diff(Barcelona_C_PCA_items_ts),graphs.per.page = 3)
-start(Barcelona_C_PCA_items_ts)
-end(Barcelona_C_PCA_items_ts)
-Tobs(Barcelona_C_PCA_items_ts)
-nseries(Barcelona_C_PCA_items_ts)
-DX <- diff(Barcelona_C_PCA_items_ts, lag=1)
-DX = DX[-1,]
-colMeans(DX)
-sqrt(diag(cov(DX)))
-
-zz <- eigen(cor(DX), symmetric = T)[["values"]]
-print(zz)
-
-# Bruges C
-
-tfplot(Bruges_C_PCA_items_ts,graphs.per.page = 3)
-tfplot(diff(Bruges_C_PCA_items_ts),graphs.per.page = 3)
-start(Bruges_C_PCA_items_ts)
-end(Bruges_C_PCA_items_ts)
-Tobs(Bruges_C_PCA_items_ts)
-nseries(Bruges_C_PCA_items_ts)
-DX <- diff(Bruges_C_PCA_items_ts, lag=1)
-DX = DX[-1,]
-colMeans(DX)
-sqrt(diag(cov(DX)))
-
-zz <- eigen(cor(DX), symmetric = T)[["values"]]
-print(zz)
- 
-# Vienna C
-
-tfplot(Vienna_C_PCA_items_ts,graphs.per.page = 3)
-tfplot(diff(Vienna_C_PCA_items_ts),graphs.per.page = 3)
-start(Vienna_C_PCA_items_ts)                                       
-end(Vienna_C_PCA_items_ts)                                                                                                                                                                                                                                                                   
-Tobs(Vienna_C_PCA_items_ts)
-nseries(Vienna_C_PCA_items_ts)
-DX <- diff(Vienna_C_PCA_items_ts, lag=1)
-DX = DX[-1,]
-colMeans(DX)
-sqrt(diag(cov(DX)))
-
-zz <- eigen(cor(DX), symmetric = T)[["values"]]
-print(zz)
-
 ############ CLUSTER IS NOT GOOD FOR OUR PURPOSE 
 # Perform cluster analysis
 
@@ -685,25 +518,169 @@ ggplot(data = plot_data, aes (x = month, y = value_std)) +
   ggtitle("Wikipedia page views profile by cluster in Vienna (C)") +
   theme(plot.title = element_text(face="bold", size = 15))
 
-##########################################################################################
+#### PRINCIPAL COMPONENT ANALYSIS
 
-############ Build correlogram (too many series yet, cluster before)
+library(xts)
+library(reshape2)
+library(dplyr)
 
-library(corrplot)
+# Barcelona C
 
-M <- cor(Barcelona_items_ts_C)
-corrplot(M, method="circle", type = "upper", order = "hclust")
+Barcelona_items_ts_C_PCA <- Barcelona_reads_in_C %>%
+  group_by(item, time) %>%
+  summarise(value = sum(value))%>%
+  mutate(time = as.Date(ts(1:48, frequency = 12, start = c(2012, 01))))
 
-M <- cor(Barcelona_K_cat_ts)
-corrplot(M, method="circle", type = "upper", order = "hclust")
+Barcelona_C_PCA_items <- dcast(Barcelona_items_ts_C_PCA, time ~ item) %>%
+  mutate(time = as.Date(ts(1:48, frequency = 12, start = c(2012, 01))))
 
-M <- cor(Bruges_C_cat_ts)
-corrplot(M, method="circle", type = "upper", order = "hclust")
+Barcelona_C_PCA_items_ts <- xts(Barcelona_C_PCA_items[,-1], order.by = as.POSIXct(Barcelona_C_PCA_items$time))
+Barcelona_C_PCA_diff <- diff(Barcelona_C_PCA_items_ts, differences=1)
+Barcelona_C_PCA_diff_scaled <- scale(Barcelona_C_PCA_diff)
+Barcelona_C_PCA_diff_scaled = Barcelona_C_PCA_diff_scaled[-1,]
 
-M <- cor(Bruges_F_cat_ts)
-corrplot(M, method="circle", type = "upper", order = "hclust")
+# PCA with diff and scale ts
 
-M <- cor(Vienna_C_cat_ts)
-corrplot(M, method="circle", type = "upper", order = "hclust")
+Barcelona_C_PCA <- prcomp(Barcelona_C_PCA_diff_scaled)
+summary(Barcelona_C_PCA)
+Barcelona_C_PCA$sdev
+
+# DECIDE HOW MANY COMPONENTS
+
+# No. 1: first change in slope in screeplot
+screeplot(Barcelona_C_PCA, type="barplot")
+screeplot(Barcelona_C_PCA, type="lines")
+
+# No. 2: variance of components
+(Barcelona_C_PCA$sdev)^2
+# Using Kaiser's criterion (variance>1), we retain 46 components
+
+# No. 3: decide a percentage of total variance
+
+# Loadings of components
+Barcelona_C_PCA$rotation[,1]
+
+# Bruges C
+
+Bruges_items_ts_C_PCA <- Bruges_reads_in_C %>%
+  group_by(item, time) %>%
+  summarise(value = sum(value))%>%
+  mutate(time = as.Date(ts(1:48, frequency = 12, start = c(2012, 01))))
+
+Bruges_C_PCA_items <- dcast(Bruges_items_ts_C_PCA, time ~ item) %>%
+  mutate(time = as.Date(ts(1:48, frequency = 12, start = c(2012, 01))))
+Bruges_C_PCA_items_ts <- xts(Bruges_C_PCA_items[,-1], order.by = as.POSIXct(Bruges_C_PCA_items$time))
+
+Bruges_C_PCA_diff <- diff(Bruges_C_PCA_items_ts, differences=1)
+Bruges_C_PCA_diff_scaled <- scale(Bruges_C_PCA_diff)
+Bruges_C_PCA_diff_scaled = Bruges_C_PCA_diff_scaled[-1,]
+
+# PCA with diff and scale ts
+
+Bruges_C_PCA <- prcomp(Bruges_C_PCA_diff_scaled)
+summary(Bruges_C_PCA)
+Bruges_C_PCA$sdev
+
+# DECIDE HOW MANY COMPONENTS
+
+# No. 1: first change in slope in screeplot
+screeplot(Bruges_C_PCA, type="barplot")
+screeplot(Bruges_C_PCA, type="lines")
+
+# No. 2: variance of components
+(Bruges_C_PCA$sdev)^2
+# Using Kaiser's criterion (variance>1), we retain 41 components
+
+# No. 3: decide a percentage of total variance
+
+# Loadings of components
+Bruges_C_PCA$rotation[,1]
+
+# Vienna C
+
+Vienna_items_ts_C_PCA <- Vienna_reads_in_C %>%
+  group_by(item, time) %>%
+  summarise(value = sum(value))%>%
+  mutate(time = as.Date(ts(1:48, frequency = 12, start = c(2012, 01))))
+
+Vienna_C_PCA_items <- dcast(Vienna_items_ts_C_PCA, time ~ item) %>%
+  mutate(time = as.Date(ts(1:48, frequency = 12, start = c(2012, 01))))
+Vienna_C_PCA_items_ts <- xts(Vienna_C_PCA_items[,-1], order.by = as.POSIXct(Vienna_C_PCA_items$time))
+
+Vienna_C_PCA_diff <- diff(Vienna_C_PCA_items_ts, differences=1)
+Vienna_C_PCA_diff_scaled <- scale(Vienna_C_PCA_diff)
+Vienna_C_PCA_diff_scaled = Vienna_C_PCA_diff_scaled[-1,]
+
+# PCA with diff and scale ts
+
+Vienna_C_PCA <- prcomp(Vienna_C_PCA_diff_scaled)
+summary(Vienna_C_PCA)
+Vienna_C_PCA$sdev
+
+# DECIDE HOW MANY COMPONENTS
+
+# No. 1: first change in slope in screeplot
+screeplot(Vienna_C_PCA, type="barplot")
+screeplot(Vienna_C_PCA, type="lines")
+
+# No. 2: variance of components
+(Vienna_C_PCA$sdev)^2
+# Using Kaiser's criterion (variance>1), we retain 46 components
+
+# No. 3: decide a percentage of total variance
+
+# Loadings of components
+Vienna_C_PCA$rotation[,1]
+
+### TSFA PACKAGE
+
+library(tsfa)
 
 
+# Barcelona C
+
+tfplot(Barcelona_C_PCA_items_ts,graphs.per.page = 3)
+tfplot(diff(Barcelona_C_PCA_items_ts),graphs.per.page = 3)
+start(Barcelona_C_PCA_items_ts)
+end(Barcelona_C_PCA_items_ts)
+Tobs(Barcelona_C_PCA_items_ts)
+nseries(Barcelona_C_PCA_items_ts)
+DX <- diff(Barcelona_C_PCA_items_ts, lag=1)
+DX = DX[-1,]
+colMeans(DX)
+sqrt(diag(cov(DX)))
+
+zz <- eigen(cor(DX), symmetric = T)[["values"]]
+print(zz)
+
+# Bruges C
+
+tfplot(Bruges_C_PCA_items_ts,graphs.per.page = 3)
+tfplot(diff(Bruges_C_PCA_items_ts),graphs.per.page = 3)
+start(Bruges_C_PCA_items_ts)
+end(Bruges_C_PCA_items_ts)
+Tobs(Bruges_C_PCA_items_ts)
+nseries(Bruges_C_PCA_items_ts)
+DX <- diff(Bruges_C_PCA_items_ts, lag=1)
+DX = DX[-1,]
+colMeans(DX)
+sqrt(diag(cov(DX)))
+
+zz <- eigen(cor(DX), symmetric = T)[["values"]]
+print(zz)
+
+# Vienna C
+
+tfplot(Vienna_C_PCA_items_ts,graphs.per.page = 3)
+tfplot(diff(Vienna_C_PCA_items_ts),graphs.per.page = 3)
+start(Vienna_C_PCA_items_ts)                                       
+end(Vienna_C_PCA_items_ts)                                                                                                                                                                                                                                                                   
+Tobs(Vienna_C_PCA_items_ts)
+nseries(Vienna_C_PCA_items_ts)
+DX <- diff(Vienna_C_PCA_items_ts, lag=1)
+DX = DX[-1,]
+colMeans(DX)
+sqrt(diag(cov(DX)))
+
+zz <- eigen(cor(DX), symmetric = T)[["values"]]
+print(zz)
