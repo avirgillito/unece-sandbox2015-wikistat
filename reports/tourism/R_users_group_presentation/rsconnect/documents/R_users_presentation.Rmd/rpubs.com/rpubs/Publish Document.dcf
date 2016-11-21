@@ -1,0 +1,7 @@
+name: Publish Document
+account: rpubs
+server: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/228629/86c0985fcda14a5baf605805c39519a4
+bundleId: https://api.rpubs.com/api/v1/document/228629/86c0985fcda14a5baf605805c39519a4
+url: http://rpubs.com/serenasignorelli/228629/edit
+when: 1479636373.5587
