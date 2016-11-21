@@ -1134,7 +1134,10 @@ library(htmlwidgets)
 options(scipen=999)
 
 g <- dygraph(Vienna_final_ts_scaled, main = "Vienna (C) pageviews by categories") %>%
-  dyOptions(colors = RColorBrewer::brewer.pal(8, "Dark2")) %>%
+  dyOptions(colors = colorRampPalette(c("violet","purple", "orange","yellow", "red", "green", "blue", "light blue", "pink", "grey","black", "brown"))(24)) %>%
+  dyHighlight(highlightSeriesOpts = list(strokeWidth = 3)) %>%
+  dyRangeSelector(dateWindow = c("2013-01-01", "2014-12-31")) %>%
+  dyLegend(width = 400)
 g
 
 saveWidget(widget = g, file="Vienna_categories.html", selfcontained = FALSE)
@@ -1606,7 +1609,10 @@ library(htmlwidgets)
 options(scipen=999)
 
 g <- dygraph(Barcelona_final_ts_scaled, main = "Barcelona (C) pageviews by categories") %>%
-  dyOptions(colors = RColorBrewer::brewer.pal(8, "Dark2")) 
+  dyOptions(colors = colorRampPalette(c("purple", "orange", "red", "green", "blue", "pink", "grey", "brown"))(15)) %>%
+  dyHighlight(highlightSeriesOpts = list(strokeWidth = 3)) %>%
+  dyRangeSelector(dateWindow = c("2013-01-01", "2014-12-31")) %>%
+  dyLegend(width = 400)
 g
 
 saveWidget(widget = g, file="Barcelona_categories.html", selfcontained = FALSE)
@@ -2059,7 +2065,10 @@ library(htmlwidgets)
 options(scipen=999)
 
 g <- dygraph(Bruges_final_ts_scaled, main = "Bruges (C) pageviews by categories") %>%
-  dyOptions(colors = RColorBrewer::brewer.pal(8, "Dark2")) 
+  dyOptions(colors = colorRampPalette(c("purple", "orange", "red", "green", "blue", "pink", "grey", "brown"))(12)) %>%
+  dyHighlight(highlightSeriesOpts = list(strokeWidth = 3)) %>%
+  dyRangeSelector(dateWindow = c("2013-01-01", "2014-12-31")) %>%
+  dyLegend(width = 400)
 g
 
 saveWidget(widget = g, file="Bruges_categories.html", selfcontained = FALSE)
