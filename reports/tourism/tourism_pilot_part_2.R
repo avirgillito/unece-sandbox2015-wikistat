@@ -644,6 +644,19 @@ g
 
 saveWidget(widget = g, file="Barcelona_C_top_6_lang_ts.html", selfcontained = FALSE)
 
+# scaled series
+
+Barcelona_top_6_lang_ts_C_scaled <- scale(Barcelona_top_6_lang_ts_C)
+
+g <- dygraph(Barcelona_top_6_lang_ts_C_scaled, main = "Barcelona (C) scaled pageviews by top 6 languages") %>%
+  dyOptions(colors = RColorBrewer::brewer.pal(6, "Dark2")) %>%
+  dyHighlight(highlightSeriesOpts = list(strokeWidth = 3)) %>%
+  dyRangeSelector(dateWindow = c("2013-01-01", "2014-12-31")) %>%
+  dyLegend(width = 400)
+g
+
+saveWidget(widget = g, file="Barcelona_C_top_6_lang_ts_scaled.html", selfcontained = FALSE)
+
 # Barcelona K
 
 Barcelona_reads_in_K <- read.csv('./reports/cities/Barcelona_K.csv') %>%
@@ -716,6 +729,20 @@ g <- dygraph(Barcelona_top_6_lang_ts_K, main = "Barcelona (K) pageviews by top 6
 g
 
 saveWidget(widget = g, file="Barcelona_K_top_6_lang_ts.html", selfcontained = FALSE)
+
+# scaled series
+
+Barcelona_top_6_lang_ts_K_scaled <- scale(Barcelona_top_6_lang_ts_K)
+
+g <- dygraph(Barcelona_top_6_lang_ts_K_scaled, main = "Barcelona (K) scaled pageviews by top 6 languages") %>%
+  dyOptions(colors = RColorBrewer::brewer.pal(6, "Dark2")) %>%
+  dyHighlight(highlightSeriesOpts = list(strokeWidth = 3)) %>%
+  dyRangeSelector(dateWindow = c("2013-01-01", "2014-12-31")) %>%
+  dyLegend(width = 400)
+g
+
+saveWidget(widget = g, file="Barcelona_K_top_6_lang_ts_scaled.html", selfcontained = FALSE)
+
 
 # Bruges C
 
@@ -790,6 +817,7 @@ g
 
 saveWidget(widget = g, file="Bruges_C_top_6_lang_ts.html", selfcontained = FALSE)
 
+
 # Bruges F
 
 Bruges_reads_in_F <- read.csv('./reports/cities/Bruges_F.csv') %>%
@@ -863,7 +891,20 @@ g
 
 saveWidget(widget = g, file="Bruges_F_top_6_lang_ts.html", selfcontained = FALSE)
 
-# Vienna C
+# scaled series
+
+Bruges_top_6_lang_ts_F_scaled <- scale(Bruges_top_6_lang_ts_F)
+
+g <- dygraph(Bruges_top_6_lang_ts_F_scaled, main = "Bruges (F) scaled pageviews by top 6 languages") %>%
+  dyOptions(colors = RColorBrewer::brewer.pal(6, "Dark2")) %>%
+  dyHighlight(highlightSeriesOpts = list(strokeWidth = 3)) %>%
+  dyRangeSelector(dateWindow = c("2013-01-01", "2014-12-31")) %>%
+  dyLegend(width = 400)
+g
+
+saveWidget(widget = g, file="Bruges_F_top_6_lang_ts_scaled.html", selfcontained = FALSE)# Vienna C
+
+# Vienna C 
 
 Vienna_reads_in_C <- read.csv('./reports/cities/Vienna_C.csv') %>%
   select(-X)
@@ -935,6 +976,21 @@ g <- dygraph(Vienna_top_6_lang_ts_C, main = "Vienna (C) pageviews by top 6 langu
 g
 
 saveWidget(widget = g, file="Vienna_C_top_6_lang_ts.html", selfcontained = FALSE)
+
+# scaled series
+
+Vienna_top_6_lang_ts_C_scaled <- scale(Vienna_top_6_lang_ts_C)
+
+g <- dygraph(Vienna_top_6_lang_ts_C_scaled, main = "Vienna (C) scaled pageviews by top 6 languages") %>%
+  dyOptions(colors = RColorBrewer::brewer.pal(6, "Dark2")) %>%
+  dyHighlight(highlightSeriesOpts = list(strokeWidth = 3)) %>%
+  dyRangeSelector(dateWindow = c("2013-01-01", "2014-12-31")) %>%
+  dyLegend(width = 400)
+g
+
+saveWidget(widget = g, file="Vienna_C_top_6_lang_ts_scaled.html", selfcontained = FALSE)
+
+
 
 ### Maps with layer per language
 
