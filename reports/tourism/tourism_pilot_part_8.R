@@ -296,8 +296,8 @@ m
 
 # new version
 
-pal <-  c("#636363", "#a1d99b", "#e9a3c9", "#e34a33", "#8c510a", "#1b9e77", "#dd3497", "#74a9cf","#2ca25f", "#7570b3", "#b2182b",  "#fed976", "#02818a", "#8856a7")
-labels <- c( "Buildings", "Culture and art", "High education", "History","Institutions/organizations","Libraries", "Monuments and fountains",  "Museums", "Parks",  "Places of worship",  "Public transport", "Sport", "Streets and districts","Theatres")
+pal <-  c("#636363", "#a1d99b", "#e9a3c9", "#e34a33", "#8c510a",  "#dd3497", "#74a9cf","#2ca25f", "#7570b3", "#b2182b","#1b9e77",  "#fed976", "#02818a", "#8856a7")
+labels <- c( "Buildings", "Culture and art", "High education", "History","Institutions/organizations", "Monuments and fountains",  "Museums", "Parks",  "Places of worship",  "Public transport", "Sagrada Familia", "Sport", "Streets and districts","Theatres")
 
 m <- leaflet(Barcelona_C_final) %>%
   addProviderTiles("CartoDB.Positron", group = "CartoDB")%>%
@@ -312,12 +312,13 @@ m <- leaflet(Barcelona_C_final) %>%
   addCircleMarkers(data = Barcelona_parks_items, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = "#2ca25f", fillOpacity = 0.6, popup = ~link, options =markerOptions(opacity = 0), group = "Parks") %>%
   addCircleMarkers(data = Barcelona_places_of_worship_items, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = "#7570b3", fillOpacity = 0.6, popup = ~link, options =markerOptions(opacity = 0), group = "Places of worship") %>%
   addCircleMarkers(data = Barcelona_public_transport_items, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = "#b2182b", fillOpacity = 0.6, popup = ~link, options =markerOptions(opacity = 0), group = "Public transport") %>%
+  addCircleMarkers(data = Barcelona_sagrada_familia_items, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = "#1b9e77", fillOpacity = 0.6, popup = ~link, options =markerOptions(opacity = 0), group = "Sagrada Familia") %>%
   addCircleMarkers(data = Barcelona_sport_items, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = "#fed976", fillOpacity = 0.6, popup = ~link, options =markerOptions(opacity = 0), group = "Sport") %>%
   addCircleMarkers(data = Barcelona_streets_and_districts_items, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = "#02818a", fillOpacity = 0.6, popup = ~link, options =markerOptions(opacity = 0), group = "Streets and districts") %>%
   addCircleMarkers(data = Barcelona_theatres_items, ~long, ~lat, radius = ~log(value), stroke = F, fillColor = "#8856a7", fillOpacity = 0.6, popup = ~link, options =markerOptions(opacity = 0), group = "Theatres") %>%
   addLegend(position = c("bottomright"), colors = ~pal,  labels = ~labels) %>%
-  addLegend(position = c("topright"), colors = c("snow"),  
-            labels = c("<b>BARCELONA map of points of interest by category</b>")) %>%  
+  addLegend(position = c("topright"), colors = c("snow", "snow"),  
+            labels = c("<b>BARCELONA map of points of interest by category</b>", "<i>Click on the box below for the instructions</i>")) %>%  
   addLegend(position = c("topright"), colors = c("snow", "snow", "snow", "snow", "snow", "snow", "snow", "snow", "snow", "snow"),  
             labels = c("<i>INSTRUCTIONS:</i>", "",
                        "On the bottomleft, choose the layout of the map",
@@ -330,7 +331,7 @@ m <- leaflet(Barcelona_C_final) %>%
             labels = c("<b>The use of Wikipedia for Tourism statistics</b> (EUROSTAT & University of Bergamo)"))%>%
   #addLegend(position = c("topright"), colors = c("snow", "snow"),  labels = c("Welcome to the Eurostat pilot", "the use of Wikipedia for Tourism statistics")) %>%
   addLayersControl(position = c("bottomleft"), baseGroups = c("CartoDB", "Esri World Imagery"),
-                   overlayGroups = c("Buildings", "Culture and art", "High education", "History","Institutions/organizations","Libraries", "Monuments and fountains",  "Museums", "Parks",  "Places of worship",  "Public transport", "Sport", "Streets and districts","Theatres"), options = layersControlOptions(collapsed = FALSE)) #%>%
+                   overlayGroups = c("Buildings", "Culture and art", "High education", "History","Institutions/organizations","Monuments and fountains",  "Museums", "Parks",  "Places of worship",  "Public transport", "Sagrada Familia", "Sport", "Streets and districts","Theatres"), options = layersControlOptions(collapsed = FALSE)) #%>%
 #hideGroup(c("Culture and art","Sport", "Institutions/organizations", "History", "Places of worship", "Public transport", "Streets and districts", "Parks", "Museums",  "Libraries", "Monuments and fountains", "High education", "Theatres"))
 m
 
@@ -2195,89 +2196,92 @@ write.csv(Vienna_high_education_items_3, "Vienna_high_education_items_3.csv", fi
 write.csv(Vienna_bridges_items_3, "Vienna_bridges_items_3.csv", fileEncoding = "UTF-8")
 write.csv(Vienna_theatres_items_3, "Vienna_theatres_items_3.csv", fileEncoding = "UTF-8")
 
-Barcelona_C_final <- read.csv("C:/Users/signose/Desktop/data_for_maps/Barcelona_C_final.csv") %>%
+Barcelona_C_final <- read.csv("C:/Users/signose/Desktop/data_for_maps/Barcelona_C_final.csv", encoding = "UTF-8") %>%
+  select(-X)%>%
+  distinct(item)
+Barcelona_public_transport_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Barcelona_public_transport_items_3.csv", encoding = "UTF-8") %>%
   select(-X)
-Barcelona_public_transport_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Barcelona_public_transport_items_3.csv") %>%
+Barcelona_sport_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Barcelona_sport_items_3.csv", encoding = "UTF-8") %>%
   select(-X)
-Barcelona_sport_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Barcelona_sport_items_3.csv") %>%
+Barcelona_high_education_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Barcelona_high_education_items_3.csv", encoding = "UTF-8") %>%
   select(-X)
-Barcelona_high_education_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Barcelona_high_education_items_3.csv") %>%
+Barcelona_theatres_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Barcelona_theatres_items_3.csv", encoding = "UTF-8") %>%
   select(-X)
-Barcelona_theatres_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Barcelona_theatres_items_3.csv") %>%
+Barcelona_buildings_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Barcelona_buildings_items_3.csv", encoding = "UTF-8") %>%
   select(-X)
-Barcelona_buildings_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Barcelona_buildings_items_3.csv") %>%
+Barcelona_streets_and_districts_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Barcelona_streets_and_districts_items_3.csv", encoding = "UTF-8") %>%
   select(-X)
-Barcelona_streets_and_districts_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Barcelona_streets_and_districts_items_3.csv") %>%
+Barcelona_museums_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Barcelona_museums_items_3.csv", encoding = "UTF-8") %>%
   select(-X)
-Barcelona_museums_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Barcelona_museums_items_3.csv") %>%
+Barcelona_history_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Barcelona_history_items_3.csv", encoding = "UTF-8") %>%
   select(-X)
-Barcelona_history_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Barcelona_history_items_3.csv") %>%
+Barcelona_institutions_organizations_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Barcelona_institutions_organizations_items_3.csv", encoding = "UTF-8") %>%
   select(-X)
-Barcelona_institutions_organizations_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Barcelona_institutions_organizations_items_3.csv") %>%
+Barcelona_monuments_and_fountains_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Barcelona_monuments_and_fountains_items_3.csv", encoding = "UTF-8") %>%
   select(-X)
-Barcelona_monuments_and_fountains_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Barcelona_monuments_and_fountains_items_3.csv") %>%
+Barcelona_parks_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Barcelona_parks_items_3.csv", encoding = "UTF-8") %>%
   select(-X)
-Barcelona_parks_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Barcelona_parks_items_3.csv") %>%
-  select(-X)
-Barcelona_places_of_worship_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Barcelona_places_of_worship_items_3.csv") %>%
-  select(-X)
-
-Bruges_C_final <- read.csv("C:/Users/signose/Desktop/data_for_maps/Bruges_C_final.csv") %>%
-  select(-X)
-Bruges_public_transport_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Bruges_public_transport_items_3.csv") %>%
-  select(-X)
-Bruges_streets_and_streams_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Bruges_streets_and_streams_items_3.csv") %>%
-  select(-X)
-Bruges_libraries_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Bruges_libraries_items_3.csv") %>%
-  select(-X)
-Bruges_buildings_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Bruges_buildings_items_3.csv") %>%
-  select(-X)
-Bruges_high_education_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Bruges_high_education_items_3.csv") %>%
-  select(-X)
-Bruges_companies_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Bruges_companies_items_3.csv") %>%
-  select(-X)
-Bruges_bridges_and_canals_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Bruges_bridges_and_canals_items_3.csv") %>%
-  select(-X)
-Bruges_sport_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Bruges_sport_items_3.csv") %>%
-  select(-X)
-Bruges_districts_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Bruges_districts_items_3.csv") %>%
-  select(-X)
-Bruges_places_of_worship_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Bruges_places_of_worship_items_3.csv") %>%
-  select(-X)
-Bruges_museums_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Bruges_museums_items_3.csv") %>%
+Barcelona_places_of_worship_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Barcelona_places_of_worship_items_3.csv", encoding = "UTF-8") %>%
   select(-X)
 
-Vienna_C_final <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_C_final.csv") %>%
+Bruges_C_final <- read.csv("C:/Users/signose/Desktop/data_for_maps/Bruges_C_final.csv", encoding = "UTF-8") %>%
+  select(-X, -wm) %>%
+  distinct(item)
+Bruges_public_transport_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Bruges_public_transport_items_3.csv", encoding = "UTF-8") %>%
   select(-X)
-Vienna_sport_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_sport_items_3.csv") %>%
+Bruges_streets_and_streams_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Bruges_streets_and_streams_items_3.csv", encoding = "UTF-8") %>%
   select(-X)
-Vienna_institutions_organizations_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_institutions_organizations_items_3.csv") %>%
+Bruges_libraries_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Bruges_libraries_items_3.csv", encoding = "UTF-8") %>%
   select(-X)
-Vienna_history_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_history_items_3.csv") %>%
+Bruges_buildings_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Bruges_buildings_items_3.csv", encoding = "UTF-8") %>%
   select(-X)
-Vienna_places_of_worship_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_places_of_worship_items_3.csv") %>%
+Bruges_high_education_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Bruges_high_education_items_3.csv", encoding = "UTF-8") %>%
   select(-X)
-Vienna_companies_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_companies_items_3.csv") %>%
+Bruges_companies_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Bruges_companies_items_3.csv", encoding = "UTF-8") %>%
   select(-X)
-Vienna_bus_stops_and_stations_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_bus_stops_and_stations_items_3.csv") %>%
+Bruges_bridges_and_canals_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Bruges_bridges_and_canals_items_3.csv", encoding = "UTF-8") %>%
   select(-X)
-Vienna_streets_and_squares_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_streets_and_squares_items_3.csv") %>%
+Bruges_sport_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Bruges_sport_items_3.csv", encoding = "UTF-8") %>%
   select(-X)
-Vienna_rivers_and_parks_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_rivers_and_parks_items_3.csv") %>%
+Bruges_districts_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Bruges_districts_items_3.csv", encoding = "UTF-8") %>%
   select(-X)
-Vienna_museums_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_museums_items_3.csv") %>%
+Bruges_places_of_worship_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Bruges_places_of_worship_items_3.csv", encoding = "UTF-8") %>%
   select(-X)
-Vienna_buildings_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_buildings_items_3.csv") %>%
+Bruges_museums_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Bruges_museums_items_3.csv", encoding = "UTF-8") %>%
   select(-X)
-Vienna_libraries_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_libraries_items_3.csv") %>%
+
+Vienna_C_final <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_C_final.csv", encoding = "UTF-8") %>%
+  select(-X, -wm) %>%
+  distinct(item)
+Vienna_sport_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_sport_items_3.csv", encoding = "UTF-8", encoding = "UTF-8") %>%
   select(-X)
-Vienna_statues_and_fountains_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_statues_and_fountains_items_3.csv") %>%
+Vienna_institutions_organizations_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_institutions_organizations_items_3.csv", encoding = "UTF-8") %>%
   select(-X)
-Vienna_high_education_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_high_education_items_3.csv") %>%
+Vienna_history_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_history_items_3.csv", encoding = "UTF-8") %>%
   select(-X)
-Vienna_bridges_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_bridges_items_3.csv") %>%
+Vienna_places_of_worship_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_places_of_worship_items_3.csv", encoding = "UTF-8") %>%
   select(-X)
-Vienna_theatres_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_theatres_items_3.csv") %>%
+Vienna_companies_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_companies_items_3.csv", encoding = "UTF-8") %>%
+  select(-X)
+Vienna_bus_stops_and_stations_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_bus_stops_and_stations_items_3.csv", encoding = "UTF-8") %>%
+  select(-X)
+Vienna_streets_and_squares_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_streets_and_squares_items_3.csv", encoding = "UTF-8") %>%
+  select(-X)
+Vienna_rivers_and_parks_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_rivers_and_parks_items_3.csv", encoding = "UTF-8") %>%
+  select(-X)
+Vienna_museums_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_museums_items_3.csv", encoding = "UTF-8") %>%
+  select(-X)
+Vienna_buildings_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_buildings_items_3.csv", encoding = "UTF-8") %>%
+  select(-X)
+Vienna_libraries_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_libraries_items_3.csv", encoding = "UTF-8") %>%
+  select(-X)
+Vienna_statues_and_fountains_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_statues_and_fountains_items_3.csv", encoding = "UTF-8") %>%
+  select(-X)
+Vienna_high_education_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_high_education_items_3.csv", encoding = "UTF-8") %>%
+  select(-X)
+Vienna_bridges_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_bridges_items_3.csv", encoding = "UTF-8") %>%
+  select(-X)
+Vienna_theatres_items_3 <- read.csv("C:/Users/signose/Desktop/data_for_maps/Vienna_theatres_items_3.csv", encoding = "UTF-8") %>%
   select(-X)
 
 
